@@ -3,9 +3,11 @@ package com.trillion.tikitaka.global.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.authentication.application.CustomUserDetailsService;
 import com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter;
+import com.trillion.tikitaka.authentication.application.filter.CustomLogoutFilter;
 import com.trillion.tikitaka.authentication.application.filter.JwtFilter;
 import com.trillion.tikitaka.authentication.application.handler.*;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
+import com.trillion.tikitaka.authentication.infrastructure.JwtTokenRepository;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +33,7 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final JwtTokenRepository jwtTokenRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -48,6 +51,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
 
+                .addFilterAt(customLogoutFilter(), LogoutFilter.class)
                 .addFilterAfter(customAuthenticationFilter(), LogoutFilter.class)
                 .addFilterBefore(jwtFilter(), CustomAuthenticationFilter.class)
 
@@ -93,6 +97,11 @@ public class SecurityConfig {
     @Bean
     public JwtFilter jwtFilter() {
         return new JwtFilter(jwtUtil, objectMapper);
+    }
+
+    @Bean
+    public CustomLogoutFilter customLogoutFilter() {
+        return new CustomLogoutFilter(jwtUtil, jwtTokenRepository);
     }
 
     @Bean
