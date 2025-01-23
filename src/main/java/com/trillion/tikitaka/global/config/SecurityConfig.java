@@ -3,9 +3,7 @@ package com.trillion.tikitaka.global.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.authentication.application.CustomUserDetailsService;
 import com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter;
-import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationFailureHandler;
-import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationProvider;
-import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationSuccessHandler;
+import com.trillion.tikitaka.authentication.application.handler.*;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +28,8 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
     private final CustomUserDetailsService userDetailsService;
     private final UserRepository userRepository;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -40,6 +40,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/login", "/registrations", "/reissue").permitAll()
                         .anyRequest().authenticated()
+                )
+
+                .exceptionHandling((exception) -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
 
                 .addFilterAfter(customAuthenticationFilter(), LogoutFilter.class)
