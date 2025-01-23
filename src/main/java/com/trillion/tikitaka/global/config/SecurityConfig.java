@@ -3,6 +3,7 @@ package com.trillion.tikitaka.global.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.authentication.application.CustomUserDetailsService;
 import com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter;
+import com.trillion.tikitaka.authentication.application.filter.JwtFilter;
 import com.trillion.tikitaka.authentication.application.handler.*;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
@@ -48,6 +49,7 @@ public class SecurityConfig {
                 )
 
                 .addFilterAfter(customAuthenticationFilter(), LogoutFilter.class)
+                .addFilterBefore(jwtFilter(), CustomAuthenticationFilter.class)
 
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -86,6 +88,11 @@ public class SecurityConfig {
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(bCryptPasswordEncoder());
         return provider;
+    }
+
+    @Bean
+    public JwtFilter jwtFilter() {
+        return new JwtFilter(jwtUtil, objectMapper);
     }
 
     @Bean

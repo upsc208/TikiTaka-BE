@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.authentication.LockedException;
 
 import java.time.LocalDateTime;
 
@@ -49,6 +48,11 @@ public class User extends DeletedBaseEntity {
         this.email = email;
         this.password = password;
         this.role = role;
+    }
+
+    public User(String username, String role) {
+        this.username = username;
+        this.role = Role.valueOf(role);
     }
 
     public void handleLoginFailure() {
