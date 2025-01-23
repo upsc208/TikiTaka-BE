@@ -99,7 +99,7 @@ public class AuthenticationAuthorizationUnitTests {
 
             // when & then
             assertThatThrownBy(() -> provider.authenticate(token))
-                    .isInstanceOf(UsernameNotFoundException.class);
+                    .isInstanceOf(BadCredentialsException.class);
         }
 
         @Test
