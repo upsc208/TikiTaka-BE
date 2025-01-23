@@ -50,7 +50,7 @@ jobs:
         id: create
         uses: atlassian/gajira-create@v3
         with:
-          project: TRIL # 프로젝트 키
+          project: TKT # 프로젝트 키
           issuetype: Dev # 이슈 타입
           summary: '${{ github.event.issue.title }}'
           description: '${{ steps.md2jira.outputs.output-text }}'
