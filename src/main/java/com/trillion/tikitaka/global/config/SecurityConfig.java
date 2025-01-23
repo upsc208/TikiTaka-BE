@@ -1,13 +1,18 @@
 package com.trillion.tikitaka.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trillion.tikitaka.authentication.application.CustomUserDetailsService;
 import com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter;
 import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationFailureHandler;
+import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationProvider;
 import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationSuccessHandler;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,6 +28,8 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper;
+    private final CustomUserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -45,8 +52,14 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(customAuthenticationProvider());
+    }
+
+    @Bean
     public CustomAuthenticationFilter customAuthenticationFilter() {
         CustomAuthenticationFilter filter = new CustomAuthenticationFilter(objectMapper);
+        filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(customAuthenticationSuccessHandler());
         filter.setAuthenticationFailureHandler(customAuthenticationFailureHandler());
         return filter;
@@ -60,6 +73,14 @@ public class SecurityConfig {
     @Bean
     public CustomAuthenticationFailureHandler customAuthenticationFailureHandler() {
         return new CustomAuthenticationFailureHandler();
+    }
+
+    @Bean
+    public CustomAuthenticationProvider customAuthenticationProvider() {
+        CustomAuthenticationProvider provider = new CustomAuthenticationProvider(userRepository);
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(bCryptPasswordEncoder());
+        return provider;
     }
 
     @Bean
