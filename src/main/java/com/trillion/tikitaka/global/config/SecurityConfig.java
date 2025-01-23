@@ -2,6 +2,7 @@ package com.trillion.tikitaka.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter;
+import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationFailureHandler;
 import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationSuccessHandler;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -47,12 +48,18 @@ public class SecurityConfig {
     public CustomAuthenticationFilter customAuthenticationFilter() {
         CustomAuthenticationFilter filter = new CustomAuthenticationFilter(objectMapper);
         filter.setAuthenticationSuccessHandler(customAuthenticationSuccessHandler());
+        filter.setAuthenticationFailureHandler(customAuthenticationFailureHandler());
         return filter;
     }
 
     @Bean
     public CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler() {
         return new CustomAuthenticationSuccessHandler(jwtUtil);
+    }
+
+    @Bean
+    public CustomAuthenticationFailureHandler customAuthenticationFailureHandler() {
+        return new CustomAuthenticationFailureHandler();
     }
 
     @Bean
