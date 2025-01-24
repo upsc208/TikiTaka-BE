@@ -36,4 +36,11 @@ public class RegistrationController {
 
         return new ApiResponse<>(registrations);
     }
+
+    @PostMapping("/{registrationId}")
+    public ApiResponse<Void> processRegistration(@PathVariable("registrationId") Long registrationId,
+                                                 @RequestParam(value = "status", required = false) RegistrationStatus status) {
+        registrationService.processRegistration(registrationId, status);
+        return new ApiResponse<>(null);
+    }
 }
