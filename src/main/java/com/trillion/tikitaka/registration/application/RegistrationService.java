@@ -5,8 +5,8 @@ import com.trillion.tikitaka.registration.domain.Registration;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
-import com.trillion.tikitaka.registration.exception.DuplicateEmailException;
-import com.trillion.tikitaka.registration.exception.DuplicateUsernameException;
+import com.trillion.tikitaka.registration.exception.DuplicatedEmailException;
+import com.trillion.tikitaka.registration.exception.DuplicatedUsernameException;
 import com.trillion.tikitaka.registration.exception.RegistrationAlreadyProcessedException;
 import com.trillion.tikitaka.registration.exception.RegistrationNotFoundException;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
@@ -31,9 +31,9 @@ public class RegistrationService {
                 registrationRequest.getEmail()
         ).ifPresent((registration) -> {
             if (registration.getUsername().equals(registrationRequest.getUsername())) {
-                throw new DuplicateUsernameException();
+                throw new DuplicatedUsernameException();
             } else if (registration.getEmail().equals(registrationRequest.getEmail())) {
-                throw new DuplicateEmailException();
+                throw new DuplicatedEmailException();
             }
         });
 
