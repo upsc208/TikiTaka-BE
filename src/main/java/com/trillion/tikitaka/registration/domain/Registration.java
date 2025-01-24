@@ -31,17 +31,22 @@ public class Registration extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RegistrationStatus status = RegistrationStatus.PENDING;
 
+    @Column(nullable = true)
+    private String reason;
+
     @Builder
     public Registration(String username, String email) {
         this.username = username;
         this.email = email;
     }
 
-    public void approve() {
+    public void approve(String approveReason) {
         this.status = RegistrationStatus.APPROVED;
+        this.reason = approveReason;
     }
 
-    public void reject() {
+    public void reject(String rejectReason) {
         this.status = RegistrationStatus.REJECTED;
+        this.reason = rejectReason;
     }
 }

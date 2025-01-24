@@ -3,6 +3,7 @@ package com.trillion.tikitaka.registration.application;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.registration.domain.Registration;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
+import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
 import com.trillion.tikitaka.registration.exception.DuplicatedEmailException;
@@ -50,7 +51,7 @@ public class RegistrationService {
     }
 
     @Transactional
-    public void processRegistration(Long registrationId, RegistrationStatus status) {
+    public void processRegistration(Long registrationId, RegistrationStatus status, RegistrationProcessReasonRequest request) {
         Registration registration = registrationRepository.findById(registrationId)
                 .orElseThrow(RegistrationNotFoundException::new);
 
@@ -59,8 +60,8 @@ public class RegistrationService {
         }
 
         switch (status) {
-            case APPROVED -> registration.approve();
-            case REJECTED -> registration.reject();
+            case APPROVED -> registration.approve(request.getReason());
+            case REJECTED -> registration.reject(request.getReason());
             default -> throw new IllegalArgumentException(ErrorCode.INVALID_REQUEST_VALUE.getMessage());
         }
 

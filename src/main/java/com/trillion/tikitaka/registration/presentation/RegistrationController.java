@@ -3,6 +3,7 @@ package com.trillion.tikitaka.registration.presentation;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.registration.application.RegistrationService;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
+import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
 import jakarta.validation.Valid;
@@ -39,8 +40,9 @@ public class RegistrationController {
 
     @PostMapping("/{registrationId}")
     public ApiResponse<Void> processRegistration(@PathVariable("registrationId") Long registrationId,
-                                                 @RequestParam(value = "status", required = false) RegistrationStatus status) {
-        registrationService.processRegistration(registrationId, status);
+                                                 @RequestParam(value = "status", required = false) RegistrationStatus status,
+                                                 @RequestBody @Valid RegistrationProcessReasonRequest request) {
+        registrationService.processRegistration(registrationId, status, request);
         return new ApiResponse<>(null);
     }
 }
