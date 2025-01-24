@@ -3,6 +3,7 @@ package com.trillion.tikitaka.registration;
 import com.trillion.tikitaka.registration.application.RegistrationService;
 import com.trillion.tikitaka.registration.domain.Registration;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
+import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
 import com.trillion.tikitaka.registration.exception.DuplicatedEmailException;
@@ -187,8 +188,10 @@ class RegistrationServiceTest {
             when(registrationRepository.findById(notExistingId))
                     .thenReturn(Optional.empty());
 
+            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("error reason");
+
             // when & then
-            assertThatThrownBy(() -> registrationService.processRegistration(notExistingId, RegistrationStatus.APPROVED))
+            assertThatThrownBy(() -> registrationService.processRegistration(notExistingId, RegistrationStatus.APPROVED, request))
                     .isInstanceOf(RegistrationNotFoundException.class);
         }
 
@@ -200,13 +203,15 @@ class RegistrationServiceTest {
                     .username("user.test")
                     .email("user@email.com")
                     .build();
-            existing.approve();
+            existing.approve("approve reason");
+
+            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("approve reason");
 
             when(registrationRepository.findById(1L))
                     .thenReturn(Optional.of(existing));
 
             // when & then
-            assertThatThrownBy(() -> registrationService.processRegistration(1L, RegistrationStatus.APPROVED))
+            assertThatThrownBy(() -> registrationService.processRegistration(1L, RegistrationStatus.APPROVED, request))
                     .isInstanceOf(RegistrationAlreadyProcessedException.class);
         }
 
@@ -219,11 +224,13 @@ class RegistrationServiceTest {
                     .email("pending@user")
                     .build();
 
+            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("approve reason");
+
             when(registrationRepository.findById(1L))
                     .thenReturn(Optional.of(pending));
 
             // when
-            registrationService.processRegistration(1L, RegistrationStatus.APPROVED);
+            registrationService.processRegistration(1L, RegistrationStatus.APPROVED, request);
 
             // then
             assertThat(pending.getStatus()).isEqualTo(RegistrationStatus.APPROVED);
@@ -238,11 +245,13 @@ class RegistrationServiceTest {
                     .email("pending@user")
                     .build();
 
+            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("reject reason");
+
             when(registrationRepository.findById(1L))
                     .thenReturn(Optional.of(pending));
 
             // when
-            registrationService.processRegistration(1L, RegistrationStatus.REJECTED);
+            registrationService.processRegistration(1L, RegistrationStatus.REJECTED, request);
 
             // then
             assertThat(pending.getStatus()).isEqualTo(RegistrationStatus.REJECTED);
