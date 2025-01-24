@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/login", "/registrations", "/reissue").permitAll()
+                        .requestMatchers("/registrations/list", "/registrations/{registrationId}").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
 
