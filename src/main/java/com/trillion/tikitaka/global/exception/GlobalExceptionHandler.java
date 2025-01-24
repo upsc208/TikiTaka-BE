@@ -3,8 +3,11 @@ package com.trillion.tikitaka.global.exception;
 import com.trillion.tikitaka.global.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
@@ -16,6 +19,44 @@ public class GlobalExceptionHandler {
                 e.getErrorCode().getHttpStatus(),
                 e.getErrorCode().getErrorCode(),
                 e.getErrorCode().getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> String.format("%s: %s", fieldError.getField(), fieldError.getDefaultMessage()))
+                .findFirst()
+                .orElse(ErrorCode.INVALID_REQUEST_VALUE.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                ErrorCode.INVALID_REQUEST_VALUE.getHttpStatus(),
+                ErrorCode.INVALID_REQUEST_VALUE.getErrorCode(),
+                errorMessage
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(HandlerMethodValidationException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                ErrorCode.INVALID_REQUEST_VALUE.getHttpStatus(),
+                ErrorCode.INVALID_REQUEST_VALUE.getErrorCode(),
+                ErrorCode.INVALID_REQUEST_VALUE.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                ErrorCode.MISSING_REQUEST_PARAMETER.getHttpStatus(),
+                ErrorCode.MISSING_REQUEST_PARAMETER.getErrorCode(),
+                ErrorCode.MISSING_REQUEST_PARAMETER.getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
