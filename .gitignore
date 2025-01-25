@@ -37,4 +37,4 @@ out/
 .vscode/
 
 **/application-local.yml
-**/makeUser.java
+**/makeUser.java.DS_Store
