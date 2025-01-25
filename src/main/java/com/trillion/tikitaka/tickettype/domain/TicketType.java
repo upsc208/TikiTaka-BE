@@ -1,22 +1,18 @@
 package com.trillion.tikitaka.tickettype.domain;
 
 import com.trillion.tikitaka.global.common.BaseEntity;
-import com.trillion.tikitaka.tickettype.exception.DefaultTicketTypeUnchangeableException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
+import org.springframework.transaction.TransactionSystemException;
 
 @Entity
 @Table(name = "ticket_types")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TicketType extends BaseEntity {
-
-    private static final List<String> DEFAULT_TICKET_TYPES = List.of("생성", "변경", "삭제", "기타");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +24,9 @@ public class TicketType extends BaseEntity {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(nullable = false)
+    private boolean defaultType = false;
+
     @Builder
     public TicketType(String name) {
         this.name = name;
@@ -35,8 +34,8 @@ public class TicketType extends BaseEntity {
 
     @PreUpdate
     private void preventDefaultTypeUpdate() {
-        if (DEFAULT_TICKET_TYPES.contains(this.name)) {
-            throw new DefaultTicketTypeUnchangeableException();
+        if (this.defaultType) {
+            throw new TransactionSystemException("기본 티켓 유형은 변경할 수 없습니다.");
         }
     }
 
