@@ -3,6 +3,7 @@ package com.trillion.tikitaka.global.exception;
 import com.trillion.tikitaka.global.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -69,6 +70,19 @@ public class GlobalExceptionHandler {
                 ErrorCode.INVALID_ARGUMENT_TYPE.getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<ErrorResponse> handleTransactionSystemException(TransactionSystemException e) {
+        Throwable rootCause = e.getRootCause();
+        String errorMessage = (rootCause != null) ? rootCause.getMessage() : e.getMessage();
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus(),
+                ErrorCode.INTERNAL_SERVER_ERROR.getErrorCode(),
+                errorMessage
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
