@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/registrations", "/reissue").permitAll()
+                        .requestMatchers("/login", "/registrations", "/reissue","/ticket/create").permitAll()
                         .requestMatchers("/registrations/list", "/registrations/{registrationId}").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
