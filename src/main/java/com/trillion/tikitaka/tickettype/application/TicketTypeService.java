@@ -1,6 +1,5 @@
 package com.trillion.tikitaka.tickettype.application;
 
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.dto.response.TicketTypeListResponse;
 import com.trillion.tikitaka.tickettype.exception.DuplicatedTicketTypeException;
@@ -33,13 +32,9 @@ public class TicketTypeService {
         ticketTypeRepository.save(ticketType);
     }
 
-    public List<TicketTypeListResponse> getTicketTypes(Boolean active, CustomUserDetails userDetails) {
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+    public List<TicketTypeListResponse> getTicketTypes() {
 
-        if (!isAdmin) active = true;
-
-        return ticketTypeRepository.getTicketTypes(active);
+        return ticketTypeRepository.getTicketTypes();
     }
 
     @Transactional

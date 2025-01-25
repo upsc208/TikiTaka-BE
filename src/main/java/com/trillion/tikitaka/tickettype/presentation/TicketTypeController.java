@@ -1,13 +1,11 @@
 package com.trillion.tikitaka.tickettype.presentation;
 
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.tickettype.application.TicketTypeService;
 import com.trillion.tikitaka.tickettype.dto.request.TicketTypeRequest;
 import com.trillion.tikitaka.tickettype.dto.response.TicketTypeListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,10 +24,8 @@ public class TicketTypeController {
     }
 
     @GetMapping("/list")
-    public ApiResponse<List<TicketTypeListResponse>> getTicketTypes(
-            @RequestParam(value = "active", required = false) Boolean active,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<TicketTypeListResponse> ticketTypes = ticketTypeService.getTicketTypes(active, userDetails);
+    public ApiResponse<List<TicketTypeListResponse>> getTicketTypes() {
+        List<TicketTypeListResponse> ticketTypes = ticketTypeService.getTicketTypes();
         return new ApiResponse<>(ticketTypes);
     }
 

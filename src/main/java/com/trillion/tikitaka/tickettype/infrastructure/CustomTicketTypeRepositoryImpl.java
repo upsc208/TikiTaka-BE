@@ -17,15 +17,13 @@ public class CustomTicketTypeRepositoryImpl implements CustomTicketTypeRepositor
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TicketTypeListResponse> getTicketTypes(Boolean active) {
-
+    public List<TicketTypeListResponse> getTicketTypes() {
         return queryFactory
                 .select(new QTicketTypeListResponse(
                         ticketType.id.as("typeId"),
                         ticketType.name.as("typeName")
                 ))
                 .from(ticketType)
-                .where(activeEq(active))
                 .fetch();
     }
 
@@ -46,10 +44,5 @@ public class CustomTicketTypeRepositoryImpl implements CustomTicketTypeRepositor
 
     private static BooleanExpression typeNameEq(String name) {
         return ticketType.name.eq(name);
-    }
-
-    private BooleanExpression activeEq(Boolean active) {
-        if (active == null) return null;
-        return active ? ticketType.active.isTrue() : ticketType.active.isFalse();
     }
 }
