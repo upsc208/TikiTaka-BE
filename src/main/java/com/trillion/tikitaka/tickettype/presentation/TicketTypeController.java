@@ -3,7 +3,7 @@ package com.trillion.tikitaka.tickettype.presentation;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.tickettype.application.TicketTypeService;
-import com.trillion.tikitaka.tickettype.dto.request.TicketTypeCreateRequest;
+import com.trillion.tikitaka.tickettype.dto.request.TicketTypeRequest;
 import com.trillion.tikitaka.tickettype.dto.response.TicketTypeListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class TicketTypeController {
     private final TicketTypeService ticketTypeService;
 
     @PostMapping
-    public ApiResponse<Void> createTicketType(@RequestBody @Valid TicketTypeCreateRequest request) {
+    public ApiResponse<Void> createTicketType(@RequestBody @Valid TicketTypeRequest request) {
         ticketTypeService.createTicketType(request.getTypeName());
         return new ApiResponse<>(null);
     }
@@ -31,5 +31,12 @@ public class TicketTypeController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<TicketTypeListResponse> ticketTypes = ticketTypeService.getTicketTypes(active, userDetails);
         return new ApiResponse<>(ticketTypes);
+    }
+
+    @PatchMapping("/{typeId}")
+    public ApiResponse<Void> updateTicketType(@PathVariable("typeId") Long typeId,
+                                              @RequestBody @Valid TicketTypeRequest request) {
+        ticketTypeService.updateTicketType(typeId, request.getTypeName());
+        return new ApiResponse<>(null);
     }
 }

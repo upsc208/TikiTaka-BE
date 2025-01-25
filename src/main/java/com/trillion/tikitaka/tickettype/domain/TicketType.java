@@ -39,4 +39,8 @@ public class TicketType extends BaseEntity {
             throw new DefaultTicketTypeUnchangeableException();
         }
     }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }

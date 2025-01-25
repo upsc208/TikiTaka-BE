@@ -9,7 +9,7 @@ import org.hibernate.validator.constraints.Length;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TicketTypeCreateRequest {
+public class TicketTypeRequest {
 
     @NotBlank(message = "티켓 유형명은 필수입니다.")
     @Length(max = 10, message = "티켓 유형명은 10자 이하여야 합니다.")
