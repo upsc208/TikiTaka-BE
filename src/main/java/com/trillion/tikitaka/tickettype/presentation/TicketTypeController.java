@@ -35,4 +35,10 @@ public class TicketTypeController {
         ticketTypeService.updateTicketType(typeId, request.getTypeName());
         return new ApiResponse<>(null);
     }
+
+    @DeleteMapping("/{typeId}")
+    public ApiResponse<Void> deleteTicketType(@PathVariable("typeId") Long typeId) {
+        ticketTypeService.deleteTicketType(typeId);
+        return new ApiResponse<>(null);
+    }
 }

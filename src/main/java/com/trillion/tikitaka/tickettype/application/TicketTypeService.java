@@ -62,4 +62,12 @@ public class TicketTypeService {
 
         ticketType.updateName(typeName);
     }
+
+    @Transactional
+    public void deleteTicketType(Long typeId) {
+        TicketType ticketType = ticketTypeRepository.findById(typeId)
+                .orElseThrow(TicketTypeNotFoundException::new);
+
+        ticketTypeRepository.delete(ticketType);
+    }
 }
