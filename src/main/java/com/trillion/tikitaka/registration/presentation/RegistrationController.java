@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,6 +28,7 @@ public class RegistrationController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Page<RegistrationListResponse>> getRegistrations(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
@@ -39,6 +41,7 @@ public class RegistrationController {
     }
 
     @PostMapping("/{registrationId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Void> processRegistration(@PathVariable("registrationId") Long registrationId,
                                                  @RequestParam(value = "status", required = false) RegistrationStatus status,
                                                  @RequestBody @Valid RegistrationProcessReasonRequest request) {

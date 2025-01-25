@@ -3,6 +3,7 @@ package com.trillion.tikitaka.global.exception;
 import com.trillion.tikitaka.global.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -22,6 +23,16 @@ public class GlobalExceptionHandler {
                 e.getErrorCode().getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                ErrorCode.ACCESS_DENIED.getHttpStatus(),
+                ErrorCode.ACCESS_DENIED.getErrorCode(),
+                ErrorCode.ACCESS_DENIED.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
