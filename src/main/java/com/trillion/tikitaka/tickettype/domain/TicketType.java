@@ -1,18 +1,22 @@
 package com.trillion.tikitaka.tickettype.domain;
 
-import com.trillion.tikitaka.global.common.BaseEntity;
+import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.transaction.TransactionSystemException;
 
 @Entity
-@Table(name = "ticket_types")
+@Table(name = "ticket_types",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"name", "deleted_at"})
+        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TicketType extends BaseEntity {
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE ticket_types SET deleted_at = NOW() WHERE id = ?")
+public class TicketType extends DeletedBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,9 +24,6 @@ public class TicketType extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false)
-    private boolean active = true;
 
     @Column(nullable = false)
     private boolean defaultType = false;
