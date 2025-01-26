@@ -29,9 +29,18 @@ public enum ErrorCode {
     REGISTRATION_NOT_FOUND(HttpStatus.NOT_FOUND, "R003", "계정 등록 요청을 찾을 수 없습니다."),
     REGISTRATION_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "R004", "이미 처리된 계정 등록 요청입니다."),
 
+
+    // Ticket
+    TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "Ti001", "해당 티켓을 찾을 수 없습니다."),
+    UNAUTHORIZED_TICKET_ACCESS(HttpStatus.FORBIDDEN, "Ti002", "티켓에 대한 접근 권한이 없습니다."),
+    INVALID_TICKET_MANAGER(HttpStatus.BAD_REQUEST, "Ti003", "유효하지 않은 담당자 ID입니다."),
+
+
+
     // Ticket Type
     TICKET_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "TT001", "티켓 유형을 찾을 수 없습니다."),
     DUPLICATED_TICKET_TYPE(HttpStatus.CONFLICT, "TT002", "이미 존재하는 티켓 유형입니다.");
+
 
     private final HttpStatus httpStatus;
     private final String errorCode;
