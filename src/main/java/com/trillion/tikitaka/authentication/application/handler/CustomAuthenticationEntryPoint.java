@@ -1,40 +1,32 @@
 package com.trillion.tikitaka.authentication.application.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.global.exception.ErrorCode;
-import com.trillion.tikitaka.global.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-import static com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter.CONTENT_TYPE;
-import static com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter.ENCODING;
-
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final SecurityErrorResponder errorResponder;
 
     @Override
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                ErrorCode.UNAUTHORIZED.getHttpStatus(),
-                ErrorCode.UNAUTHORIZED.getErrorCode(),
-                ErrorCode.UNAUTHORIZED.getMessage()
-        );
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+        Object errorCodeAttr = request.getAttribute("JWT_ERROR_CODE");
+        if (errorCodeAttr instanceof ErrorCode ec) {
+            errorCode = ec;
+        }
 
-        String responseBody = objectMapper.writeValueAsString(errorResponse);
-        response.setContentType(CONTENT_TYPE);
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setCharacterEncoding(ENCODING);
-        response.getWriter().write(responseBody);
+        errorResponder.sendErrorResponse(response, errorCode);
     }
 }
