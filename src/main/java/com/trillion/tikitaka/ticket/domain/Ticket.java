@@ -3,6 +3,8 @@ package com.trillion.tikitaka.ticket.domain;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +14,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "ticket")
+@Table(name = "ticket",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"name", "deleted_at"})
+        })
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE ticket SET deleted_at = NOW() WHERE id = ?")
 public class Ticket extends DeletedBaseEntity {
 
     @Id
@@ -51,8 +58,6 @@ public class Ticket extends DeletedBaseEntity {
     @Column(nullable = false)
     private Boolean urgent = false;
 
-    @Column(nullable = false)
-    private Boolean is_active = true;
 
     public void updateFrom(Ticket updatedTicket) {
         this.title = updatedTicket.title;
@@ -66,13 +71,6 @@ public class Ticket extends DeletedBaseEntity {
         this.requesterId = updatedTicket.requesterId;
         this.managerId = updatedTicket.managerId;
         this.urgent = updatedTicket.urgent;
-    }
-    public void activate() {
-        this.is_active = true;
-    }
-
-    public void deactivate() {
-        this.is_active = false;
     }
 
 
