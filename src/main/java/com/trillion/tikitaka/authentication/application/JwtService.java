@@ -33,11 +33,12 @@ public class JwtService {
             return null;
         }
 
+        Long userId = jwtUtil.getUserId(refreshToken);
         String username = jwtUtil.getUsername(refreshToken);
         String role = jwtUtil.getRole(refreshToken);
 
-        String newAccessToken = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, username, role, ACCESS_TOKEN_EXPIRATION);
-        String newRefreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, username, role, REFRESH_TOKEN_EXPIRATION);
+        String newAccessToken = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, userId, username, role, ACCESS_TOKEN_EXPIRATION);
+        String newRefreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, userId, username, role, REFRESH_TOKEN_EXPIRATION);
 
         jwtTokenRepository.deleteByRefreshToken(refreshToken);
         jwtUtil.addRefreshToken(username, newRefreshToken, REFRESH_TOKEN_EXPIRATION);
