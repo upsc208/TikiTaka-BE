@@ -74,10 +74,11 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private void setAuthentication(String token) {
+        Long userId = jwtUtil.getUserId(token);
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
 
-        CustomUserDetails userDetails = new CustomUserDetails(new User(username, role));
+        CustomUserDetails userDetails = new CustomUserDetails(new User(userId, username, role));
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
         );
