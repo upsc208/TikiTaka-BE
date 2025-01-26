@@ -36,6 +36,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        Long userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
         String username = authentication.getName();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -43,8 +44,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         String role = iterator.next().getAuthority();
 
         // 토큰 생성
-        String accessToken = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, username, role, ACCESS_TOKEN_EXPIRATION);
-        String refreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, username, role, REFRESH_TOKEN_EXPIRATION);
+        String accessToken = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, userId, username, role, ACCESS_TOKEN_EXPIRATION);
+        String refreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, userId, username, role, REFRESH_TOKEN_EXPIRATION);
 
         // Refresh Token 저장
         jwtUtil.addRefreshToken(username, refreshToken, REFRESH_TOKEN_EXPIRATION);
