@@ -27,7 +27,11 @@ public enum ErrorCode {
     DUPLICATED_USERNAME(HttpStatus.CONFLICT, "R001", "이미 사용중인 아이디입니다."),
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "R002", "이미 사용중인 이메일입니다."),
     REGISTRATION_NOT_FOUND(HttpStatus.NOT_FOUND, "R003", "계정 등록 요청을 찾을 수 없습니다."),
-    REGISTRATION_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "R004", "이미 처리된 계정 등록 요청입니다.");
+    REGISTRATION_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "R004", "이미 처리된 계정 등록 요청입니다."),
+
+    // Ticket Type
+    TICKET_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "TT001", "티켓 유형을 찾을 수 없습니다."),
+    DUPLICATED_TICKET_TYPE(HttpStatus.CONFLICT, "TT002", "이미 존재하는 티켓 유형입니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
