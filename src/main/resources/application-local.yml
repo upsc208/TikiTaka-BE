@@ -1,0 +1,38 @@
+
+spring:
+  # db
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:devdb;DB_CLOSE_ON_EXIT=false
+    username: sa
+    password:
+
+  # h2
+  h2:
+    console:                # h2-console 웹에서 접근 가능하도록 설정
+      enabled: true         # h2-console 활성화 여부
+      path: /h2-console     # h2-console 접근 경로
+
+  # jpa
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: true
+        format_sql: true
+
+  # jwt
+  jwt:
+    secret: vmfhadfsdfdfoddfsalkjasdfkhjkhjasdfgdfasdfweirosdfjikaatasdwesdfasdyutvvbncmvrajkhdjklhlkgdhaodsffsabb
+
+# kakaowork
+kakaowork:
+  api:
+    base-url: https://api.kakaowork.com
+    app-key: 2e09d482.cbfede4c3c5a492b9a68d9519cc86455
+
+logging:
+  level:
+    root: info
