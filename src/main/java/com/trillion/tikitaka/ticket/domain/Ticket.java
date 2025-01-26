@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.ticket.domain;
 
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "ticket",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"name", "deleted_at"})
+                @UniqueConstraint(columnNames = {"title", "deleted_at"})
         })
 @SQLRestriction("deleted_at IS NULL")
 @SQLDelete(sql = "UPDATE ticket SET deleted_at = NOW() WHERE id = ?")
@@ -33,15 +34,15 @@ public class Ticket extends DeletedBaseEntity {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-    @Column(nullable = false)
-    private Long typeId;
+    @ManyToOne(fetch = FetchType.LAZY) // 연관 관계 설정
+    @JoinColumn(name = "type_id", nullable = false) // 매핑할 외래 키
+    private TicketType ticketType;
 
     private Long firstCategoryId;
 
@@ -64,7 +65,7 @@ public class Ticket extends DeletedBaseEntity {
         this.description = updatedTicket.description;
         this.priority = updatedTicket.priority;
         this.status = updatedTicket.status;
-        this.typeId = updatedTicket.typeId;
+        this.ticketType = updatedTicket.ticketType;
         this.firstCategoryId = updatedTicket.firstCategoryId;
         this.secondCategoryId = updatedTicket.secondCategoryId;
         this.deadline = updatedTicket.deadline;

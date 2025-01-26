@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @PostMapping("/create")
     public ApiResponse<Void> createTicket(@RequestBody @Valid CreateTicketRequest request) {
         ticketService.createTicket(request);

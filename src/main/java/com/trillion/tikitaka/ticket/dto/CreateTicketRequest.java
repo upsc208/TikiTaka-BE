@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.ticket.dto;
 import com.trillion.tikitaka.ticket.domain.Ticket;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -29,14 +30,11 @@ public class CreateTicketRequest {
     @NotNull(message = "마감일은 필수 항목입니다.")
     private LocalDateTime deadline;
 
-    @Column(nullable = false)
-    private Ticket.Priority priority;
-
     @NotNull
     private Long requesterId;
 
     @NotNull
-    private Long managerId = 2L; //담당자가 없는경우 모든 담당자를 뜻하는 2번을 지정
+    private Long managerId;
 
     @Builder.Default
     private Boolean urgent = false;

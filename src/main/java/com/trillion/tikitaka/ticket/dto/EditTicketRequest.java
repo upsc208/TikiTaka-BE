@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.ticket.dto;
 
 import com.trillion.tikitaka.ticket.domain.Ticket;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -13,34 +14,32 @@ import java.time.LocalDateTime;
 public class EditTicketRequest {
 
 
+        private String title;
 
 
-        private String title; // 제목
+        private String description;
 
 
-        private String description; // 상세 내용
-
-
-        private Ticket.Priority priority; // 우선순위
+        private Ticket.Priority priority;
 
         private Ticket.Status status;
 
-        private Long typeId; // 티켓 유형 ID
+        private TicketType ticketType;
 
-        private Long firstCategoryId; // 1차 카테고리 ID
+        private Long firstCategoryId;
 
-        private Long secondCategoryId; // 2차 카테고리 ID
-
-
-        private LocalDateTime deadline; // 마감일
+        private Long secondCategoryId;
 
 
-        private Long requesterId; // 요청자 ID
+        private LocalDateTime deadline;
+
+
+        private Long requesterId;
 
 
         private Long managerId;
 
-        private Boolean urgent = false; // 긴급 여부
+        private Boolean urgent;
 
 
 

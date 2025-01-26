@@ -9,6 +9,8 @@ import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
 import com.trillion.tikitaka.ticket.exception.InvalidTicketManagerException;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 //import com.trillion.tikitaka.authentication.application.util.JwtUtil;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final TicketTypeRepository ticketTypeRepository;
     //private final JwtUtil jwtUtil;
 
     public Optional<Ticket> findTicketById(Long id) {
@@ -35,6 +38,8 @@ public class TicketService {
     public void createTicket(CreateTicketRequest request) {
 
 
+        TicketType ticketType = ticketTypeRepository.findById(request.getTypeId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid TicketType ID: " + request.getTypeId()));
         Long managerId = request.getManagerId();
 
         if (managerId != null && !userRepository.existsById(managerId)) {
@@ -45,14 +50,13 @@ public class TicketService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .urgent(request.getUrgent() != null ? request.getUrgent() : false)
-                .typeId(request.getTypeId())
+                .ticketType(ticketType)
                 .firstCategoryId(request.getFirstCategoryId())
                 .secondCategoryId(request.getSecondCategoryId())
                 .deadline(request.getDeadline())
                 .requesterId(request.getRequesterId())
                 .managerId(managerId)
                 .status(Ticket.Status.PENDING)
-                .priority(request.getPriority())
                 .build();
 
         ticketRepository.save(ticket);
