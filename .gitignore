@@ -38,4 +38,4 @@ out/
 
 **/application-local.yml
 **/makeUser.java
-.DS_Store
+**/.DS_Store
