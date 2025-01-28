@@ -1,9 +1,11 @@
 package com.trillion.tikitaka.category.application;
 
 import com.trillion.tikitaka.category.domain.Category;
-import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
+import com.trillion.tikitaka.category.exception.DuplicatedCategoryException;
+import com.trillion.tikitaka.category.exception.PrimaryCategoryNotFoundException;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -20,27 +22,19 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public void create(CategoryRequest request) {
-        // 이름 검증
-        validateName(request.getName());
+    public void createCategory(Long parentId, CategoryRequest categoryRequest) {
+        categoryRepository.findByName(categoryRequest.getName())
+                .ifPresent(c -> {
+                    throw new DuplicatedCategoryException();
+                });
 
-        // 중복 체크
-        categoryRepository.findByName(request.getName()).ifPresent(c -> {
-            throw new CustomException(ErrorCode.DUPLICATED_CATEGORY_NAME);
-        });
-
-        // 2차 카테고리면 parentId가 1차 카테고리인지 체크
-        Category parent = null;
-        if (request.getParentCategoryId() != null) {
-            parent = categoryRepository.findByIdAndParentIsNull(request.getParentCategoryId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.PRIMARY_CATEGORY_NOT_FOUND));
+        Category parentCategory = null;
+        if (parentId != null) {
+            parentCategory = categoryRepository.findByIdAndParentIsNull(parentId)
+                    .orElseThrow(PrimaryCategoryNotFoundException::new);
         }
 
-        // 생성
-        Category category = Category.builder()
-                .name(request.getName())
-                .parent(parent)
-                .build();
+        Category category = new Category(categoryRequest.getName(), parentCategory);
         categoryRepository.save(category);
     }
 
