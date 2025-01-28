@@ -3,6 +3,7 @@ package com.trillion.tikitaka.category.application;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
+import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.DuplicatedCategoryException;
 import com.trillion.tikitaka.category.exception.PrimaryCategoryNotFoundException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
@@ -45,29 +46,21 @@ public class CategoryService {
     }
 
     @Transactional
-    public void update(Long categoryId, CategoryRequest request) {
-        validateName(request.getName());
+    public void updateCategory(Long categoryId, CategoryRequest request) {
+        List<Category> categories = categoryRepository.findByIdOrName(categoryId, request.getName());
 
-        // id나 name이 같은 카테고리를 한꺼번에 조회 (중복 체크)
-        List<Category> found = categoryRepository.findByIdOrName(categoryId, request.getName());
+        boolean idExists = categories.stream().anyMatch(category -> category.getId().equals(categoryId));
+        boolean nameExists = categories.stream().anyMatch(category -> category.getName().equals(request.getName()));
 
-        boolean idExists = found.stream().anyMatch(c -> c.getId().equals(categoryId));
-        if (!idExists) {
-            throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
-        }
+        if (!idExists) throw new CategoryNotFoundException();
+        if (nameExists) throw new DuplicatedCategoryException();
 
-        boolean nameExists = found.stream().anyMatch(c -> c.getName().equals(request.getName()));
-        if (nameExists) {
-            throw new CustomException(ErrorCode.DUPLICATED_CATEGORY_NAME);
-        }
-
-        Category target = found.stream()
-                .filter(c -> c.getId().equals(categoryId))
+        Category category = categories.stream()
+                .filter(cat -> cat.getId().equals(categoryId))
                 .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(CategoryNotFoundException::new);
 
-        // 수정
-        target.updateName(request.getName());
+        category.updateName(request.getName());
     }
 
     @Transactional
