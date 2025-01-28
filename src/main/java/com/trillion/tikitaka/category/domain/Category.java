@@ -45,10 +45,6 @@ public class Category extends DeletedBaseEntity {
         this.parent = parent;
     }
 
-    public boolean isChildOf(Category parentCategory) {
-        return this.parent != null && this.parent.equals(parentCategory);
-    }
-
     public void updateName(String newName) {
         this.name = newName;
     }

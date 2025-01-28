@@ -4,16 +4,15 @@ import com.trillion.tikitaka.category.application.CategoryService;
 import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.global.response.ApiResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 컨트롤러 예시: Admin 권한만 접근할 수 있다고 가정
- */
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
@@ -21,34 +20,33 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createCategory(@RequestBody CategoryRequest request) {
-        categoryService.create(request);
-        return ResponseEntity.ok(ApiResponse.success(null));
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> createCategory(@RequestParam(value = "parentId", required = false) Long parentId,
+                                            @RequestBody @Valid CategoryRequest categoryRequest) {
+        categoryService.createCategory(parentId, categoryRequest);
+        return new ApiResponse<>(null);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        List<CategoryResponse> list = categoryService.getCategories();
-        return ResponseEntity.ok(ApiResponse.success(list));
+    @GetMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    public ApiResponse<List<CategoryResponse>> getCategories(@RequestParam(value = "level", required = true) @Min(1) @Max(2) int level) {
+        List<CategoryResponse> categories = categoryService.getCategories(level);
+        return new ApiResponse<>(categories);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<Void>> updateCategory(
-            @PathVariable Long categoryId,
-            @RequestBody CategoryRequest request
-    ) {
-        categoryService.update(categoryId, request);
-        return ResponseEntity.ok(ApiResponse.success(null));
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> updateCategory(@PathVariable("categoryId") Long categoryId,
+                                            @RequestBody @Valid CategoryRequest categoryRequest) {
+        categoryService.updateCategory(categoryId, categoryRequest);
+        return new ApiResponse<>(null);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long categoryId) {
-        categoryService.delete(categoryId);
-        return ResponseEntity.ok(ApiResponse.success(null));
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> deleteCategory(@PathVariable("categoryId") Long categoryId) {
+        categoryService.deleteCategory(categoryId);
+        return new ApiResponse<>(null);
     }
 }
