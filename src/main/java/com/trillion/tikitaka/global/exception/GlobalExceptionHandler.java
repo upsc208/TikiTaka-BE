@@ -1,10 +1,8 @@
 package com.trillion.tikitaka.global.exception;
 
 import com.trillion.tikitaka.global.response.ErrorResponse;
-import com.trillion.tikitaka.category.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,10 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import com.trillion.tikitaka.category.exception.CategoryDuplicateException;
-import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
-import com.trillion.tikitaka.category.exception.CategoryInvalidParentException;
-import com.trillion.tikitaka.category.exception.CategoryNameInvalidException;
 
 
 @RestControllerAdvice
@@ -112,33 +106,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    @ExceptionHandler(DuplicatedCategoryException.class)
-    public ResponseEntity<?> handleDuplicated(DuplicatedCategoryException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ex.getMessage());
-    }
 
-    @ExceptionHandler(CategoryNotFoundException.class)
-    public ResponseEntity<?> handleNotFound(CategoryNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ex.getMessage());
-    }
-
-    @ExceptionHandler(InvalidCategoryNameException.class)
-    public ResponseEntity<?> handleInvalidName(InvalidCategoryNameException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ex.getMessage());
-    }
-
-    @ExceptionHandler(PrimaryCategoryNotFoundException.class)
-    public ResponseEntity<?> handlePrimaryNotFound(PrimaryCategoryNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ex.getMessage());
-    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleOther(RuntimeException ex) {

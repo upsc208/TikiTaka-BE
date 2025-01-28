@@ -21,6 +21,7 @@ public abstract class DeletedBaseEntity {
         this.deletedAt = deletedAt;
     }
 
+
     // isDeleted 체크 등 확장 가능
     public boolean isDeleted() {
         return this.deletedAt != null;

@@ -5,15 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 카테고리 생성에 사용할 DTO
- * - 예: { "name": "DNS" }
+ * 생성/수정 시 Body로 사용하는 DTO 예시
+ *  ex) {"name": "DNS", "parentCategoryId": 1}
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryRequest {
     private String name;
+    private Long parentCategoryId;
 }
-
-
-

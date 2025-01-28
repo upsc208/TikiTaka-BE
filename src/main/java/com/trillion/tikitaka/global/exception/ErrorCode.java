@@ -31,7 +31,12 @@ public enum ErrorCode {
 
     // Ticket Type
     TICKET_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "TT001", "티켓 유형을 찾을 수 없습니다."),
-    DUPLICATED_TICKET_TYPE(HttpStatus.CONFLICT, "TT002", "이미 존재하는 티켓 유형입니다.");
+    DUPLICATED_TICKET_TYPE(HttpStatus.CONFLICT, "TT002", "이미 존재하는 티켓 유형입니다."),
+
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CAT001", "카테고리를 찾을 수 없습니다."),
+    DUPLICATED_CATEGORY_NAME(HttpStatus.CONFLICT, "CAT002", "이미 존재하는 카테고리 이름입니다."),
+    PRIMARY_CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "CAT003", "유효한 1차 카테고리를 찾을 수 없습니다."),
+    INVALID_CATEGORY_NAME(HttpStatus.BAD_REQUEST, "CAT004", "카테고리 이름은 25자 이하의 유효한 문자열이어야 합니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
