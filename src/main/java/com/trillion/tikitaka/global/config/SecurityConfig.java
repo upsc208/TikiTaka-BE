@@ -36,6 +36,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final JwtTokenRepository jwtTokenRepository;
+    private final SecurityErrorResponder securityErrorResponder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -44,8 +45,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/login", "/registrations", "/reissue").permitAll()
-                        .anyRequest().authenticated()
+.requestMatchers("/login", "/registrations", "/reissue").permitAll()
+.anyRequest().authenticated()
+
                 )
 
                 .exceptionHandling((exception) -> exception
@@ -85,7 +87,7 @@ public class SecurityConfig {
 
     @Bean
     public CustomAuthenticationFailureHandler customAuthenticationFailureHandler() {
-        return new CustomAuthenticationFailureHandler();
+        return new CustomAuthenticationFailureHandler(securityErrorResponder);
     }
 
     @Bean
@@ -98,7 +100,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtFilter jwtFilter() {
-        return new JwtFilter(jwtUtil, objectMapper);
+        return new JwtFilter(jwtUtil);
     }
 
     @Bean

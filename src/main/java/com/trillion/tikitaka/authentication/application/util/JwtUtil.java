@@ -46,6 +46,10 @@ public class JwtUtil {
         return parseClaims(token).get("type", String.class);
     }
 
+    public Long getUserId(String token) {
+        return parseClaims(token).get("id", Long.class);
+    }
+
     public String getUsername(String token) {
         return parseClaims(token).get("username", String.class);
     }
@@ -58,9 +62,10 @@ public class JwtUtil {
         return parseClaims(token).getExpiration().before(new Date());
     }
 
-    public String createJwtToken(String type, String username, String role, Long expiredMs) {
+    public String createJwtToken(String type, Long userId, String username, String role, Long expiredMs) {
         return Jwts.builder()
                 .claim("type", type)
+                .claim("id", userId)
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))

@@ -1,9 +1,7 @@
 package com.trillion.tikitaka.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.trillion.tikitaka.authentication.application.handler.CustomAccessDeniedHandler;
-import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationEntryPoint;
-import com.trillion.tikitaka.authentication.application.handler.CustomAuthenticationProvider;
+import com.trillion.tikitaka.authentication.application.handler.*;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.authentication.infrastructure.JwtTokenRepository;
@@ -212,7 +210,7 @@ public class AuthenticationAuthorizationUnitTests {
         @DisplayName("JWT 토큰이 정상적으로 생성되고, 만료되지 않았으며, 타입이 올바르게 확인된다.")
         void should_BeValid_when_TokenCorrectlyCreated() {
             // given
-            String token = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, "testUser", "ROLE_USER", 10000L);
+            String token = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, 1L, "testUser", "ROLE_USER", 10000L);
 
             // when
             boolean expired = jwtUtil.isExpired(token);
@@ -227,7 +225,7 @@ public class AuthenticationAuthorizationUnitTests {
         @DisplayName("만료된 토큰으로 요청했을 때 토큰 만료 예외가 발생한다.")
         void should_ThrowTokenExpiredException_when_TokenExpired() throws InterruptedException {
             // given
-            String token = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, "testUser", "ROLE_USER", 150L);
+            String token = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, 1L, "testUser", "ROLE_USER", 150L);
             Thread.sleep(150);
 
             //when & then
@@ -250,7 +248,7 @@ public class AuthenticationAuthorizationUnitTests {
         @DisplayName("서명이 다른 토큰으로 요청했을 때 토큰 서명 예외가 발생한다.")
         void should_SignatureException_when_TokenInvalid() {
             // given
-            String token = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, "testUser", "ROLE_USER", 10000L);
+            String token = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, 1L, "testUser", "ROLE_USER", 10000L);
             jwtUtil = new JwtUtil("differentTestSecretKeyForJwtShouldBeLongEnough1234thisIsASecretKeyForUnitTestForTokenUsage", jwtTokenRepository);
 
             // when & then
@@ -263,8 +261,16 @@ public class AuthenticationAuthorizationUnitTests {
     @DisplayName("인증/인가 테스트")
     class DescribeAuthenticationAuthorization {
 
-        private final CustomAuthenticationEntryPoint entryPoint = new CustomAuthenticationEntryPoint();
-        private final CustomAccessDeniedHandler accessDeniedHandler = new CustomAccessDeniedHandler();
+        private SecurityErrorResponder errorResponder;
+        private CustomAuthenticationEntryPoint entryPoint;
+        private CustomAccessDeniedHandler accessDeniedHandler;
+
+        @BeforeEach
+        void setUp() {
+            this.errorResponder = new SecurityErrorResponderImpl();
+            entryPoint = new CustomAuthenticationEntryPoint(errorResponder);
+            accessDeniedHandler = new CustomAccessDeniedHandler(errorResponder);
+        }
 
         @Test
         @DisplayName("인증되지 않은 사용자가 접근시 401 UNAUTHORIZED 응답을 반환한다.")

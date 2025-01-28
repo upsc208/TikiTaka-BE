@@ -6,23 +6,33 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"username", "deleted_at"}),
+                @UniqueConstraint(columnNames = {"email", "deleted_at"})
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
 public class User extends DeletedBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(nullable = false, length = 30)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
@@ -50,7 +60,8 @@ public class User extends DeletedBaseEntity {
         this.role = role;
     }
 
-    public User(String username, String role) {
+    public User(Long userId, String username, String role) {
+        this.id = userId;
         this.username = username;
         this.role = Role.valueOf(role);
     }
@@ -74,7 +85,8 @@ public class User extends DeletedBaseEntity {
         this.lastLoginAt = time;
     }
 
-    public void updateLastPasswordChangedAt(LocalDateTime time) {
-        this.lastPasswordChangedAt = time;
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+        this.lastPasswordChangedAt = LocalDateTime.now();
     }
 }
