@@ -38,6 +38,9 @@ public class CategoryService {
     }
 
     public List<CategoryResponse> getCategories(Long parentId) {
+        categoryRepository.findById(parentId)
+                .orElseThrow(CategoryNotFoundException::new);
+
         return categoryRepository.getCategories(parentId);
     }
 
