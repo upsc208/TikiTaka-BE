@@ -1,30 +1,26 @@
 package com.trillion.tikitaka.ticket.application;
 
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
-import com.trillion.tikitaka.global.exception.CustomException;
-import com.trillion.tikitaka.global.exception.ErrorCode;
-import com.trillion.tikitaka.registration.exception.DuplicatedUsernameException;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.CreateTicketRequest;
 import com.trillion.tikitaka.ticket.dto.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
-import com.trillion.tikitaka.ticket.exception.InvalidEditValueException;
 import com.trillion.tikitaka.ticket.exception.InvalidTicketManagerException;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
-import com.trillion.tikitaka.ticket.exception.UnauthorizedStatusEditExeception;
+import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketEditExeception;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 //import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
+import java.nio.file.AccessDeniedException;
 import java.util.Optional;
 
 @Service
@@ -81,14 +77,15 @@ public class TicketService {
                     .id(oldTicket.getId())
                     .title(request.getTitle() != null ? request.getTitle() : oldTicket.getTitle())
                     .description(request.getDescription() != null ? request.getDescription() : oldTicket.getDescription())
-                    .priority(oldTicket.getPriority())
                     .ticketType(ticketType != null ? ticketType : oldTicket.getTicketType())
                     .firstCategoryId(request.getFirstCategoryId() != null ? request.getFirstCategoryId() : oldTicket.getFirstCategoryId())
                     .secondCategoryId(request.getSecondCategoryId() != null ? request.getSecondCategoryId() : oldTicket.getSecondCategoryId())
-                    .deadline(request.getDeadline() != null ? request.getDeadline() : oldTicket.getDeadline())
-                    .requesterId(request.getRequesterId() != null ? request.getRequesterId() : oldTicket.getRequesterId())
-                    .managerId(oldTicket.getManagerId())
                     .urgent(request.getUrgent() != null ? request.getUrgent() : oldTicket.getUrgent())
+                    .status(oldTicket.getStatus())
+                    .requesterId(oldTicket.getRequesterId())
+                    .managerId(oldTicket.getManagerId())
+                    .deadline(oldTicket.getDeadline())
+                    .priority(oldTicket.getPriority())
                     .build();
 
             replaceTicket(oldTicket, updatedTicket);
@@ -99,14 +96,38 @@ public class TicketService {
 
         oldTicket.updateFrom(updatedTicket);
     }
-    public void editSetting(Long ticketId, String role, EditSettingRequest editSettingRequest){
-
-    }
-    public void editStatus(Long ticketId,String role, Ticket.Status status){
+    @Transactional
+    public void editSetting(Long ticketId, Role role, EditSettingRequest editSettingRequest){
         Ticket oldTicket = this.findTicketById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException());
-        if ("USER".equals(role)) {
-            throw new UnauthorizedStatusEditExeception();
+        System.out.println(role);
+        if (Role.USER.equals(role)) {
+            throw new UnauthorizedTicketEditExeception();
+        }else{
+            Ticket updatedTicket = Ticket.builder()
+                    .id(oldTicket.getId())
+                    .title(oldTicket.getTitle())
+                    .description(oldTicket.getDescription())
+                    .ticketType(oldTicket.getTicketType())
+                    .firstCategoryId(oldTicket.getFirstCategoryId())
+                    .secondCategoryId(oldTicket.getSecondCategoryId())
+                    .urgent(oldTicket.getUrgent())
+                    .status(oldTicket.getStatus())
+                    .requesterId(oldTicket.getRequesterId())
+                    .priority(editSettingRequest.getPriority() != null ? editSettingRequest.getPriority() : oldTicket.getPriority())
+                    .managerId(editSettingRequest.getManagerId() != null ? editSettingRequest.getManagerId() : oldTicket.getManagerId())
+                    .deadline(editSettingRequest.getDeadline() != null ? editSettingRequest.getDeadline() : oldTicket.getDeadline())
+                    .build();
+
+            replaceTicket(oldTicket, updatedTicket);
+        }
+    }
+    @Transactional
+    public void editStatus(Long ticketId, Role role, Ticket.Status status){
+        Ticket oldTicket = this.findTicketById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException());
+        if (Role.USER.equals(role)) {
+            throw new UnauthorizedTicketEditExeception();
         }else{
             oldTicket.setStatus(status);
         }

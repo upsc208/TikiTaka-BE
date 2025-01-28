@@ -8,6 +8,7 @@ import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.CreateTicketRequest;
 import com.trillion.tikitaka.ticket.dto.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
+import com.trillion.tikitaka.user.domain.Role;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,14 +43,14 @@ public class TicketController {
     @PreAuthorize("hasAnyAuthority('MANAGER', 'USER')")
     @PatchMapping("/edit/{ticket_id}/{status}")
     public ApiResponse<Void> editTicketStatus(@PathVariable Long ticket_id, @PathVariable Ticket.Status status, @AuthenticationPrincipal CustomUserDetails userDetails){
-        String role = userDetails.getAuthorities().toString();
+        Role role = userDetails.getUser().getRole();
         ticketService.editStatus(ticket_id,role,status);
         return new ApiResponse<>("티켓 상태가 수정되었습니다.",null);
     }
     @PreAuthorize("hasAnyAuthority('MANAGER', 'USER')")
     @PatchMapping("/edit/{ticket_id}/setting")
     public ApiResponse<Void> editTicketSetting(@PathVariable Long ticket_id, @RequestBody EditSettingRequest editSettingRequest, @AuthenticationPrincipal CustomUserDetails userDetails){
-        String role = userDetails.getAuthorities().toString();
+        Role role = userDetails.getUser().getRole();
         ticketService.editSetting(ticket_id,role,editSettingRequest);
         return new ApiResponse<>("티켓세팅이 수정되었습니다.",null);
     }

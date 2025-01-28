@@ -3,6 +3,8 @@ package com.trillion.tikitaka.ticket.dto;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,5 +16,5 @@ public class EditSettingRequest {
 
     private Ticket.Priority priority;
 
-    private Ticket.Status status;
+    private LocalDateTime deadline;
 }

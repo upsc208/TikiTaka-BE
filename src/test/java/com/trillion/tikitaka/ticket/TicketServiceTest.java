@@ -58,7 +58,6 @@ class TicketServiceTest {
                     .deadline(LocalDateTime.now().plusDays(1))
                     .requesterId(3L)
                     .managerId(validManagerId)
-                    .priority(Ticket.Priority.HIGH)
                     .build();
 
             // Mock 설정
@@ -86,7 +85,6 @@ class TicketServiceTest {
                     .secondCategoryId(2L)
                     .deadline(LocalDateTime.now().plusDays(1))
                     .requesterId(100L)
-                    .priority(Ticket.Priority.MIDDLE)
                     .build();
 
             // 기본 매니저 ID가 2L로 설정된다고 가정

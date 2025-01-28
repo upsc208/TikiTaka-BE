@@ -35,7 +35,7 @@ public enum ErrorCode {
     UNAUTHORIZED_TICKET_ACCESS(HttpStatus.FORBIDDEN, "Ti002", "티켓에 대한 접근 권한이 없습니다."),
     INVALID_TICKET_MANAGER(HttpStatus.BAD_REQUEST, "Ti003", "유효하지 않은 담당자 ID입니다."),
     INVALID_EDIT_VALUE(HttpStatus.BAD_REQUEST,"Ti004","사용자는 우선순위와 담당자를 수정할수없습니다."),
-    UNAUTHORIZED_STATUS_EDIT(HttpStatus.FORBIDDEN, "Ti005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
+    UNAUTHORIZED_TICKET_EDIT(HttpStatus.FORBIDDEN, "Ti005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
 
 
     // Ticket Type
