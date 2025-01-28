@@ -16,7 +16,7 @@ public class CustomCategoryRepositoryImpl implements CustomCategoryRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<CategoryResponse> getCategories(int level) {
+    public List<CategoryResponse> getCategories(Long parentId) {
 
         return queryFactory
                 .select(new QCategoryResponse(
@@ -26,17 +26,16 @@ public class CustomCategoryRepositoryImpl implements CustomCategoryRepository {
                 ))
                 .from(category)
                 .where(
-                        levelEq(level)
+                        parentIdEq(parentId)
                 )
                 .fetch();
     }
 
-    private BooleanExpression levelEq(int level) {
-        if (level == 1) {
+    private BooleanExpression parentIdEq(Long parentId) {
+        if (parentId == null) {
             return category.parent.isNull();
-        } else if (level == 2) {
-            return category.parent.isNotNull();
+        } else {
+            return category.parent.id.eq(parentId);
         }
-        return null;
     }
 }

@@ -30,8 +30,8 @@ public class CategoryController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-    public ApiResponse<List<CategoryResponse>> getCategories(@RequestParam(value = "level", required = true) @Min(1) @Max(2) int level) {
-        List<CategoryResponse> categories = categoryService.getCategories(level);
+    public ApiResponse<List<CategoryResponse>> getCategories(@RequestParam(value = "parentId", required = false) Long parentId) {
+        List<CategoryResponse> categories = categoryService.getCategories(parentId);
         return new ApiResponse<>(categories);
     }
 

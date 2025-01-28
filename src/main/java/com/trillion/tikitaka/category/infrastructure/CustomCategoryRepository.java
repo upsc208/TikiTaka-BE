@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface CustomCategoryRepository {
-    List<CategoryResponse> getCategories(int level);
+    List<CategoryResponse> getCategories(Long parentId);
 }

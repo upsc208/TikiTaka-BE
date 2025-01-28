@@ -37,8 +37,8 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
-    public List<CategoryResponse> getCategories(int level) {
-        return categoryRepository.getCategories(level);
+    public List<CategoryResponse> getCategories(Long parentId) {
+        return categoryRepository.getCategories(parentId);
     }
 
     @Transactional
