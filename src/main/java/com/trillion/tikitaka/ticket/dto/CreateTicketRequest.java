@@ -23,7 +23,7 @@ public class CreateTicketRequest {
     @NotNull(message = "티켓 유형 ID는 필수 항목입니다.")
     private Long typeId;
 
-    private Long firstCategoryId; // 1차 카테고리 ID
+    private Long firstCategoryId;
 
     private Long secondCategoryId;
 
