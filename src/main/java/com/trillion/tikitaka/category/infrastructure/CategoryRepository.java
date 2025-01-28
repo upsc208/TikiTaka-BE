@@ -1,6 +1,6 @@
-package com.trillion.tikitaka.category.domain.repository;
+package com.trillion.tikitaka.category.infrastructure;
 
-import com.trillion.tikitaka.category.domain.model.Category;
+import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 
 import java.util.List;

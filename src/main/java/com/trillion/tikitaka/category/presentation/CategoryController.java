@@ -1,6 +1,6 @@
-package com.trillion.tikitaka.category.presentation.controller;
+package com.trillion.tikitaka.category.presentation;
 
-import com.trillion.tikitaka.category.application.service.CategoryService;
+import com.trillion.tikitaka.category.application.CategoryService;
 import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.global.response.ApiResponse;

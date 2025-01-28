@@ -1,7 +1,6 @@
-package com.trillion.tikitaka.category.infrastructure.persistence;
+package com.trillion.tikitaka.category.infrastructure;
 
-import com.trillion.tikitaka.category.domain.model.Category;
-import com.trillion.tikitaka.category.domain.repository.CategoryRepository;
+import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -1,7 +1,7 @@
-package com.trillion.tikitaka.category.application.service;
+package com.trillion.tikitaka.category.application;
 
-import com.trillion.tikitaka.category.domain.model.Category;
-import com.trillion.tikitaka.category.domain.repository.CategoryRepository;
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.global.exception.CustomException;
