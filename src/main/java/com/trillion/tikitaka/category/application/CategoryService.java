@@ -7,8 +7,6 @@ import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.DuplicatedCategoryException;
 import com.trillion.tikitaka.category.exception.PrimaryCategoryNotFoundException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
-import com.trillion.tikitaka.global.exception.CustomException;
-import com.trillion.tikitaka.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +37,8 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
-    public List<CategoryResponse> getCategories() {
-        // 예시: 1차 카테고리만 가져온다 (level=0)
-        return categoryRepository.getCategoriesByLevel(0);
-        // 필요 시 level 파라미터를 받아서 처리 가능
+    public List<CategoryResponse> getCategories(int level) {
+        return categoryRepository.getCategories(level);
     }
 
     @Transactional
