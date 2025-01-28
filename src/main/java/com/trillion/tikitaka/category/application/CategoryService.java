@@ -64,17 +64,10 @@ public class CategoryService {
     }
 
     @Transactional
-    public void delete(Long categoryId) {
+    public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+                .orElseThrow(CategoryNotFoundException::new);
 
-        // Soft delete (@SQLDelete)
-        categoryRepository.delete(category);
-    }
-
-    private void validateName(String name) {
-        if (name == null || name.isBlank() || name.length() > 25) {
-            throw new CustomException(ErrorCode.INVALID_CATEGORY_NAME);
-        }
+        categoryRepository.deleteAll(category.getChildren());
     }
 }
