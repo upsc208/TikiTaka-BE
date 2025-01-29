@@ -8,6 +8,7 @@ import com.trillion.tikitaka.ticketform.domain.TicketForm;
 import com.trillion.tikitaka.ticketform.domain.TicketFormId;
 import com.trillion.tikitaka.ticketform.dto.response.TicketFormResponse;
 import com.trillion.tikitaka.ticketform.exception.DuplicatedTicketFormException;
+import com.trillion.tikitaka.ticketform.exception.TicketFormNotFoundException;
 import com.trillion.tikitaka.ticketform.infrastructure.TicketFormRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,17 @@ public class TicketFormService {
         }
 
         return new TicketFormResponse(description);
+    }
+
+    @Transactional
+    public void updateTicketForm(Long firstCategoryId, Long secondCategoryId, String newDescription) {
+        validateCategoryRelationship(firstCategoryId, secondCategoryId);
+
+        TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
+        TicketForm ticketForm = ticketFormRepository.findById(ticketFormId)
+                .orElseThrow(TicketFormNotFoundException::new);
+
+        ticketForm.updateDescription(newDescription);
     }
 
     private void validateCategoryRelationship(Long firstCategoryId, Long secondCategoryId) {

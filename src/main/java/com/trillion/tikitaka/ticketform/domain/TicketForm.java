@@ -37,4 +37,8 @@ public class TicketForm {
         this.secondCategory = secondCategory;
         this.description = description;
     }
+
+    public void updateDescription(String newDescription) {
+        this.description = newDescription;
+    }
 }

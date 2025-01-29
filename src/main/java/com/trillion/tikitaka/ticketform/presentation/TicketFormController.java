@@ -32,4 +32,13 @@ public class TicketFormController {
         TicketFormResponse ticketForm = ticketFormService.getTicketForm(firstCategoryId, secondCategoryId);
         return new ApiResponse<>(ticketForm);
     }
+
+    @PatchMapping("/{firstCategoryId}/{secondCategoryId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> updateTicketForm(@PathVariable("firstCategoryId") Long firstCategoryId,
+                                              @PathVariable("secondCategoryId") Long secondCategoryId,
+                                              @RequestBody @Valid TicketFormRequest request) {
+        ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, request.getDescription());
+        return new ApiResponse<>(null);
+    }
 }
