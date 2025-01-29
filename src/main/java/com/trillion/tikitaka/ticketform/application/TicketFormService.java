@@ -6,6 +6,7 @@ import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.ticketform.domain.TicketForm;
 import com.trillion.tikitaka.ticketform.domain.TicketFormId;
+import com.trillion.tikitaka.ticketform.dto.response.TicketFormResponse;
 import com.trillion.tikitaka.ticketform.exception.DuplicatedTicketFormException;
 import com.trillion.tikitaka.ticketform.infrastructure.TicketFormRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +43,28 @@ public class TicketFormService {
                 .description(description)
                 .build();
         ticketFormRepository.save(ticketForm);
+    }
+
+    public TicketFormResponse getTicketForm(Long firstCategoryId, Long secondCategoryId) {
+        validateCategoryRelationship(firstCategoryId, secondCategoryId);
+
+        TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
+        TicketForm ticketForm = ticketFormRepository.findById(ticketFormId).orElse(null);
+
+        String description = "";
+        if (ticketForm != null) {
+            description = ticketForm.getDescription();
+        }
+
+        return new TicketFormResponse(description);
+    }
+
+    private void validateCategoryRelationship(Long firstCategoryId, Long secondCategoryId) {
+        Category secondCategory = categoryRepository.findById(secondCategoryId)
+                .orElseThrow(CategoryNotFoundException::new);
+
+        if (secondCategory.getParent() == null || !secondCategory.getParent().getId().equals(firstCategoryId)) {
+            throw new InvalidCategoryLevelException();
+        }
     }
 }
