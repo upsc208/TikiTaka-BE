@@ -1,19 +1,40 @@
 package com.trillion.tikitaka.ticketform.domain;
 
-import jakarta.persistence.Embeddable;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
+import com.trillion.tikitaka.category.domain.Category;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
-@Embeddable
+@Entity
+@Table(name = "ticket_forms")
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-public class TicketForm implements Serializable {
-    private Long firstCategoryId;
-    private Long secondCategoryId;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class TicketForm {
+
+    @EmbeddedId
+    private TicketFormId id;
+
+    @MapsId("firstCategoryId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "first_category_id", nullable = false)
+    private Category firstCategory;
+
+    @MapsId("secondCategoryId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "second_category_id", nullable = false)
+    private Category secondCategory;
+
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
+    private String description;
+
+    @Builder
+    public TicketForm(Category firstCategory, Category secondCategory, String description) {
+        this.id = new TicketFormId(firstCategory.getId(), secondCategory.getId());
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
+        this.description = description;
+    }
 }
