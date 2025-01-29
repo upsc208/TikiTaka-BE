@@ -30,9 +30,13 @@ public enum ErrorCode {
     REGISTRATION_ALREADY_PROCESSED(HttpStatus.BAD_REQUEST, "R004", "이미 처리된 계정 등록 요청입니다."),
 
     // Ticket
-    TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "Ti001", "해당 티켓을 찾을 수 없습니다."),
-    UNAUTHORIZED_TICKET_ACCESS(HttpStatus.FORBIDDEN, "Ti002", "티켓에 대한 접근 권한이 없습니다."),
-    INVALID_TICKET_MANAGER(HttpStatus.BAD_REQUEST, "Ti003", "유효하지 않은 담당자 ID입니다."),
+    TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "TI001", "해당 티켓을 찾을 수 없습니다."),
+    UNAUTHORIZED_TICKET_ACCESS(HttpStatus.FORBIDDEN, "TI002", "티켓에 대한 접근 권한이 없습니다."),
+    INVALID_TICKET_MANAGER(HttpStatus.BAD_REQUEST, "TI003", "유효하지 않은 담당자 ID입니다."),
+    INVALID_EDIT_VALUE(HttpStatus.BAD_REQUEST,"TI004","사용자는 우선순위와 담당자를 수정할수없습니다."),
+    UNAUTHORIZED_TICKET_EDIT(HttpStatus.FORBIDDEN, "TI005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
+
+
 
     // Ticket Type
     TICKET_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "TT001", "티켓 유형을 찾을 수 없습니다."),

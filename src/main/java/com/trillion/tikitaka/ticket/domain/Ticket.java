@@ -1,6 +1,8 @@
 package com.trillion.tikitaka.ticket.domain;
 
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
+import com.trillion.tikitaka.ticket.dto.EditSettingRequest;
+import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,6 +40,7 @@ public class Ticket extends DeletedBaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private Status status = Status.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY) // 연관 관계 설정
@@ -57,21 +60,26 @@ public class Ticket extends DeletedBaseEntity {
     private Long managerId;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean urgent = false;
 
 
-    public void updateFrom(Ticket updatedTicket) {
-        this.title = updatedTicket.title;
-        this.description = updatedTicket.description;
-        this.priority = updatedTicket.priority;
-        this.status = updatedTicket.status;
-        this.ticketType = updatedTicket.ticketType;
-        this.firstCategoryId = updatedTicket.firstCategoryId;
-        this.secondCategoryId = updatedTicket.secondCategoryId;
-        this.deadline = updatedTicket.deadline;
-        this.requesterId = updatedTicket.requesterId;
-        this.managerId = updatedTicket.managerId;
-        this.urgent = updatedTicket.urgent;
+    public void update(EditTicketRequest request, TicketType ticketType) {
+        if (request.getTitle() != null) this.title = request.getTitle();
+        if (request.getDescription() != null) this.description = request.getDescription();
+        if (request.getFirstCategoryId() != null) this.firstCategoryId = request.getFirstCategoryId();
+        if (request.getSecondCategoryId() != null) this.secondCategoryId = request.getSecondCategoryId();
+        if (request.getUrgent() != null) this.urgent = request.getUrgent();
+        if (ticketType != null) this.ticketType = ticketType;
+    }
+    public void updateSetting(EditSettingRequest request){
+        if (request.getPriority() != null) this.priority = request.getPriority();
+        if (request.getManagerId() != null) this.managerId = request.getManagerId();
+        if (request.getDeadline() != null) this.deadline = request.getDeadline();
+    }
+
+    public void updateStatus(Status status){
+        this.status = status;
     }
 
 

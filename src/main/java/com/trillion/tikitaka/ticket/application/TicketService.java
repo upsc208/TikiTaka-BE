@@ -1,24 +1,26 @@
 package com.trillion.tikitaka.ticket.application;
 
-import com.trillion.tikitaka.global.exception.CustomException;
-import com.trillion.tikitaka.global.exception.ErrorCode;
-import com.trillion.tikitaka.registration.exception.DuplicatedUsernameException;
+import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.CreateTicketRequest;
+import com.trillion.tikitaka.ticket.dto.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
 import com.trillion.tikitaka.ticket.exception.InvalidTicketManagerException;
+import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
+import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketEditExeception;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 //import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
+import java.nio.file.AccessDeniedException;
 import java.util.Optional;
 
 @Service
@@ -28,7 +30,7 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
-    //private final JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     public Optional<Ticket> findTicketById(Long id) {
         return ticketRepository.findById(id);
@@ -60,6 +62,47 @@ public class TicketService {
                 .build();
 
         ticketRepository.save(ticket);
+    }
+
+    @Transactional
+    public void editTicket(EditTicketRequest request, Long ticketId) {
+        Ticket ticket = this.findTicketById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException());
+
+        TicketType ticketType = request.getTicketTypeId() != null
+                ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
+                : ticket.getTicketType();
+        ticket.update(request, ticketType);
+
+    }
+
+
+    @Transactional
+    public void editSetting(Long ticketId, Role role, EditSettingRequest editSettingRequest){
+        Ticket ticket = this.findTicketById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException());
+        System.out.println(role);
+        if (Role.USER.equals(role)) {
+            throw new UnauthorizedTicketEditExeception();
+        }else{
+            ticket.updateSetting(editSettingRequest);
+        }
+    }
+    @Transactional
+    public void editStatus(Long ticketId, Role role, Ticket.Status status){
+        Ticket ticket = this.findTicketById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException());
+        if (Role.USER.equals(role)) {
+            throw new UnauthorizedTicketEditExeception();
+        }else{
+            ticket.updateStatus(status);
+        }
+    }
+    @Transactional
+    public void deleteTicket(Long ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found with ID: " + ticketId));
+        ticketRepository.delete(ticket);
     }
 
 
