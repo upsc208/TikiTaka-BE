@@ -71,6 +71,17 @@ public class TicketFormService {
         ticketForm.updateDescription(newDescription);
     }
 
+    @Transactional
+    public void deleteTicketForm(Long firstCategoryId, Long secondCategoryId) {
+        validateCategoryRelationship(firstCategoryId, secondCategoryId);
+
+        TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
+        TicketForm ticketForm = ticketFormRepository.findById(ticketFormId)
+                .orElseThrow(TicketFormNotFoundException::new);
+
+        ticketFormRepository.delete(ticketForm);
+    }
+
     private void validateCategoryRelationship(Long firstCategoryId, Long secondCategoryId) {
         Category secondCategory = categoryRepository.findById(secondCategoryId)
                 .orElseThrow(CategoryNotFoundException::new);

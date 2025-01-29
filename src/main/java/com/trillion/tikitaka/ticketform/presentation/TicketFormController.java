@@ -41,4 +41,12 @@ public class TicketFormController {
         ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, request.getDescription());
         return new ApiResponse<>(null);
     }
+
+    @DeleteMapping("/{firstCategoryId}/{secondCategoryId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> deleteTicketForm(@PathVariable("firstCategoryId") Long firstCategoryId,
+                                              @PathVariable("secondCategoryId") Long secondCategoryId) {
+        ticketFormService.deleteTicketForm(firstCategoryId, secondCategoryId);
+        return new ApiResponse<>(null);
+    }
 }
