@@ -66,70 +66,36 @@ public class TicketService {
 
     @Transactional
     public void editTicket(EditTicketRequest request, Long ticketId) {
-        Ticket oldTicket = this.findTicketById(ticketId)
+        Ticket ticket = this.findTicketById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException());
-        TicketType ticketType = null;
-        if (request.getTicketTypeId() != null) {
-            ticketType = ticketTypeRepository.findById(request.getTicketTypeId())
-                    .orElseThrow(() -> new TicketTypeNotFoundException());
-        }
-            Ticket updatedTicket = Ticket.builder()
-                    .id(oldTicket.getId())
-                    .title(request.getTitle() != null ? request.getTitle() : oldTicket.getTitle())
-                    .description(request.getDescription() != null ? request.getDescription() : oldTicket.getDescription())
-                    .ticketType(ticketType != null ? ticketType : oldTicket.getTicketType())
-                    .firstCategoryId(request.getFirstCategoryId() != null ? request.getFirstCategoryId() : oldTicket.getFirstCategoryId())
-                    .secondCategoryId(request.getSecondCategoryId() != null ? request.getSecondCategoryId() : oldTicket.getSecondCategoryId())
-                    .urgent(request.getUrgent() != null ? request.getUrgent() : oldTicket.getUrgent())
-                    .status(oldTicket.getStatus())
-                    .requesterId(oldTicket.getRequesterId())
-                    .managerId(oldTicket.getManagerId())
-                    .deadline(oldTicket.getDeadline())
-                    .priority(oldTicket.getPriority())
-                    .build();
 
-            replaceTicket(oldTicket, updatedTicket);
+        TicketType ticketType = request.getTicketTypeId() != null
+                ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
+                : ticket.getTicketType();
+        ticket.update(request, ticketType);
+
     }
 
 
-    private void replaceTicket(Ticket oldTicket, Ticket updatedTicket) {
-
-        oldTicket.updateFrom(updatedTicket);
-    }
     @Transactional
     public void editSetting(Long ticketId, Role role, EditSettingRequest editSettingRequest){
-        Ticket oldTicket = this.findTicketById(ticketId)
+        Ticket ticket = this.findTicketById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException());
         System.out.println(role);
         if (Role.USER.equals(role)) {
             throw new UnauthorizedTicketEditExeception();
         }else{
-            Ticket updatedTicket = Ticket.builder()
-                    .id(oldTicket.getId())
-                    .title(oldTicket.getTitle())
-                    .description(oldTicket.getDescription())
-                    .ticketType(oldTicket.getTicketType())
-                    .firstCategoryId(oldTicket.getFirstCategoryId())
-                    .secondCategoryId(oldTicket.getSecondCategoryId())
-                    .urgent(oldTicket.getUrgent())
-                    .status(oldTicket.getStatus())
-                    .requesterId(oldTicket.getRequesterId())
-                    .priority(editSettingRequest.getPriority() != null ? editSettingRequest.getPriority() : oldTicket.getPriority())
-                    .managerId(editSettingRequest.getManagerId() != null ? editSettingRequest.getManagerId() : oldTicket.getManagerId())
-                    .deadline(editSettingRequest.getDeadline() != null ? editSettingRequest.getDeadline() : oldTicket.getDeadline())
-                    .build();
-
-            replaceTicket(oldTicket, updatedTicket);
+            ticket.updateSetting(editSettingRequest);
         }
     }
     @Transactional
     public void editStatus(Long ticketId, Role role, Ticket.Status status){
-        Ticket oldTicket = this.findTicketById(ticketId)
+        Ticket ticket = this.findTicketById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException());
         if (Role.USER.equals(role)) {
             throw new UnauthorizedTicketEditExeception();
         }else{
-            oldTicket.setStatus(status);
+            ticket.updateStatus(status);
         }
     }
     @Transactional
