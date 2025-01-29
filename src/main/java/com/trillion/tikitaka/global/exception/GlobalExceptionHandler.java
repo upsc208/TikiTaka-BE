@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -105,4 +106,15 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleOther(RuntimeException ex) {
+        // 기타 예외
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Unexpected error: " + ex.getMessage());
+    }
+
+
 }
