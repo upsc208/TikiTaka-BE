@@ -1,11 +1,18 @@
 package com.trillion.tikitaka.ticket.application;
 
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
+import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
+import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketAccessException;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
+import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
+import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +31,7 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
+    private final CategoryRepository categoryRepository;
 
 //    public Optional<Ticket> findTicketById(Long id) {
 //        return ticketRepository.findById(id);
@@ -70,7 +78,19 @@ public class TicketService {
                                                   CustomUserDetails userDetails) {
         Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
         String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
-        requesterId = "USER".equals(role) ? userDetails.getUser().getId() : requesterId;
+
+        if ("USER".equals(role)) {
+            requesterId = userDetails.getUser().getId();
+            if (managerId != null) {
+                throw new UnauthorizedTicketAccessException();
+            }
+        }
+
+        validateTicketType(ticketTypeId);
+        validateCategoryRelation(firstCategoryId, secondCategoryId);
+        validateUserExistence(requesterId);
+        validateUserExistence(managerId);
+
         return ticketRepository.getTicketList(
                 pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role);
     }
@@ -115,4 +135,36 @@ public class TicketService {
 //                .orElseThrow(() -> new IllegalArgumentException("Ticket not found with ID: " + ticketId));
 //        ticketRepository.delete(ticket);
 //    }
+
+    private void validateTicketType(Long ticketTypeId) {
+        if (ticketTypeId != null && !ticketTypeRepository.existsById(ticketTypeId)) {
+            throw new TicketTypeNotFoundException();
+        }
+    }
+
+    private void validateCategoryRelation(Long firstCategoryId, Long secondCategoryId) {
+
+        Category firstCategory = null;
+        Category secondCategory = null;
+
+        if (firstCategoryId != null) {
+            firstCategory = categoryRepository.findById(firstCategoryId)
+                    .orElseThrow(CategoryNotFoundException::new);
+        }
+
+        if (secondCategoryId != null) {
+            secondCategory = categoryRepository.findById(secondCategoryId)
+                    .orElseThrow(CategoryNotFoundException::new);
+
+            if (!secondCategory.isChildOf(firstCategory)) {
+                throw new InvalidCategoryLevelException();
+            }
+        }
+    }
+
+    private void validateUserExistence(Long userId) {
+        if (userId != null && !userRepository.existsById(userId)) {
+            throw new UserNotFoundException();
+        }
+    }
 }
