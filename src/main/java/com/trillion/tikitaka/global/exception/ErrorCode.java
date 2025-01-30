@@ -46,7 +46,11 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CAT001", "카테고리를 찾을 수 없습니다."),
     DUPLICATED_CATEGORY_NAME(HttpStatus.CONFLICT, "CAT002", "이미 존재하는 카테고리 이름입니다."),
     PRIMARY_CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "CAT003", "유효한 1차 카테고리를 찾을 수 없습니다."),
-    INVALID_CATEGORY_LEVEL(HttpStatus.BAD_REQUEST, "C004", "잘못된 카테고리 레벨입니다.");
+    INVALID_CATEGORY_LEVEL(HttpStatus.BAD_REQUEST, "C004", "잘못된 카테고리 레벨입니다."),
+
+    // Ticket Form
+    TICKET_FORM_NOT_FOUND(HttpStatus.NOT_FOUND, "TF001", "티켓 폼을 찾을 수 없습니다."),
+    DUPLICATED_TICKET_FORM(HttpStatus.CONFLICT, "TF002", "이미 존재하는 티켓 폼입니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
