@@ -1,7 +1,5 @@
-package com.trillion.tikitaka.ticket.dto;
+package com.trillion.tikitaka.ticket.dto.request;
 
-import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.tickettype.domain.TicketType;
 import lombok.*;
 
 import java.time.LocalDateTime;
