@@ -9,7 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Builder
 @Entity
@@ -53,7 +53,7 @@ public class Ticket extends DeletedBaseEntity {
     private Category secondCategory;
 
     @Column(nullable = false)
-    private LocalDate deadline;
+    private LocalDateTime deadline;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id", nullable = false)
