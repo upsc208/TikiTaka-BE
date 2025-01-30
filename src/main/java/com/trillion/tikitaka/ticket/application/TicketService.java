@@ -1,13 +1,20 @@
 package com.trillion.tikitaka.ticket.application;
 
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
+import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -51,8 +58,21 @@ public class TicketService {
 //    }
 
     public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
-        Boolean isUser = userDetails.getAuthorities().contains("USER");
-        return ticketRepository.countTicketsByStatus(isUser, userDetails.getUser().getId());
+        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
+        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        Long requesterId = "USER".equals(role) ? userDetails.getUser().getId() : null;
+
+        return ticketRepository.countTicketsByStatus(requesterId, role);
+    }
+
+    public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
+                                                  Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId,
+                                                  CustomUserDetails userDetails) {
+        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
+        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        requesterId = "USER".equals(role) ? userDetails.getUser().getId() : requesterId;
+        return ticketRepository.getTicketList(
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role);
     }
 
 //    @Transactional
