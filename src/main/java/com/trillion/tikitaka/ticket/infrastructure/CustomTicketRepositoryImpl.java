@@ -1,10 +1,9 @@
 package com.trillion.tikitaka.ticket.infrastructure;
 
-import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.trillion.tikitaka.ticket.domain.QTicket;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.QTicketCountByStatusResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
@@ -40,7 +39,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .when(ticket.urgent.eq(true)).then(1L)
                 .otherwise(0L);
 
-        BooleanBuilder conditions = buildRoleConditions(isUser, requesterId);
+        BooleanExpression conditions = buildRoleConditions(isUser, requesterId);
 
         return queryFactory
                 .select(new QTicketCountByStatusResponse(
@@ -56,14 +55,10 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .fetchOne();
     }
 
-    private BooleanBuilder buildRoleConditions(Boolean isUser, Long requesterId) {
-        BooleanBuilder builder = new BooleanBuilder();
-        if (Boolean.TRUE.equals(isUser)) {
-            if (requesterId != null) {
-                builder.and(QTicket.ticket.requester.id.eq(requesterId));
-            }
+    private BooleanExpression buildRoleConditions(Boolean isUser, Long requesterId) {
+        if (Boolean.TRUE.equals(isUser) && requesterId != null) {
+            return ticket.requester.id.eq(requesterId);
         }
-
-        return builder;
+        return null;
     }
 }
