@@ -7,10 +7,7 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.ticket.dto.response.QTicketCountByStatusResponse;
-import com.trillion.tikitaka.ticket.dto.response.QTicketListResponse;
-import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
-import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
+import com.trillion.tikitaka.ticket.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -117,6 +114,43 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public TicketResponse getTicket(Long ticketId, Long userId, String role) {
+        return queryFactory
+                .select(new QTicketResponse(
+                        ticket.id.as("ticketId"),
+                        ticket.title,
+                        ticket.description,
+                        ticket.priority,
+                        ticket.status,
+                        ticket.ticketType.name.as("typeName"),
+                        ticket.firstCategory.name.as("firstCategoryName"),
+                        ticket.secondCategory.name.as("secondCategoryName"),
+                        ticket.manager.username.as("managerName"),
+                        ticket.requester.username.as("requesterName"),
+                        ticket.urgent,
+                        ticket.deadline,
+                        ticket.createdAt,
+                        ticket.updatedAt
+                ))
+                .from(ticket)
+                .leftJoin(ticket.ticketType)
+                .leftJoin(ticket.firstCategory)
+                .leftJoin(ticket.secondCategory)
+                .leftJoin(ticket.manager)
+                .leftJoin(ticket.requester)
+                .where(
+                        buildRoleConditions(userId, role),
+                        ticketIdEq(ticketId),
+                        deletedAtEqNull()
+                )
+                .fetchOne();
+    }
+
+    private static BooleanExpression ticketIdEq(Long ticketId) {
+        return ticket.id.eq(ticketId);
     }
 
     private BooleanExpression buildRoleConditions(Long requesterId, String role) {

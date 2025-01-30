@@ -8,6 +8,8 @@ import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
+import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
+import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
 import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketAccessException;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
@@ -93,6 +95,21 @@ public class TicketService {
 
         return ticketRepository.getTicketList(
                 pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role);
+    }
+
+    public TicketResponse getTicket(Long ticketId, CustomUserDetails userDetails) {
+        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
+        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        Long userId = userDetails.getUser().getId();
+
+        TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
+        if (response == null) throw new TicketNotFoundException();
+
+        if ("USER".equals(role)) {
+            response.setPriority(null);
+        }
+
+        return response;
     }
 
 //    @Transactional
