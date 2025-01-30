@@ -67,21 +67,6 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Boolean urgent = false;
 
-//    public void update(EditTicketRequest request, TicketType ticketType) {
-//        if (request.getTitle() != null) this.title = request.getTitle();
-//        if (request.getDescription() != null) this.description = request.getDescription();
-//        if (request.getFirstCategoryId() != null) this.firstCategoryId = request.getFirstCategoryId();
-//        if (request.getSecondCategoryId() != null) this.secondCategoryId = request.getSecondCategoryId();
-//        if (request.getUrgent() != null) this.urgent = request.getUrgent();
-//        if (ticketType != null) this.ticketType = ticketType;
-//    }
-//
-//    public void updateSetting(EditSettingRequest request){
-//        if (request.getPriority() != null) this.priority = request.getPriority();
-//        if (request.getManagerId() != null) this.managerId = request.getManagerId();
-//        if (request.getDeadline() != null) this.deadline = request.getDeadline();
-//    }
-
     public void updateStatus(Status status){
         this.status = status;
     }
@@ -91,9 +76,6 @@ public class Ticket extends DeletedBaseEntity {
     }
 
     public enum Status {
-        PENDING, APPROVED, IN_PROGRESS, REVIEW, DONE, REJECTED
+        PENDING, IN_PROGRESS, REVIEW, DONE, REJECTED
     }
 }
-
-
-
