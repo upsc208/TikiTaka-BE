@@ -71,4 +71,21 @@ public class TicketCommentService {
 
         comment.updateComment(request.getContent());
     }
+
+    @Transactional
+    public void deleteTicketComment(Long ticketId, Long commentId, CustomUserDetails userDetails) {
+        TicketComment comment = ticketCommentRepository.findById(commentId)
+                .orElseThrow(TicketCommentNotFoundException::new);
+
+        if (!comment.getTicket().getId().equals(ticketId)) {
+            throw new InvalidTicketCommentException();
+        }
+
+        Long userId = userDetails.getUser().getId();
+        if (!comment.getAuthor().getId().equals(userId)) {
+            throw new UnauthorizedTicketCommentException();
+        }
+
+        ticketCommentRepository.delete(comment);
+    }
 }

@@ -36,10 +36,18 @@ public class TicketCommentController {
 
     @PatchMapping("/{ticketId}/comments/{commentId}")
     public ApiResponse<Void> updateTicketComment(@PathVariable("ticketId") Long ticketId,
-                                               @PathVariable("commentId") Long commentId,
-                                               @RequestBody @Valid TicketCommentRequest request,
-                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                 @PathVariable("commentId") Long commentId,
+                                                 @RequestBody @Valid TicketCommentRequest request,
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
         ticketCommentService.updateTicketComment(ticketId, commentId, request, userDetails);
+        return new ApiResponse<>(null);
+    }
+
+    @DeleteMapping("/{ticketId}/comments/{commentId}")
+    public ApiResponse<Void> deleteTicketComment(@PathVariable("ticketId") Long ticketId,
+                                                 @PathVariable("commentId") Long commentId,
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        ticketCommentService.deleteTicketComment(ticketId, commentId, userDetails);
         return new ApiResponse<>(null);
     }
 }
