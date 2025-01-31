@@ -7,6 +7,7 @@ import com.trillion.tikitaka.ticketcomment.dto.request.TicketCommentRequest;
 import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,7 @@ public class TicketCommentController {
     private final TicketCommentService ticketCommentService;
 
     @PostMapping("/{ticketId}/comments")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'USER')")
     public ApiResponse<Void> createTicketComment(@PathVariable("ticketId") Long ticketId,
                                                  @RequestBody @Valid TicketCommentRequest request,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -28,6 +30,7 @@ public class TicketCommentController {
     }
 
     @GetMapping("/{ticketId}/comments")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     public ApiResponse<List<TicketCommentResponse>> getTicketComments(@PathVariable("ticketId") Long ticketId,
                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<TicketCommentResponse> response = ticketCommentService.getTicketComments(ticketId, userDetails);
@@ -35,6 +38,7 @@ public class TicketCommentController {
     }
 
     @PatchMapping("/{ticketId}/comments/{commentId}")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'USER')")
     public ApiResponse<Void> updateTicketComment(@PathVariable("ticketId") Long ticketId,
                                                  @PathVariable("commentId") Long commentId,
                                                  @RequestBody @Valid TicketCommentRequest request,
@@ -44,6 +48,7 @@ public class TicketCommentController {
     }
 
     @DeleteMapping("/{ticketId}/comments/{commentId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     public ApiResponse<Void> deleteTicketComment(@PathVariable("ticketId") Long ticketId,
                                                  @PathVariable("commentId") Long commentId,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
