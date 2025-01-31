@@ -33,4 +33,13 @@ public class TicketCommentController {
         List<TicketCommentResponse> response = ticketCommentService.getTicketComments(ticketId, userDetails);
         return new ApiResponse<>(response);
     }
+
+    @PatchMapping("/{ticketId}/comments/{commentId}")
+    public ApiResponse<Void> updateTicketComment(@PathVariable("ticketId") Long ticketId,
+                                               @PathVariable("commentId") Long commentId,
+                                               @RequestBody @Valid TicketCommentRequest request,
+                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        ticketCommentService.updateTicketComment(ticketId, commentId, request, userDetails);
+        return new ApiResponse<>(null);
+    }
 }
