@@ -1,10 +1,9 @@
 package com.trillion.tikitaka.ticket.domain;
 
 import com.trillion.tikitaka.category.domain.Category;
-import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
-import com.trillion.tikitaka.ticket.dto.EditSettingRequest;
-import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;

@@ -1,8 +1,4 @@
-package com.trillion.tikitaka.ticket.dto;
-import com.trillion.tikitaka.category.domain.Category;
-import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.tickettype.domain.TicketType;
-import jakarta.persistence.Column;
+package com.trillion.tikitaka.ticket.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 

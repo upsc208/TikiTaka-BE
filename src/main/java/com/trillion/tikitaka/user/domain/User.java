@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.user.domain;
 
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,6 +11,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(
@@ -51,6 +54,12 @@ public class User extends DeletedBaseEntity {
     private boolean locked = false;
 
     private LocalDateTime lockExpireAt = null;
+
+    @OneToMany(mappedBy = "requester")
+    private List<Ticket> requestedTickets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "manager")
+    private List<Ticket> managedTickets = new ArrayList<>();
 
     @Builder
     public User(String username, String email, String password, Role role) {

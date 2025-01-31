@@ -1,20 +1,21 @@
 package com.trillion.tikitaka.ticket.presentation;
 
-import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.ticket.dto.CreateTicketRequest;
-import com.trillion.tikitaka.ticket.dto.EditSettingRequest;
-import com.trillion.tikitaka.ticket.dto.EditTicketRequest;
+import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.user.domain.Role;
-import com.trillion.tikitaka.user.domain.User;
 import jakarta.validation.Valid;
+import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
+import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
+import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +27,21 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @PostMapping
-    public ApiResponse<Void> createTicket(@RequestBody @Valid CreateTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ApiResponse<Void> createTicket(@RequestBody @Valid CreateTicketRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long requesterId = userDetails.getId();
-        ticketService.createTicket(request,requesterId);
-        return new ApiResponse<>("티켓이 생성되었습니다",null);
+        ticketService.createTicket(request, requesterId);
+        return new ApiResponse<>("티켓이 생성되었습니다", null);
     }
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    @GetMapping("/count")
+    public ApiResponse<TicketCountByStatusResponse> countTicketsByStatus(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        TicketCountByStatusResponse response = ticketService.countTicketsByStatus(userDetails);
+        return new ApiResponse<>(response);
+    }
+
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @PatchMapping("/{ticketId}")
@@ -49,21 +58,47 @@ public class TicketController {
     }
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/setting/{ticketId}")
-    public ApiResponse<Void> editTicketSetting(@PathVariable Long ticketId, @RequestBody EditSettingRequest editSettingRequest, @AuthenticationPrincipal CustomUserDetails userDetails){
-        Role role = userDetails.getUser().getRole();
-        ticketService.editSetting(ticketId,role,editSettingRequest);
-        return new ApiResponse<>("티켓설정이 수정되었습니다.",null);
-    }
+    public ApiResponse<Void> editTicketSetting(@PathVariable Long ticketId, @RequestBody EditSettingRequest editSettingRequest, @AuthenticationPrincipal CustomUserDetails userDetails)
+        {
+            Role role = userDetails.getUser().getRole();
+            ticketService.editSetting(ticketId, role, editSettingRequest);
+            return new ApiResponse<>("티켓설정이 수정되었습니다.", null);
+        }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    @GetMapping("/list")
+    public ApiResponse<Page<TicketListResponse>> getTicketList(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "status", required = false) Ticket.Status status,
+            @RequestParam(value = "firstCategoryId", required = false) Long firstCategoryId,
+            @RequestParam(value = "secondCategoryId", required = false) Long secondCategoryId,
+            @RequestParam(value = "ticketTypeId", required = false) Long ticketTypeId,
+            @RequestParam(value = "managerId", required = false) Long managerId,
+            @RequestParam(value = "requesterId", required = false) Long requesterId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TicketListResponse> ticketList = ticketService.getTicketList(
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, userDetails
+        );
+        return new ApiResponse<>(ticketList);
+    }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @DeleteMapping("/{ticketId}")
     public ApiResponse<Void> deleteTicket(@PathVariable Long ticketId){
-        ticketService.deleteTicket(ticketId);
-        return new ApiResponse<>("티켓이 삭제되었습니다.",null);
+                ticketService.deleteTicket(ticketId);
+                return new ApiResponse<>("티켓이 삭제되었습니다.", null);
+            }
+    @GetMapping("/{ticketId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    public ApiResponse<TicketResponse> getTicket(@PathVariable("ticketId") Long ticketId,
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        TicketResponse ticket = ticketService.getTicket(ticketId, userDetails);
+        return new ApiResponse<>(ticket);
+
     }
-
-
 
 
 }
