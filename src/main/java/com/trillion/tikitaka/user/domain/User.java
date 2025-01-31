@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -52,6 +53,9 @@ public class User extends DeletedBaseEntity {
 
     private LocalDateTime lockExpireAt = null;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserPasswordHistory passwordHistory;
+
     @Builder
     public User(String username, String email, String password, Role role) {
         this.username = username;
@@ -88,5 +92,17 @@ public class User extends DeletedBaseEntity {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
         this.lastPasswordChangedAt = LocalDateTime.now();
+    }
+
+    public boolean isSameAsPreviousPassword(String encodedPassword) {
+        return passwordHistory != null && Objects.equals(passwordHistory.getOldPassword(), encodedPassword);
+    }
+
+    public void updatePasswordHistory(String newPassword) {
+        if (passwordHistory == null) {
+            this.passwordHistory = new UserPasswordHistory(this, newPassword);
+        } else {
+            this.passwordHistory.updatePassword(newPassword);
+        }
     }
 }
