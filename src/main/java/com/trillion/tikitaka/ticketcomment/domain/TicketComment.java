@@ -2,6 +2,8 @@ package com.trillion.tikitaka.ticketcomment.domain;
 
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import com.trillion.tikitaka.ticket.domain.Ticket;
+import com.trillion.tikitaka.ticketcomment.exception.InvalidTicketCommentException;
+import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentException;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,5 +37,17 @@ public class TicketComment extends DeletedBaseEntity {
 
     public void updateComment(String content) {
         this.content = content;
+    }
+
+    public void validateTicket(Long ticketId) {
+        if (!this.ticket.getId().equals(ticketId)) {
+            throw new InvalidTicketCommentException();
+        }
+    }
+
+    public void validateAuthor(User user) {
+        if (!this.author.getId().equals(user.getId())) {
+            throw new UnauthorizedTicketCommentException();
+        }
     }
 }

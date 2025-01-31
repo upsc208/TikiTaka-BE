@@ -7,7 +7,6 @@ import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.ticketcomment.domain.TicketComment;
 import com.trillion.tikitaka.ticketcomment.dto.request.TicketCommentRequest;
 import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
-import com.trillion.tikitaka.ticketcomment.exception.InvalidTicketCommentException;
 import com.trillion.tikitaka.ticketcomment.exception.TicketCommentNotFoundException;
 import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentException;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
@@ -60,14 +59,8 @@ public class TicketCommentService {
         TicketComment comment = ticketCommentRepository.findById(commentId)
                 .orElseThrow(TicketCommentNotFoundException::new);
 
-        if (!comment.getTicket().getId().equals(ticketId)) {
-            throw new InvalidTicketCommentException();
-        }
-
-        Long userId = userDetails.getUser().getId();
-        if (!comment.getAuthor().getId().equals(userId)) {
-            throw new UnauthorizedTicketCommentException();
-        }
+        comment.validateTicket(ticketId);
+        comment.validateAuthor(userDetails.getUser());
 
         comment.updateComment(request.getContent());
     }
@@ -77,14 +70,8 @@ public class TicketCommentService {
         TicketComment comment = ticketCommentRepository.findById(commentId)
                 .orElseThrow(TicketCommentNotFoundException::new);
 
-        if (!comment.getTicket().getId().equals(ticketId)) {
-            throw new InvalidTicketCommentException();
-        }
-
-        Long userId = userDetails.getUser().getId();
-        if (!comment.getAuthor().getId().equals(userId)) {
-            throw new UnauthorizedTicketCommentException();
-        }
+        comment.validateTicket(ticketId);
+        comment.validateAuthor(userDetails.getUser());
 
         ticketCommentRepository.delete(comment);
     }
