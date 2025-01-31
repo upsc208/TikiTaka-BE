@@ -23,8 +23,6 @@ public class EditTicketRequest {
 
         private Long secondCategoryId;
 
-        private LocalDateTime deadline;
-
         private Long requesterId;
 
         private Boolean urgent;
