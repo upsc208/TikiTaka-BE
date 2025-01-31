@@ -1,4 +1,4 @@
-package com.trillion.tikitaka.ticket.dto;
+package com.trillion.tikitaka.ticket.dto.request;
 
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import lombok.*;
