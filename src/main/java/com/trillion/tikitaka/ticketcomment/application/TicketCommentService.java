@@ -6,12 +6,15 @@ import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.ticketcomment.domain.TicketComment;
 import com.trillion.tikitaka.ticketcomment.dto.request.TicketCommentRequest;
+import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
 import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentException;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
 import com.trillion.tikitaka.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -37,6 +40,17 @@ public class TicketCommentService {
                 .content(request.getContent())
                 .build();
         ticketCommentRepository.save(comment);
+    }
+
+    public List<TicketCommentResponse> getTicketComments(Long ticketId, CustomUserDetails userDetails) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+
+        if (!ticket.canComment(userDetails.getUser())) {
+            throw new UnauthorizedTicketCommentException();
+        }
+
+        return ticketCommentRepository.getTicketComments(ticketId);
     }
 
 }
