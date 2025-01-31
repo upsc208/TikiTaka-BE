@@ -15,7 +15,7 @@ import org.hibernate.annotations.SQLRestriction;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE ticket_comment SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE ticket_comments SET deleted_at = NOW() WHERE id = ?")
 public class TicketComment extends DeletedBaseEntity {
 
     @Id
