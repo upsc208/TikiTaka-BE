@@ -2,6 +2,8 @@ package com.trillion.tikitaka.ticket.domain;
 
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
+import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
@@ -67,6 +69,22 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Boolean urgent = false;
 
+    public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
+        if (request.getTitle() != null) this.title = request.getTitle();
+        if (request.getDescription() != null) this.description = request.getDescription();
+        if (firstCategory != null) this.firstCategory = firstCategory;
+        if (secondCategory != null) this.secondCategory = secondCategory;
+        if (request.getUrgent() != null) this.urgent = request.getUrgent();
+        if (ticketType != null) this.ticketType = ticketType;
+    }
+
+
+    public void updateSetting(EditSettingRequest request){
+        if (request.getPriority() != null) this.priority = request.getPriority();
+        if (request.getManagerId() != null) this.manager = manager;
+        if (request.getDeadline() != null) this.deadline = request.getDeadline();
+    }
+
     public void updateStatus(Status status){
         this.status = status;
     }
@@ -79,3 +97,6 @@ public class Ticket extends DeletedBaseEntity {
         PENDING, IN_PROGRESS, REVIEW, DONE, REJECTED
     }
 }
+
+
+
