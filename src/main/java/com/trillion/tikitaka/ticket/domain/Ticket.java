@@ -5,6 +5,7 @@ import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Builder
 @Entity
@@ -78,7 +80,6 @@ public class Ticket extends DeletedBaseEntity {
         if (ticketType != null) this.ticketType = ticketType;
     }
 
-
     public void updateSetting(EditSettingRequest request){
         if (request.getPriority() != null) this.priority = request.getPriority();
         if (request.getManagerId() != null) this.manager = manager;
@@ -87,6 +88,13 @@ public class Ticket extends DeletedBaseEntity {
 
     public void updateStatus(Status status){
         this.status = status;
+    }
+
+    public boolean canComment(User user) {
+        if (user.getRole() == Role.USER) {
+            return Objects.equals(this.requester.getId(), user.getId());
+        }
+        return true;
     }
 
     public enum Priority {
