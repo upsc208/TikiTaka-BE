@@ -2,6 +2,7 @@ package com.trillion.tikitaka.ticket.domain;
 
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
+import com.trillion.tikitaka.subtask.domain.Subtask;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
@@ -13,6 +14,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Builder
@@ -71,6 +74,7 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Boolean urgent = false;
 
+
     public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
         if (request.getDescription() != null) this.description = request.getDescription();
@@ -96,6 +100,7 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
+
 
     public enum Priority {
         HIGH, MIDDLE, LOW
