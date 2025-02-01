@@ -1,7 +1,7 @@
 package com.trillion.tikitaka.notification.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.trillion.tikitaka.notification.kakaowork.dto.block.Block;
+import com.trillion.tikitaka.notification.dto.response.Block;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
