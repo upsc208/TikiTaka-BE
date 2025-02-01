@@ -39,6 +39,10 @@ public enum ErrorCode {
     INVALID_EDIT_VALUE(HttpStatus.BAD_REQUEST,"TI004","사용자는 우선순위와 담당자를 수정할수없습니다."),
     UNAUTHORIZED_TICKET_EDIT(HttpStatus.FORBIDDEN, "TI005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
 
+    // Subtask
+    SUBTASK_NOT_FOUND(HttpStatus.NOT_FOUND,"S001","해당 하위태스크를 찾을수없습니다"),
+    UNAUTHORIZED_SUBTASK_ACCESS(HttpStatus.FORBIDDEN,"S002","하위태스크에 대한 권한이 없습니다"),
+
     // Ticket Type
     TICKET_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "TT001", "티켓 유형을 찾을 수 없습니다."),
     DUPLICATED_TICKET_TYPE(HttpStatus.CONFLICT, "TT002", "이미 존재하는 티켓 유형입니다."),
