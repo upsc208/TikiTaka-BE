@@ -200,6 +200,7 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         ticketRepository.delete(ticket);
+
     }
 
     private void validateTicketType(Long ticketTypeId) {
