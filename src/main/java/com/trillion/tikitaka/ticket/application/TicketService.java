@@ -36,6 +36,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -49,14 +50,6 @@ public class TicketService {
     private final CategoryRepository categoryRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
-        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
-        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
-        Long requesterId = "USER".equals(role) ? userDetails.getUser().getId() : null;
-
-        return ticketRepository.countTicketsByStatus(requesterId, role);
-    }
-
     @Transactional
     public void createTicket(CreateTicketRequest request, Long requesterId) {
         validateTicketType(request.getTypeId());
@@ -67,7 +60,7 @@ public class TicketService {
         }
 
         TicketType ticketType = ticketTypeRepository.findById(request.getTypeId())
-                .orElseThrow(() -> new DuplicatedTicketTypeException());
+                .orElseThrow(DuplicatedTicketTypeException::new);
 
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Requester ID: " + requesterId));
@@ -98,9 +91,26 @@ public class TicketService {
 
         ticketRepository.save(ticket);
 
-        eventPublisher.publishEvent(
-                new TicketCreationEvent(this, ticket.getManager().getEmail(), ticket, NotificationType.TICKET_CREATION)
-        );
+        if (ticket.getManager() != null){
+            eventPublisher.publishEvent(
+                    new TicketCreationEvent(this, ticket.getManager().getEmail(), ticket, NotificationType.TICKET_CREATION)
+            );
+        } else {
+            List<User> managers = userRepository.findAllByRole(Role.MANAGER);
+            for (User m : managers) {
+                eventPublisher.publishEvent(
+                        new TicketCreationEvent(this, m.getEmail(), ticket, NotificationType.TICKET_CREATION)
+                );
+            }
+        }
+    }
+
+    public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
+        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
+        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        Long requesterId = "USER".equals(role) ? userDetails.getUser().getId() : null;
+
+        return ticketRepository.countTicketsByStatus(requesterId, role);
     }
 
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
@@ -124,9 +134,23 @@ public class TicketService {
         return ticketRepository.getTicketList(pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role);
     }
 
+    public TicketResponse getTicket(Long ticketId, CustomUserDetails userDetails) {
+        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
+        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        Long userId = userDetails.getUser().getId();
+
+        TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
+        if (response == null) throw new TicketNotFoundException();
+
+        if ("USER".equals(role)) {
+            response.setPriority(null);
+        }
+
+        return response;
+    }
+
     @Transactional
     public void editTicket(EditTicketRequest request, Long ticketId) {
-
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -146,21 +170,6 @@ public class TicketService {
                 : null;
 
         ticket.update(request, ticketType, firstCategory, secondCategory);
-    }
-
-    public TicketResponse getTicket(Long ticketId, CustomUserDetails userDetails) {
-        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
-        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
-        Long userId = userDetails.getUser().getId();
-
-        TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
-        if (response == null) throw new TicketNotFoundException();
-
-        if ("USER".equals(role)) {
-            response.setPriority(null);
-        }
-
-        return response;
     }
 
     @Transactional

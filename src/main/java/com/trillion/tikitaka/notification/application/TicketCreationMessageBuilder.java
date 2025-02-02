@@ -36,7 +36,7 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
         blocks.add(new DescriptionBlock(new Content(categoryText, inlineCategory), "카테고리", true));
 
         // 5. Description Block for "담당자"
-        String managerText = (ticket.getManager() == null) ? "전체" : ticket.getManager().getUsername();
+        String managerText = (ticket.getManager() == null) ? "미배정" : ticket.getManager().getUsername();
         List<Inline> inlineManager = List.of(new Inline("styled", managerText, true));
         blocks.add(new DescriptionBlock(new Content(managerText, inlineManager), "담당자", true));
 
@@ -53,11 +53,10 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
             return "-";
         }
         if (ticket.getFirstCategory() != null && ticket.getSecondCategory() != null) {
-            return ticket.getFirstCategory().toString() + "/" + ticket.getSecondCategory().toString();
+            return ticket.getFirstCategory() + "/" + ticket.getSecondCategory();
         }
         return ticket.getFirstCategory() != null ? ticket.getFirstCategory().toString() : ticket.getSecondCategory().toString();
     }
-
 
     @Override
     public boolean supports(NotificationEvent event) {
