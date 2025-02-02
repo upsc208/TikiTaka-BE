@@ -52,6 +52,9 @@ public class User extends DeletedBaseEntity {
 
     private LocalDateTime lockExpireAt = null;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @Builder
     public User(String username, String email, String password, Role role) {
         this.username = username;
@@ -88,5 +91,11 @@ public class User extends DeletedBaseEntity {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
         this.lastPasswordChangedAt = LocalDateTime.now();
+    }
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 }

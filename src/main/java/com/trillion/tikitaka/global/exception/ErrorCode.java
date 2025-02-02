@@ -54,7 +54,6 @@ public enum ErrorCode {
     DUPLICATED_TICKET_FORM(HttpStatus.CONFLICT, "TF002", "이미 존재하는 티켓 폼입니다."),
 
     //User
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "U002", "현재 비밀번호가 일치하지 않습니다."),
     WEAK_PASSWORD(HttpStatus.BAD_REQUEST, "U003", "비밀번호는 8자리 이상, 알파벳, 숫자, 특수문자를 포함해야 합니다."),
     PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "U004", "새 비밀번호는 기존 비밀번호와 다르게 설정해야 합니다.");
