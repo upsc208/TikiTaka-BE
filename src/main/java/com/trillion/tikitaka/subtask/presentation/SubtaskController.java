@@ -37,21 +37,35 @@ public class SubtaskController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
     @DeleteMapping("{taskId}")
     public ApiResponse<Void> deleteSubtask(@PathVariable Long taskId){
+
         subtaskService.deleteSubtask(taskId);
+
         return new ApiResponse<>("태스크가 삭제되었습니다",null);
     }
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
     @DeleteMapping("{ticketId}")
     public ApiResponse<Void> deleteAllSubtask(@PathVariable Long ticketId){
+
         subtaskService.deleteSubtask(ticketId);
+
         return new ApiResponse<>("태스크가 삭제되었습니다",null);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
-    @PatchMapping("/{ticketId}/{taskId}")
-    public ApiResponse<Void> editSubtask(@PathVariable Long ticketId, @PathVariable Long taskId, @RequestBody SubtaskRequest request){
-        subtaskService.editSubtask(ticketId,taskId,request);
+    @PatchMapping("/{taskId}")
+    public ApiResponse<Void> editSubtask(@PathVariable Long taskId, @RequestBody SubtaskRequest request){
+
+        subtaskService.editSubtask(taskId,request);
+
         return new ApiResponse<>("태스크가 수정되었습니다",null);
+    }
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @PatchMapping("/{taskId}/{checkBoolean}")
+    public ApiResponse<Void> checkSubtask(@PathVariable Boolean checkBoolean, @PathVariable Long taskId){
+
+        subtaskService.updateSubtask(taskId,checkBoolean);
+
+        return new ApiResponse<>("하위태스크의 수행상태가 변경되었습니다",null);
     }
 }
 

@@ -39,6 +39,7 @@ public class Subtask extends DeletedBaseEntity {
     public boolean isDone() {
         return is_Done;
     }
+    public void updateIsDone(Boolean check){this.is_Done = check;}
     public void updateDescription(String description){
         this.description = description;
     }

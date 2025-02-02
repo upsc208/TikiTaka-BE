@@ -52,7 +52,7 @@ public class SubtaskService {
     }
 
     @Transactional
-    public void editSubtask(Long ticketId, Long taskId, SubtaskRequest request) {
+    public void editSubtask(Long taskId, SubtaskRequest request) {
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(UnauthrizedSubtaskAcessExeception::new);
 
@@ -76,6 +76,13 @@ public class SubtaskService {
         if (!subtasks.isEmpty()) {
             subtaskRepository.deleteAll(subtasks);
         }
+    }
+
+    @Transactional
+    public void updateSubtask(Long taskId,Boolean checkIsDone){
+        Subtask subtask = subtaskRepository.findById(taskId)
+                .orElseThrow(SubtaskNotFoundExeption::new);
+        subtask.updateIsDone(checkIsDone);
     }
 
 

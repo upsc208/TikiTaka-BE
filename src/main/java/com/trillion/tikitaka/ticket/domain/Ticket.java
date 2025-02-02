@@ -74,6 +74,9 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Boolean urgent = false;
 
+    @Column
+    private Double progress;
+
 
     public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
@@ -100,6 +103,7 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
+
 
 
     public enum Priority {
