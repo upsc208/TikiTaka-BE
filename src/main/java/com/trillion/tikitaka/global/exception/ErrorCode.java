@@ -60,7 +60,16 @@ public enum ErrorCode {
     // Ticket Comment
     TICKET_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "TC001", "댓글을 찾을 수 없습니다."),
     UNAUTHORIZED_TICKET_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "TC002", "댓글에 대한 접근 권한이 없습니다."),
-    INVALID_TICKET_COMMENT(HttpStatus.BAD_REQUEST, "TC003", "유효하지 않은 댓글입니다.");
+    INVALID_TICKET_COMMENT(HttpStatus.BAD_REQUEST, "TC003", "유효하지 않은 댓글입니다."),
+
+    // Notification
+    INVALID_NOTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "N001", "유효하지 않은 알림 유형입니다."),
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N002", "알림을 찾을 수 없습니다."),
+
+    // KakaoWork
+    FETCHING_USER_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K001", "카카오워크 사용자 정보를 가져올 수 없습니다."),
+    FETCHING_CONVERSATION_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K002", "카카오워크 채팅방을 열 수 없습니다."),
+    SENDING_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오워크 메시지를 보내는 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
