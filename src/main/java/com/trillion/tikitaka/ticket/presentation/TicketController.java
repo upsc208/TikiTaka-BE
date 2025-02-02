@@ -2,6 +2,7 @@ package com.trillion.tikitaka.ticket.presentation;
 
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
+import com.trillion.tikitaka.subtask.application.SubtaskService;
 import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final SubtaskService subtaskService;
 
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
@@ -88,9 +90,10 @@ public class TicketController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @DeleteMapping("/{ticketId}")
     public ApiResponse<Void> deleteTicket(@PathVariable Long ticketId){
-                ticketService.deleteTicket(ticketId);
-                return new ApiResponse<>("티켓이 삭제되었습니다.", null);
-            }
+        subtaskService.deleteAllSubtask(ticketId);
+        ticketService.deleteTicket(ticketId);
+        return new ApiResponse<>("티켓이 삭제되었습니다.", null);
+    }
     @GetMapping("/{ticketId}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     public ApiResponse<TicketResponse> getTicket(@PathVariable("ticketId") Long ticketId,

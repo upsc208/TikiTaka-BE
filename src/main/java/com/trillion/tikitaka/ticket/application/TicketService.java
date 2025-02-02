@@ -187,9 +187,10 @@ public class TicketService {
     }
     @Transactional
     public void deleteTicket(Long ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException());
-        ticketRepository.delete(ticket);
+        if (!ticketRepository.existsById(ticketId)) {
+            throw new TicketNotFoundException();
+        }
+        ticketRepository.deleteById(ticketId);
     }
 
     private void validateTicketType(Long ticketTypeId) {

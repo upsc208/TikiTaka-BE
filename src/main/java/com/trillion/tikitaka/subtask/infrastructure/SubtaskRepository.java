@@ -13,4 +13,5 @@ import java.util.List;
 public interface SubtaskRepository extends JpaRepository<Subtask, Long> {
 
     List<Subtask> findByParentTicket(Ticket parentTicket);
+    List<Subtask> findAllByParentTicket(Ticket ticket);
 }
