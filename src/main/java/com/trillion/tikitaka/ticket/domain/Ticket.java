@@ -25,7 +25,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE ticket SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE tickets SET deleted_at = NOW() WHERE id = ?")
 public class Ticket extends DeletedBaseEntity {
 
     @Id

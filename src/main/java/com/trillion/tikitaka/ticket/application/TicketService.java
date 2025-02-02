@@ -233,5 +233,4 @@ public class TicketService {
             throw new UserNotFoundException();
         }
     }
-
 }
