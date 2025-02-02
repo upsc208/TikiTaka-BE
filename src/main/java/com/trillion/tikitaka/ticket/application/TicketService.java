@@ -6,6 +6,7 @@ import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
+import com.trillion.tikitaka.subtask.application.SubtaskService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
@@ -44,6 +45,7 @@ public class TicketService {
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final CategoryRepository categoryRepository;
+    private final SubtaskService subtaskService;
 
 
     public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
@@ -151,8 +153,9 @@ public class TicketService {
         Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
         String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
         Long userId = userDetails.getUser().getId();
-
+        Double progress = subtaskService.calculateProgress(ticketId);
         TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
+        response.setProgress(progress);
         if (response == null) throw new TicketNotFoundException();
 
         if ("USER".equals(role)) {

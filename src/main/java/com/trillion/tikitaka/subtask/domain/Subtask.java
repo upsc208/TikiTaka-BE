@@ -33,13 +33,13 @@ public class Subtask extends DeletedBaseEntity {
 
     @Column
     @Builder.Default
-    private Boolean is_Done = false;
+    private Boolean done = false;
 
 
     public boolean isDone() {
-        return is_Done;
+        return done;
     }
-    public void updateIsDone(Boolean check){this.is_Done = check;}
+    public void updateIsDone(Boolean check){this.done = check;}
     public void updateDescription(String description){
         this.description = description;
     }

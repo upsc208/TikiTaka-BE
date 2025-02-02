@@ -33,10 +33,10 @@ public class SubtaskService {
         Subtask subtask = Subtask.builder()
                 .description(request.getDescription())
                 .parentTicket(parentTicket)
-                .is_Done(false)
+                .done(false)
                 .build();
         subtaskRepository.save(subtask);
-        calculateProcess(request.getTicketId());
+        calculateProgress(request.getTicketId());
         return subtask;
     }
 
@@ -66,7 +66,7 @@ public class SubtaskService {
                 .orElseThrow(SubtaskNotFoundExeption::new);
 
         subtaskRepository.delete(subtask);
-        calculateProcess(ticketId);
+        calculateProgress(ticketId);
     }
     @Transactional
     public void deleteAllSubtask(Long ticketId) {
@@ -85,15 +85,21 @@ public class SubtaskService {
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
         subtask.updateIsDone(checkIsDone);
-        calculateProcess(ticketId);
+        calculateProgress(ticketId);
     }
     @Transactional
-    public Double calculateProcess(Long ticketId){
+    public Double calculateProgress(Long ticketId) {
+        Double subtaskCount = subtaskRepository.countAllByParentTicketId(ticketId);
+        Double isDoneChecked = subtaskRepository.countAllByDoneIsTrueAndParentTicketId(ticketId);
 
-        Double subtaskCount = subtaskRepository.findAllByParentTicketId(ticketId);
-        Double isDoneChecked = subtaskRepository.findAllByIs_DoneIsTrue(ticketId);
-        Double process = subtaskCount/isDoneChecked;
-        return process;
+        if (subtaskCount == 0) {
+            return null; // 0으로 나누는 것 방지
+        }
+
+        Double progress = (isDoneChecked / subtaskCount) * 100;
+
+        // ✅ 소수점 한 자리까지만 유지
+        return Math.round(progress * 10.0) / 10.0;
     }
 
 

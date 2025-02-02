@@ -24,6 +24,7 @@ public class SubtaskController {
     public ApiResponse<Void> createSubtask(@RequestBody SubtaskRequest request) {
         Subtask subtask = subtaskService.createSubtask(request);
         subtaskRepository.save(subtask);
+        subtaskService.calculateProgress(request.getTicketId());
         return new ApiResponse<>("태스크가 생성되었습니다",null);
     }
 
@@ -39,7 +40,7 @@ public class SubtaskController {
     public ApiResponse<Void> deleteSubtask(@PathVariable Long taskId,@PathVariable Long ticketId){
 
         subtaskService.deleteSubtask(taskId,ticketId);
-
+        subtaskService.calculateProgress(ticketId);
         return new ApiResponse<>("태스크가 삭제되었습니다",null);
     }
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
@@ -63,8 +64,8 @@ public class SubtaskController {
     @PatchMapping("/{ticketId}/{taskId}/{checkBoolean}")
     public ApiResponse<Void> checkSubtask(@PathVariable Long ticketId,@PathVariable Long taskId,@PathVariable Boolean checkBoolean){
 
-        subtaskService.updateSubtaskIsDone(taskId,checkBoolean,taskId);
-
+        subtaskService.updateSubtaskIsDone(taskId,checkBoolean,ticketId);
+        subtaskService.calculateProgress(ticketId);
         return new ApiResponse<>("하위태스크의 수행상태가 변경되었습니다",null);
     }
 }
