@@ -56,7 +56,10 @@ public enum ErrorCode {
     // Ticket Comment
     TICKET_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "TC001", "댓글을 찾을 수 없습니다."),
     UNAUTHORIZED_TICKET_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "TC002", "댓글에 대한 접근 권한이 없습니다."),
-    INVALID_TICKET_COMMENT(HttpStatus.BAD_REQUEST, "TC003", "유효하지 않은 댓글입니다.");
+    INVALID_TICKET_COMMENT(HttpStatus.BAD_REQUEST, "TC003", "유효하지 않은 댓글입니다."),
+
+    TICKET_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TPL001", "티켓 템플릿을 찾을 수 없습니다."),
+    TICKET_TEMPLATE_INVALID_FK(HttpStatus.BAD_REQUEST, "TPL002", "티켓 템플릿 FK값이 유효하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
