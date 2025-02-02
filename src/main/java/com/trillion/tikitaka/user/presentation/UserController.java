@@ -3,7 +3,6 @@ package com.trillion.tikitaka.user.presentation;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.dto.PasswordChangeRequest;
-import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
