@@ -60,6 +60,7 @@ public enum ErrorCode {
 
     // Notification
     INVALID_NOTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "N001", "유효하지 않은 알림 유형입니다."),
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N002", "알림을 찾을 수 없습니다."),
 
     // KakaoWork
     FETCHING_USER_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K001", "카카오워크 사용자 정보를 가져올 수 없습니다."),
