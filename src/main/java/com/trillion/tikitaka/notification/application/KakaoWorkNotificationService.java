@@ -5,7 +5,6 @@ import com.trillion.tikitaka.notification.dto.request.KakaoWorkMessageRequest;
 import com.trillion.tikitaka.notification.dto.response.Block;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -13,7 +12,6 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class KakaoWorkNotificationService {
 
@@ -34,5 +32,4 @@ public class KakaoWorkNotificationService {
                     return Mono.empty();
                 });
     }
-
 }
