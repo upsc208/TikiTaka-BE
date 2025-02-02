@@ -103,9 +103,7 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
-
-
-
+    public void updateProcess(Double progress){this.progress = progress;}
     public enum Priority {
         HIGH, MIDDLE, LOW
     }

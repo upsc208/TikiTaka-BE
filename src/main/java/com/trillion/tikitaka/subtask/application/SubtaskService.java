@@ -35,8 +35,9 @@ public class SubtaskService {
                 .parentTicket(parentTicket)
                 .is_Done(false)
                 .build();
-
-        return subtaskRepository.save(subtask);
+        subtaskRepository.save(subtask);
+        calculateProcess(request.getTicketId());
+        return subtask;
     }
 
     @Transactional(readOnly = true)
@@ -60,11 +61,12 @@ public class SubtaskService {
     }
 
     @Transactional
-    public void deleteSubtask(Long taskId) {
+    public void deleteSubtask(Long taskId,Long ticketId) {
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
 
         subtaskRepository.delete(subtask);
+        calculateProcess(ticketId);
     }
     @Transactional
     public void deleteAllSubtask(Long ticketId) {
@@ -79,10 +81,19 @@ public class SubtaskService {
     }
 
     @Transactional
-    public void updateSubtask(Long taskId,Boolean checkIsDone){
+    public void updateSubtaskIsDone(Long taskId,Boolean checkIsDone,Long ticketId){
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
         subtask.updateIsDone(checkIsDone);
+        calculateProcess(ticketId);
+    }
+    @Transactional
+    public Double calculateProcess(Long ticketId){
+
+        Double subtaskCount = subtaskRepository.findAllByParentTicketId(ticketId);
+        Double isDoneChecked = subtaskRepository.findAllByIs_DoneIsTrue(ticketId);
+        Double process = subtaskCount/isDoneChecked;
+        return process;
     }
 
 

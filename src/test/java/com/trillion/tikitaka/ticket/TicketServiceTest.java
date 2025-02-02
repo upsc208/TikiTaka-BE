@@ -420,6 +420,7 @@ class TicketServiceTest {
                     false,
                     null,
                     null,
+                    null,
                     null
             );
             when(ticketRepository.getTicket(ticketId, 100L, "USER"))
@@ -449,6 +450,7 @@ class TicketServiceTest {
                     "매니저",
                     "사용자",
                     false,
+                    null,
                     null,
                     null,
                     null
