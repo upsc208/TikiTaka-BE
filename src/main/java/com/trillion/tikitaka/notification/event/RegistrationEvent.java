@@ -10,16 +10,16 @@ public class RegistrationEvent extends ApplicationEvent implements NotificationE
     private final String username;
     private final String email;
     private final String message;
-    private final RegistrationStatus status;
-    private final NotificationType type;
+    private final RegistrationStatus registrationStatus;
+    private final NotificationType notificationType;
 
     public RegistrationEvent(Object source, String username, String email, String message,
-                             RegistrationStatus status, NotificationType type) {
+                             RegistrationStatus registrationStatus, NotificationType notificationType) {
         super(source);
         this.username = username;
         this.email = email;
         this.message = message;
-        this.status = status;
-        this.type = type;
+        this.registrationStatus = registrationStatus;
+        this.notificationType = notificationType;
     }
 }
