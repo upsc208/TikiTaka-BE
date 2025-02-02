@@ -2,15 +2,11 @@ package com.trillion.tikitaka.user.presentation;
 
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
-import com.trillion.tikitaka.user.dto.PasswordChangeRequest;
-import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
@@ -19,12 +15,14 @@ public class UserController {
 
     private final UserService userService;
 
-    @PatchMapping("/{userId}/password")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER') and #userId == authentication.principal.id")
-    public ApiResponse<Void> changePassword(
+    // 계정 삭제 API (소프트 삭제)
+    @PatchMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> deleteUser(
             @PathVariable("userId") Long userId,
-            @RequestBody @Valid PasswordChangeRequest request) {
-        userService.changePassword(userId, request);
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        userService.softDeleteUser(userId);
         return new ApiResponse<>(null);
     }
 
