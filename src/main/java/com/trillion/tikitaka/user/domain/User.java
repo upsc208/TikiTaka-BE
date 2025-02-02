@@ -10,7 +10,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(
@@ -53,7 +52,6 @@ public class User extends DeletedBaseEntity {
 
     private LocalDateTime lockExpireAt = null;
 
-
     @Builder
     public User(String username, String email, String password, Role role) {
         this.username = username;
@@ -85,5 +83,10 @@ public class User extends DeletedBaseEntity {
 
     public void updateLastLoginAt(LocalDateTime time) {
         this.lastLoginAt = time;
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+        this.lastPasswordChangedAt = LocalDateTime.now();
     }
 }
