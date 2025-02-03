@@ -6,7 +6,6 @@ import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.response.QUserResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
-import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -35,7 +34,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     @Override
     public UserResponse getUserResponse(Long userId) {
-        UserResponse userResponse = queryFactory
+        return queryFactory
                 .select(new QUserResponse(
                         user.id.as("userId"),
                         user.username,
@@ -45,9 +44,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .from(user)
                 .where(userIdEq(userId))
                 .fetchOne();
-
-        if (userResponse == null) throw new UserNotFoundException();
-        return userResponse;
     }
 
     private static BooleanExpression userIdEq(Long userId) {

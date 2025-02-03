@@ -5,6 +5,7 @@ import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
+import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,8 @@ public class UserService {
     }
 
     public UserResponse getUserResponse(Long userId) {
-        return userRepository.getUserResponse(userId);
+        UserResponse userResponse = userRepository.getUserResponse(userId);
+        if (userResponse == null) throw new UserNotFoundException();
+        return userResponse;
     }
 }
