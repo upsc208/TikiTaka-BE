@@ -37,17 +37,7 @@ public class RegistrationService {
 
     @Transactional
     public void createRegistration(RegistrationRequest registrationRequest) {
-
-        registrationRepository.findByUsernameOrEmail(
-                registrationRequest.getUsername(),
-                registrationRequest.getEmail()
-        ).ifPresent((registration) -> {
-            if (registration.getUsername().equals(registrationRequest.getUsername())) {
-                throw new DuplicatedUsernameException();
-            } else if (registration.getEmail().equals(registrationRequest.getEmail())) {
-                throw new DuplicatedEmailException();
-            }
-        });
+        validateDuplicateRegistration(registrationRequest.getUsername(), registrationRequest.getEmail());
 
         Registration registration = Registration.builder()
             .username(registrationRequest.getUsername())
@@ -55,6 +45,22 @@ public class RegistrationService {
             .build();
 
         registrationRepository.save(registration);
+    }
+
+    private void validateDuplicateRegistration(String username, String email) {
+        if (userRepository.existsByUsername(username)) {
+            throw new DuplicatedUsernameException();
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicatedEmailException();
+        }
+
+        if (registrationRepository.existsByUsernameAndStatusNot(username, RegistrationStatus.REJECTED)) {
+            throw new DuplicatedUsernameException();
+        }
+        if (registrationRepository.existsByEmailAndStatusNot(email, RegistrationStatus.REJECTED)) {
+            throw new DuplicatedEmailException();
+        }
     }
 
     public Page<RegistrationListResponse> getRegistrations(RegistrationStatus status, Pageable pageable) {
