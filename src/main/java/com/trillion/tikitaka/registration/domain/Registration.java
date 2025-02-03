@@ -8,11 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "registrations",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"username"}),
-                @UniqueConstraint(columnNames = {"email"})
-        })
+@Table(name = "registrations")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Registration extends BaseEntity {
@@ -21,10 +17,10 @@ public class Registration extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(nullable = false, length = 30)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
