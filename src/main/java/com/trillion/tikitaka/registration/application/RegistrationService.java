@@ -1,11 +1,12 @@
 package com.trillion.tikitaka.registration.application;
 
+import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.notification.domain.NotificationType;
 import com.trillion.tikitaka.notification.event.RegistrationEvent;
 import com.trillion.tikitaka.registration.domain.Registration;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
-import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
+import com.trillion.tikitaka.registration.dto.request.RegistrationProcessRequest;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
 import com.trillion.tikitaka.registration.exception.DuplicatedEmailException;
@@ -61,7 +62,7 @@ public class RegistrationService {
     }
 
     @Transactional
-    public void processRegistration(Long registrationId, RegistrationStatus status, RegistrationProcessReasonRequest request) {
+    public void processRegistration(Long registrationId, RegistrationStatus status, RegistrationProcessRequest request) {
         Registration registration = registrationRepository.findById(registrationId)
                 .orElseThrow(RegistrationNotFoundException::new);
 
@@ -69,10 +70,12 @@ public class RegistrationService {
             throw new RegistrationAlreadyProcessedException();
         }
 
+        Role role = validateRole(request.getRole());
+
         String message = switch (status) {
             case APPROVED -> {
                 registration.approve(request.getReason());
-                yield createUser(registration.getUsername(), registration.getEmail());
+                yield createUser(registration.getUsername(), registration.getEmail(), role);
             }
             case REJECTED -> {
                 registration.reject(request.getReason());
@@ -82,6 +85,14 @@ public class RegistrationService {
         };
 
         publishRegistrationEvent(registration, message);
+    }
+
+    private Role validateRole(String role) {
+        try {
+            return Role.valueOf(role.toUpperCase());
+        } catch (CustomException e) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST_VALUE);
+        }
     }
 
     private void publishRegistrationEvent(Registration registration, String message) {
@@ -95,14 +106,14 @@ public class RegistrationService {
         ));
     }
 
-    private String createUser(String username, String email) {
+    private String createUser(String username, String email, Role role) {
         String rawPassword = PasswordGenerator.generateRandomPassword();
 
         User user = User.builder()
                 .username(username)
                 .email(email)
                 .password(passwordEncoder.encode(rawPassword))
-                .role(Role.USER)
+                .role(role)
                 .build();
         userRepository.save(user);
 

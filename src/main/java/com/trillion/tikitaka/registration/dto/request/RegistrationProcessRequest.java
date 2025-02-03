@@ -8,7 +8,9 @@ import org.hibernate.validator.constraints.Length;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationProcessReasonRequest {
+public class RegistrationProcessRequest {
+
+    private String role;
 
     @Length(max = 500, message = "사유는 500자 이하여야 합니다.")
     private String reason;
