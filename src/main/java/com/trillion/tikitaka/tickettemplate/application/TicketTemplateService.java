@@ -3,6 +3,7 @@ package com.trillion.tikitaka.tickettemplate.application;
 import com.trillion.tikitaka.tickettemplate.domain.TicketTemplate;
 import com.trillion.tikitaka.tickettemplate.dto.request.TicketTemplateRequest;
 import com.trillion.tikitaka.tickettemplate.exception.TicketTemplateInvalidFKException;
+import com.trillion.tikitaka.tickettemplate.exception.TicketTemplateNotFoundException;
 import com.trillion.tikitaka.tickettemplate.infrastructure.TicketTemplateRepository;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
@@ -44,13 +45,10 @@ public class TicketTemplateService {
         return templateRepository.save(entity).getId();
     }
 
-
     @Transactional
     public void updateTicketTemplate(Long id, TicketTemplateRequest req) {
-
         TicketTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("티켓 템플릿이 존재하지 않습니다. id=" + id));
-
+                .orElseThrow(TicketTemplateNotFoundException::new);
 
         if (!typeRepository.existsById(req.getTypeId())
                 || !categoryRepository.existsById(req.getFirstCategoryId())
@@ -58,7 +56,6 @@ public class TicketTemplateService {
                 || !userRepository.existsById(req.getRequesterId())) {
             throw new TicketTemplateInvalidFKException();
         }
-
 
         template.update(
                 req.getTemplateTitle(),
@@ -70,5 +67,13 @@ public class TicketTemplateService {
                 req.getRequesterId(),
                 req.getManagerId()
         );
+    }
+
+    @Transactional
+    public void deleteTicketTemplate(Long id) {
+        TicketTemplate template = templateRepository.findById(id)
+                .orElseThrow(TicketTemplateNotFoundException::new);
+
+        templateRepository.delete(template);
     }
 }
