@@ -39,6 +39,10 @@ public enum ErrorCode {
     INVALID_EDIT_VALUE(HttpStatus.BAD_REQUEST,"TI004","사용자는 우선순위와 담당자를 수정할수없습니다."),
     UNAUTHORIZED_TICKET_EDIT(HttpStatus.FORBIDDEN, "TI005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
 
+    // Subtask
+    SUBTASK_NOT_FOUND(HttpStatus.NOT_FOUND,"S001","해당 하위태스크를 찾을수없습니다"),
+    UNAUTHORIZED_SUBTASK_ACCESS(HttpStatus.FORBIDDEN,"S002","하위태스크에 대한 권한이 없습니다"),
+
     // Ticket Type
     TICKET_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "TT001", "티켓 유형을 찾을 수 없습니다."),
     DUPLICATED_TICKET_TYPE(HttpStatus.CONFLICT, "TT002", "이미 존재하는 티켓 유형입니다."),
@@ -58,8 +62,18 @@ public enum ErrorCode {
     UNAUTHORIZED_TICKET_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "TC002", "댓글에 대한 접근 권한이 없습니다."),
     INVALID_TICKET_COMMENT(HttpStatus.BAD_REQUEST, "TC003", "유효하지 않은 댓글입니다."),
 
+    // Ticket Template
     TICKET_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TPL001", "티켓 템플릿을 찾을 수 없습니다."),
     TICKET_TEMPLATE_INVALID_FK(HttpStatus.BAD_REQUEST, "TPL002", "티켓 템플릿 FK값이 유효하지 않습니다.");
+
+    // Notification
+    INVALID_NOTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "N001", "유효하지 않은 알림 유형입니다."),
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N002", "알림을 찾을 수 없습니다."),
+
+    // KakaoWork
+    FETCHING_USER_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K001", "카카오워크 사용자 정보를 가져올 수 없습니다."),
+    FETCHING_CONVERSATION_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K002", "카카오워크 채팅방을 열 수 없습니다."),
+    SENDING_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오워크 메시지를 보내는 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
