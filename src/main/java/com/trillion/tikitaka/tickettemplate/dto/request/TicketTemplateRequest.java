@@ -31,4 +31,5 @@ public class TicketTemplateRequest {
     private Long requesterId;
 
     private Long managerId;
+
 }

@@ -25,4 +25,14 @@ public class TicketTemplateController {
         TicketTemplateCreateResponse resp = new TicketTemplateCreateResponse("요청 성공", id);
         return ResponseEntity.ok(resp);
     }
+
+    @PreAuthorize("hasAuthority('USER')")
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable Long id,
+            @Valid @RequestBody TicketTemplateRequest request
+    ) {
+        templateService.updateTicketTemplate(id, request);
+        return ResponseEntity.ok("Ticket Template updated successfully");
+    }
 }

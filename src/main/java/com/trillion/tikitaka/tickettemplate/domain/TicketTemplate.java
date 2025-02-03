@@ -19,11 +19,10 @@ public class TicketTemplate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 100)
     private String templateTitle;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 100)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -41,9 +40,8 @@ public class TicketTemplate {
     @Column(nullable = false)
     private Long requesterId;
 
-
+    // optional
     private Long managerId;
-
 
     @CreatedDate
     @Column(updatable = false)
@@ -61,6 +59,25 @@ public class TicketTemplate {
                           Long secondCategoryId,
                           Long requesterId,
                           Long managerId) {
+        this.templateTitle = templateTitle;
+        this.title = title;
+        this.description = description;
+        this.typeId = typeId;
+        this.firstCategoryId = firstCategoryId;
+        this.secondCategoryId = secondCategoryId;
+        this.requesterId = requesterId;
+        this.managerId = managerId;
+    }
+
+    public void update(String templateTitle,
+                       String title,
+                       String description,
+                       Long typeId,
+                       Long firstCategoryId,
+                       Long secondCategoryId,
+                       Long requesterId,
+                       Long managerId
+    ) {
         this.templateTitle = templateTitle;
         this.title = title;
         this.description = description;
