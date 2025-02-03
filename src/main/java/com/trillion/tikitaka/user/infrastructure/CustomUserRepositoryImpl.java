@@ -1,10 +1,12 @@
 package com.trillion.tikitaka.user.infrastructure;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.response.QUserResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
+import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -29,6 +31,27 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .fetch();
 
         return new UserListResponse(users, countAdmin(), countManager(), countUser());
+    }
+
+    @Override
+    public UserResponse getUserResponse(Long userId) {
+        UserResponse userResponse = queryFactory
+                .select(new QUserResponse(
+                        user.id.as("userId"),
+                        user.username,
+                        user.email,
+                        user.role
+                ))
+                .from(user)
+                .where(userIdEq(userId))
+                .fetchOne();
+
+        if (userResponse == null) throw new UserNotFoundException();
+        return userResponse;
+    }
+
+    private static BooleanExpression userIdEq(Long userId) {
+        return user.id.eq(userId);
     }
 
     public Long countAdmin() {

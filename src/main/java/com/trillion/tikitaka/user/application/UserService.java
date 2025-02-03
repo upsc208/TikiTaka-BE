@@ -4,6 +4,7 @@ import com.trillion.tikitaka.registration.domain.RegistrationStatus;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
+import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,5 +27,9 @@ public class UserService {
 
     public UserListResponse findAllUsers() {
         return userRepository.findAllUser();
+    }
+
+    public UserResponse getUserResponse(Long userId) {
+        return userRepository.getUserResponse(userId);
     }
 }
