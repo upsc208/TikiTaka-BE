@@ -75,7 +75,9 @@ public class Ticket extends DeletedBaseEntity {
     private Boolean urgent = false;
 
     @Column
-    private Double progress;
+    @Builder.Default
+    private Double progress = null;
+
 
 
     public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
@@ -89,7 +91,7 @@ public class Ticket extends DeletedBaseEntity {
 
     public void updateSetting(EditSettingRequest request){
         if (request.getPriority() != null) this.priority = request.getPriority();
-        if (request.getManagerId() != null) this.manager = manager;
+        //if (request.getManagerId() != null) this.manager = request.getManagerId();
         if (request.getDeadline() != null) this.deadline = request.getDeadline();
     }
 
@@ -103,7 +105,7 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
-    public void updateProcess(Double progress){this.progress = progress;}
+    public void updateProgress(Double progress){this.progress = progress;}
     public enum Priority {
         HIGH, MIDDLE, LOW
     }

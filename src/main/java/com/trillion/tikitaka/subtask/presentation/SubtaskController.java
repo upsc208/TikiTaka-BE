@@ -68,5 +68,13 @@ public class SubtaskController {
         subtaskService.calculateProgress(ticketId);
         return new ApiResponse<>("하위태스크의 수행상태가 변경되었습니다",null);
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER','USER')")
+    @GetMapping("/progress/{ticketId}")
+    public ApiResponse<Double> getProgress(@PathVariable Long ticketId){
+        Double progress = subtaskService.calculateProgress(ticketId);
+        return new ApiResponse<>(progress);
+    }
+
 }
 

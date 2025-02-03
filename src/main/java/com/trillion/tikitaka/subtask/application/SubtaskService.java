@@ -93,12 +93,14 @@ public class SubtaskService {
         Double isDoneChecked = subtaskRepository.countAllByDoneIsTrueAndParentTicketId(ticketId);
 
         if (subtaskCount == 0) {
-            return null; // 0으로 나누는 것 방지
+            return null;
         }
 
         Double progress = (isDoneChecked / subtaskCount) * 100;
-
-        // ✅ 소수점 한 자리까지만 유지
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException());
+        ticket.updateProgress(progress);
+        
         return Math.round(progress * 10.0) / 10.0;
     }
 
