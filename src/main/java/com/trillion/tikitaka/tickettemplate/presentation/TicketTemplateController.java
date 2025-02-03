@@ -10,13 +10,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/ticket-templates")
+@RequestMapping("/ticketTemplates")
 @RequiredArgsConstructor
 public class TicketTemplateController {
 
     private final TicketTemplateService templateService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping
     public ResponseEntity<TicketTemplateCreateResponse> create(
             @Valid @RequestBody TicketTemplateRequest request
