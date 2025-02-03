@@ -3,6 +3,7 @@ package com.trillion.tikitaka.user.presentation;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
+import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,13 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<RegistrationAndUserCountResponse> getRegistrationAndUserCount() {
         RegistrationAndUserCountResponse response = userService.getRegistrationAndUserCount();
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<UserListResponse> findAllUsers() {
+        UserListResponse response = userService.findAllUsers();
         return ApiResponse.success(response);
     }
 }
