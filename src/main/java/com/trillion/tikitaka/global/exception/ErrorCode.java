@@ -64,7 +64,7 @@ public enum ErrorCode {
 
     // Ticket Template
     TICKET_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TPL001", "티켓 템플릿을 찾을 수 없습니다."),
-    TICKET_TEMPLATE_INVALID_FK(HttpStatus.BAD_REQUEST, "TPL002", "티켓 템플릿 FK값이 유효하지 않습니다.");
+    TICKET_TEMPLATE_INVALID_FK(HttpStatus.BAD_REQUEST, "TPL002", "티켓 템플릿 FK값이 유효하지 않습니다."),
 
     // Notification
     INVALID_NOTIFICATION_TYPE(HttpStatus.BAD_REQUEST, "N001", "유효하지 않은 알림 유형입니다."),
