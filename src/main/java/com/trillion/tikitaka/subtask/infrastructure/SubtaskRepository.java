@@ -14,4 +14,9 @@ public interface SubtaskRepository extends JpaRepository<Subtask, Long> {
 
     List<Subtask> findByParentTicket(Ticket parentTicket);
     List<Subtask> findAllByParentTicket(Ticket ticket);
+
+    Double countAllByParentTicketId(Long ticketId);
+
+    Double countAllByDoneIsTrueAndParentTicketId(Long ticketId);
+    ;
 }

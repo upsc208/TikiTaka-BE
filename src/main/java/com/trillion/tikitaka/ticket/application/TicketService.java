@@ -6,6 +6,7 @@ import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
+import com.trillion.tikitaka.subtask.application.SubtaskService;
 import com.trillion.tikitaka.notification.domain.NotificationType;
 import com.trillion.tikitaka.notification.event.TicketCreationEvent;
 import com.trillion.tikitaka.ticket.domain.Ticket;
@@ -49,6 +50,7 @@ public class TicketService {
     private final TicketTypeRepository ticketTypeRepository;
     private final CategoryRepository categoryRepository;
     private final ApplicationEventPublisher eventPublisher;
+
 
     @Transactional
     public void createTicket(CreateTicketRequest request, Long requesterId) {
