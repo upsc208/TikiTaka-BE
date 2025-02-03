@@ -52,4 +52,9 @@ public class Category extends DeletedBaseEntity {
     public void updateName(String newName) {
         this.name = newName;
     }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

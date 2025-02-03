@@ -1,6 +1,8 @@
 package com.trillion.tikitaka.registration.application;
 
 import com.trillion.tikitaka.global.exception.ErrorCode;
+import com.trillion.tikitaka.notification.domain.NotificationType;
+import com.trillion.tikitaka.notification.event.RegistrationEvent;
 import com.trillion.tikitaka.registration.domain.Registration;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
 import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
@@ -11,9 +13,14 @@ import com.trillion.tikitaka.registration.exception.DuplicatedUsernameException;
 import com.trillion.tikitaka.registration.exception.RegistrationAlreadyProcessedException;
 import com.trillion.tikitaka.registration.exception.RegistrationNotFoundException;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
+import com.trillion.tikitaka.user.domain.Role;
+import com.trillion.tikitaka.user.domain.User;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegistrationService {
 
     private final RegistrationRepository registrationRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void createRegistration(RegistrationRequest registrationRequest) {
@@ -59,12 +69,43 @@ public class RegistrationService {
             throw new RegistrationAlreadyProcessedException();
         }
 
-        switch (status) {
-            case APPROVED -> registration.approve(request.getReason());
-            case REJECTED -> registration.reject(request.getReason());
+        String message = switch (status) {
+            case APPROVED -> {
+                registration.approve(request.getReason());
+                yield createUser(registration.getUsername(), registration.getEmail());
+            }
+            case REJECTED -> {
+                registration.reject(request.getReason());
+                yield request.getReason();
+            }
             default -> throw new IllegalArgumentException(ErrorCode.INVALID_REQUEST_VALUE.getMessage());
-        }
+        };
 
-        // TODO: 카카오워크로 랜덤 비밀번호 생성 후 알림 전송 추가
+        publishRegistrationEvent(registration, message);
+    }
+
+    private void publishRegistrationEvent(Registration registration, String message) {
+        eventPublisher.publishEvent(new RegistrationEvent(
+                this,
+                registration.getUsername(),
+                registration.getEmail(),
+                message,
+                registration.getStatus(),
+                NotificationType.USER_REGISTRATION
+        ));
+    }
+
+    private String createUser(String username, String email) {
+        String rawPassword = PasswordGenerator.generateRandomPassword();
+
+        User user = User.builder()
+                .username(username)
+                .email(email)
+                .password(passwordEncoder.encode(rawPassword))
+                .role(Role.USER)
+                .build();
+        userRepository.save(user);
+
+        return rawPassword;
     }
 }
