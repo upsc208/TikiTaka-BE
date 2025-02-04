@@ -1,4 +1,4 @@
-package com.trillion.tikitaka.user.dto;
+package com.trillion.tikitaka.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
