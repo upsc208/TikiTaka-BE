@@ -82,4 +82,11 @@ public class TicketTemplateService {
         );
     }
 
+    @Transactional
+    public void deleteTicketTemplate(Long id) {
+        TicketTemplate template = templateRepository.findById(id)
+                .orElseThrow(TicketTemplateNotFoundException::new);
+
+        templateRepository.delete(template);
+    }
 }
