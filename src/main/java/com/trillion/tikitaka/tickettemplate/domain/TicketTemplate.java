@@ -35,13 +35,11 @@ public class TicketTemplate extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "requester_id", nullable = false)
-    private User requester;  // 필수
+    private User requester;
 
     @ManyToOne
     @JoinColumn(name = "manager_id")
-    private User manager;    // optional
-
-    // createdAt, updatedAt은 BaseEntity가 자동 관리
+    private User manager;
 
     @Builder
     public TicketTemplate(String templateTitle,
