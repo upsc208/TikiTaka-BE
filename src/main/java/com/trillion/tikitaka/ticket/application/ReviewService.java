@@ -2,6 +2,7 @@ package com.trillion.tikitaka.ticket.application;
 
 import com.trillion.tikitaka.ticket.domain.Review;
 import com.trillion.tikitaka.ticket.domain.Ticket;
+import com.trillion.tikitaka.ticket.dto.response.ReviewListResponse;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
 import com.trillion.tikitaka.ticket.exception.TicketReviewAlreadyDoneException;
 import com.trillion.tikitaka.ticket.exception.TicketReviewNotRequiredException;
@@ -44,5 +45,12 @@ public class ReviewService {
                 .reviewer(user)
                 .build();
         reviewRepository.save(review);
+    }
+
+    public List<ReviewListResponse> getReviews(Long ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+
+        return reviewRepository.findAllByTicketId(ticketId);
     }
 }
