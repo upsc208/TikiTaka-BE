@@ -1,20 +1,15 @@
 package com.trillion.tikitaka.tickettemplate.domain;
 
+import com.trillion.tikitaka.global.common.BaseEntity;
+import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import com.trillion.tikitaka.user.domain.User;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ticket_templates")
-@EntityListeners(AuditingEntityListener.class)
-public class TicketTemplate {
+public class TicketTemplate extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,14 +39,9 @@ public class TicketTemplate {
 
     @ManyToOne
     @JoinColumn(name = "manager_id")
-    private User manager;
+    private User manager;    // optional
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+    // createdAt, updatedAt은 BaseEntity가 자동 관리
 
     @Builder
     public TicketTemplate(String templateTitle,
