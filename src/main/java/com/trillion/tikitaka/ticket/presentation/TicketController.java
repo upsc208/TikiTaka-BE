@@ -120,7 +120,6 @@ public class TicketController {
         return new ApiResponse<>("티켓 검토를 완료했습니다.", null);
     }
 
-
     @GetMapping("/{ticketId}/reviews")
     @PreAuthorize("hasAuthority('MANAGER')")
     public ApiResponse<List<ReviewListResponse>> getReviews(@PathVariable("ticketId") Long ticketId) {
