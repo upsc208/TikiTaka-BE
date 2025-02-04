@@ -33,10 +33,11 @@ public class SubtaskService {
         Subtask subtask = Subtask.builder()
                 .description(request.getDescription())
                 .parentTicket(parentTicket)
-                .is_Done(false)
+                .done(false)
                 .build();
-
-        return subtaskRepository.save(subtask);
+        subtaskRepository.save(subtask);
+        calculateProgress(request.getTicketId());
+        return subtask;
     }
 
     @Transactional(readOnly = true)
@@ -52,7 +53,7 @@ public class SubtaskService {
     }
 
     @Transactional
-    public void editSubtask(Long ticketId, Long taskId, SubtaskRequest request) {
+    public void editSubtask(Long taskId, SubtaskRequest request) {
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(UnauthrizedSubtaskAcessExeception::new);
 
@@ -60,11 +61,12 @@ public class SubtaskService {
     }
 
     @Transactional
-    public void deleteSubtask(Long taskId) {
+    public void deleteSubtask(Long taskId,Long ticketId) {
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
 
         subtaskRepository.delete(subtask);
+        calculateProgress(ticketId);
     }
     @Transactional
     public void deleteAllSubtask(Long ticketId) {
@@ -76,6 +78,30 @@ public class SubtaskService {
         if (!subtasks.isEmpty()) {
             subtaskRepository.deleteAll(subtasks);
         }
+    }
+
+    @Transactional
+    public void updateSubtaskIsDone(Long taskId,Boolean checkIsDone,Long ticketId){
+        Subtask subtask = subtaskRepository.findById(taskId)
+                .orElseThrow(SubtaskNotFoundExeption::new);
+        subtask.updateIsDone(checkIsDone);
+        calculateProgress(ticketId);
+    }
+    @Transactional
+    public Double calculateProgress(Long ticketId) {
+        Double subtaskCount = subtaskRepository.countAllByParentTicketId(ticketId);
+        Double isDoneChecked = subtaskRepository.countAllByDoneIsTrueAndParentTicketId(ticketId);
+
+        if (subtaskCount == 0) {
+            return null;
+        }
+
+        Double progress = (isDoneChecked / subtaskCount) * 100;
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException());
+        ticket.updateProgress(progress);
+        
+        return Math.round(progress * 10.0) / 10.0;
     }
 
 

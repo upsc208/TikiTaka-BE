@@ -24,6 +24,7 @@ public class SubtaskController {
     public ApiResponse<Void> createSubtask(@RequestBody SubtaskRequest request) {
         Subtask subtask = subtaskService.createSubtask(request);
         subtaskRepository.save(subtask);
+        subtaskService.calculateProgress(request.getTicketId());
         return new ApiResponse<>("태스크가 생성되었습니다",null);
     }
 
@@ -35,23 +36,45 @@ public class SubtaskController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
-    @DeleteMapping("{taskId}")
-    public ApiResponse<Void> deleteSubtask(@PathVariable Long taskId){
-        subtaskService.deleteSubtask(taskId);
+    @DeleteMapping("/{ticketId}/{taskId}")
+    public ApiResponse<Void> deleteSubtask(@PathVariable Long taskId,@PathVariable Long ticketId){
+
+        subtaskService.deleteSubtask(taskId,ticketId);
+        subtaskService.calculateProgress(ticketId);
         return new ApiResponse<>("태스크가 삭제되었습니다",null);
     }
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
     @DeleteMapping("{ticketId}")
     public ApiResponse<Void> deleteAllSubtask(@PathVariable Long ticketId){
-        subtaskService.deleteSubtask(ticketId);
+
+        subtaskService.deleteAllSubtask(ticketId);
+
         return new ApiResponse<>("태스크가 삭제되었습니다",null);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
-    @PatchMapping("/{ticketId}/{taskId}")
-    public ApiResponse<Void> editSubtask(@PathVariable Long ticketId, @PathVariable Long taskId, @RequestBody SubtaskRequest request){
-        subtaskService.editSubtask(ticketId,taskId,request);
+    @PatchMapping("/{taskId}")
+    public ApiResponse<Void> editSubtask(@PathVariable Long taskId, @RequestBody SubtaskRequest request){
+
+        subtaskService.editSubtask(taskId,request);
+
         return new ApiResponse<>("태스크가 수정되었습니다",null);
     }
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @PatchMapping("/{ticketId}/{taskId}/{checkBoolean}")
+    public ApiResponse<Void> checkSubtask(@PathVariable Long ticketId,@PathVariable Long taskId,@PathVariable Boolean checkBoolean){
+
+        subtaskService.updateSubtaskIsDone(taskId,checkBoolean,ticketId);
+        subtaskService.calculateProgress(ticketId);
+        return new ApiResponse<>("하위태스크의 수행상태가 변경되었습니다",null);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER','USER')")
+    @GetMapping("/progress/{ticketId}")
+    public ApiResponse<Double> getProgress(@PathVariable Long ticketId){
+        Double progress = subtaskService.calculateProgress(ticketId);
+        return new ApiResponse<>(progress);
+    }
+
 }
 

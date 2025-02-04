@@ -3,7 +3,7 @@ package com.trillion.tikitaka.registration;
 import com.trillion.tikitaka.registration.application.RegistrationService;
 import com.trillion.tikitaka.registration.domain.Registration;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
-import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
+import com.trillion.tikitaka.registration.dto.request.RegistrationProcessRequest;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
 import com.trillion.tikitaka.registration.exception.DuplicatedEmailException;
@@ -11,16 +11,20 @@ import com.trillion.tikitaka.registration.exception.DuplicatedUsernameException;
 import com.trillion.tikitaka.registration.exception.RegistrationAlreadyProcessedException;
 import com.trillion.tikitaka.registration.exception.RegistrationNotFoundException;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +40,21 @@ class RegistrationServiceTest {
     @Mock
     private RegistrationRepository registrationRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private RegistrationService registrationService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        registrationService = new RegistrationService(registrationRepository);
+        registrationService = new RegistrationService(registrationRepository, userRepository, passwordEncoder, eventPublisher);
     }
 
     @Nested
@@ -49,8 +62,8 @@ class RegistrationServiceTest {
     class DescribeCreateRegistration {
 
         @Test
-        @DisplayName("계정 등록 요청한 아이디 중복 시 오류가 발생한다.")
-        void should_FailToCreateRegistration_when_DuplicateUsername() {
+        @DisplayName("계정 등록 요청한 아이디를 사용하는 사용자가 존재하면 오류가 발생한다.")
+        void should_FailToCreateRegistration_when_DuplicateUsernameFromUser() {
             // given
             Registration existing = Registration.builder()
                     .username("duplicate.test")
@@ -59,8 +72,7 @@ class RegistrationServiceTest {
 
             RegistrationRequest request = new RegistrationRequest("duplicate.test", "test@email.com");
 
-            when(registrationRepository.findByUsernameOrEmail(request.getUsername(), request.getEmail()))
-                    .thenReturn(Optional.ofNullable(existing));
+            when(userRepository.existsByUsername(existing.getUsername())).thenReturn(true);
 
             // when & then
             assertThatThrownBy(() -> registrationService.createRegistration(request))
@@ -68,8 +80,27 @@ class RegistrationServiceTest {
         }
 
         @Test
-        @DisplayName("계정 등록 요청한 이메일 중복 시 오류가 발생한다.")
-        void should_FailToCreateRegistration_when_DuplicateEmail() {
+        @DisplayName("계정 등록 요청한 아이디가 이미 존재하면 오류가 발생한다.")
+        void should_FailToCreateRegistration_when_DuplicateUsernameFromRegistration() {
+            // given
+            Registration existing = Registration.builder()
+                    .username("duplicate.test")
+                    .email("test@email.com")
+                    .build();
+
+            RegistrationRequest request = new RegistrationRequest("duplicate.test", "test@email.com");
+
+            when(registrationRepository.existsByUsernameAndStatusNot(existing.getUsername(), RegistrationStatus.REJECTED))
+                    .thenReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> registrationService.createRegistration(request))
+                    .isInstanceOf(DuplicatedUsernameException.class);
+        }
+
+        @Test
+        @DisplayName("계정 등록 요청한 이메을 사용하는 사용자가 존재하면 오류가 발생한다.")
+        void should_FailToCreateRegistration_when_DuplicateEmailForUser() {
             /// given
             Registration existing = Registration.builder()
                     .username("user.test")
@@ -78,8 +109,27 @@ class RegistrationServiceTest {
 
             RegistrationRequest request = new RegistrationRequest("unique.test", "duplicate@email.com");
 
-            when(registrationRepository.findByUsernameOrEmail(request.getUsername(), request.getEmail()))
-                    .thenReturn(Optional.ofNullable(existing));
+            when(userRepository.existsByEmail(existing.getEmail()))
+                    .thenReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> registrationService.createRegistration(request))
+                    .isInstanceOf(DuplicatedEmailException.class);
+        }
+
+        @Test
+        @DisplayName("계정 등록 요청한 이메일이 이미 존재하면 오류가 발생한다.")
+        void should_FailToCreateRegistration_when_DuplicateEmailForRegistration() {
+            /// given
+            Registration existing = Registration.builder()
+                    .username("user.test")
+                    .email("duplicate@email.com")
+                    .build();
+
+            RegistrationRequest request = new RegistrationRequest("unique.test", "duplicate@email.com");
+
+            when(registrationRepository.existsByEmailAndStatusNot(existing.getEmail(), RegistrationStatus.REJECTED))
+                    .thenReturn(true);
 
             // when & then
             assertThatThrownBy(() -> registrationService.createRegistration(request))
@@ -92,8 +142,12 @@ class RegistrationServiceTest {
             // given
             RegistrationRequest request = new RegistrationRequest("unique.test", "unique@email.com");
 
-            when(registrationRepository.findByUsernameOrEmail(request.getUsername(), request.getEmail()))
-                    .thenReturn(Optional.empty());
+            when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
+            when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+            when(registrationRepository.existsByUsernameAndStatusNot(request.getUsername(), RegistrationStatus.REJECTED))
+                    .thenReturn(false);
+            when(registrationRepository.existsByEmailAndStatusNot(request.getEmail(), RegistrationStatus.REJECTED))
+                    .thenReturn(false);
 
             // when
             registrationService.createRegistration(request);
@@ -177,6 +231,25 @@ class RegistrationServiceTest {
     class DescribeProcessRegistration {
 
         @Test
+        @DisplayName("유효하지 않은 ROLE이 들어오면 예외가 발생한다.")
+        void should_FailToProcessRegistration_when_RoleIsInvalid() {
+            // given
+            Registration pending = Registration.builder()
+                    .username("pendingUser")
+                    .email("pending@user")
+                    .build();
+            ReflectionTestUtils.setField(pending, "id", 1L);
+            ReflectionTestUtils.setField(pending, "status", RegistrationStatus.PENDING);
+            when(registrationRepository.findById(1L)).thenReturn(Optional.of(pending));
+
+            RegistrationProcessRequest request = new RegistrationProcessRequest("WRONG_ROLE", "approve reason");
+
+            // when & then
+            assertThatThrownBy(() -> registrationService.processRegistration(1L, RegistrationStatus.APPROVED, request))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
         @DisplayName("주어진 등록 ID에 해당하는 등록 정보가 없을 때 오류가 발생한다.")
         void should_FailToProcessRegistration_when_RegistrationNotFound() {
             // given
@@ -184,7 +257,7 @@ class RegistrationServiceTest {
             when(registrationRepository.findById(notExistingId))
                     .thenReturn(Optional.empty());
 
-            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("error reason");
+            RegistrationProcessRequest request = new RegistrationProcessRequest("USER", "error reason");
 
             // when & then
             assertThatThrownBy(() -> registrationService.processRegistration(notExistingId, RegistrationStatus.APPROVED, request))
@@ -201,7 +274,7 @@ class RegistrationServiceTest {
                     .build();
             existing.approve("approve reason");
 
-            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("approve reason");
+            RegistrationProcessRequest request = new RegistrationProcessRequest("USER", "approve reason");
 
             when(registrationRepository.findById(1L))
                     .thenReturn(Optional.of(existing));
@@ -220,7 +293,7 @@ class RegistrationServiceTest {
                     .email("pending@user")
                     .build();
 
-            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("approve reason");
+            RegistrationProcessRequest request = new RegistrationProcessRequest("USER", "approve reason");
 
             when(registrationRepository.findById(1L))
                     .thenReturn(Optional.of(pending));
@@ -241,7 +314,7 @@ class RegistrationServiceTest {
                     .email("pending@user")
                     .build();
 
-            RegistrationProcessReasonRequest request = new RegistrationProcessReasonRequest("reject reason");
+            RegistrationProcessRequest request = new RegistrationProcessRequest("USER", "reject reason");
 
             when(registrationRepository.findById(1L))
                     .thenReturn(Optional.of(pending));

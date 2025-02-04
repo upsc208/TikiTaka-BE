@@ -42,4 +42,5 @@ public class TicketTemplateController {
         templateService.deleteTicketTemplate(id);
         return ApiResponse.success(null);
     }
+
 }
