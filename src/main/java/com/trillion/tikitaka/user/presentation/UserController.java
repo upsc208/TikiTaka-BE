@@ -26,10 +26,4 @@ public class UserController {
         userService.updatePassword(userId, request);
         return new ApiResponse<>(null);
     }
-
-    @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Long> getCurrentUserId(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return new ApiResponse<>("현재 로그인한 사용자 ID", userDetails.getUser().getId());
-    }
 }
