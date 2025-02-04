@@ -23,11 +23,10 @@ public class UserController {
     public ApiResponse<Void> changePassword(
             @PathVariable("userId") Long userId,
             @RequestBody @Valid PasswordChangeRequest request) {
-        userService.changePassword(userId, request);
+        userService.updatePassword(userId, request);
         return new ApiResponse<>(null);
     }
 
-    // 현재 로그인한 사용자의 ID 조회 API
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Long> getCurrentUserId(@AuthenticationPrincipal CustomUserDetails userDetails) {
