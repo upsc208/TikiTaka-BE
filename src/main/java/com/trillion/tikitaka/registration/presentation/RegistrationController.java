@@ -3,7 +3,7 @@ package com.trillion.tikitaka.registration.presentation;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.registration.application.RegistrationService;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
-import com.trillion.tikitaka.registration.dto.request.RegistrationProcessReasonRequest;
+import com.trillion.tikitaka.registration.dto.request.RegistrationProcessRequest;
 import com.trillion.tikitaka.registration.dto.request.RegistrationRequest;
 import com.trillion.tikitaka.registration.dto.response.RegistrationListResponse;
 import jakarta.validation.Valid;
@@ -44,7 +44,7 @@ public class RegistrationController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Void> processRegistration(@PathVariable("registrationId") Long registrationId,
                                                  @RequestParam(value = "status", required = false) RegistrationStatus status,
-                                                 @RequestBody @Valid RegistrationProcessReasonRequest request) {
+                                                 @RequestBody @Valid RegistrationProcessRequest request) {
         registrationService.processRegistration(registrationId, status, request);
         return new ApiResponse<>(null);
     }

@@ -38,6 +38,8 @@ public class SecurityConfig {
     private final JwtTokenRepository jwtTokenRepository;
     private final SecurityErrorResponder securityErrorResponder;
 
+
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
