@@ -2,7 +2,7 @@ package com.trillion.tikitaka.user.application;
 
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
-import com.trillion.tikitaka.user.exception.*;
+import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +19,9 @@ public class UserService {
     }
 
     public void softDeleteUser(Long userId) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        user.setDeletedAt(LocalDateTime.now()); // ✅ 삭제 시간 설정
-        userRepository.save(user);
+        userRepository.delete(user);
     }
 }

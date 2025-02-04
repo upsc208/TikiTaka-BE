@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL") // ✅ 삭제된 데이터는 자동으로 제외됨
+@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?") // ✅ 논리 삭제 처리
 public class User extends DeletedBaseEntity {
 
     @Id
@@ -51,9 +51,6 @@ public class User extends DeletedBaseEntity {
     private boolean locked = false;
 
     private LocalDateTime lockExpireAt = null;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
     @Builder
     public User(String username, String email, String password, Role role) {
@@ -91,11 +88,5 @@ public class User extends DeletedBaseEntity {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
         this.lastPasswordChangedAt = LocalDateTime.now();
-    }
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-    public boolean isDeleted() {
-        return this.deletedAt != null;
     }
 }
