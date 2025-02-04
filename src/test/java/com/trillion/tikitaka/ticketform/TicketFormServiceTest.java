@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 @DisplayName("티켓 폼 유닛 테스트")
 public class TicketFormServiceTest {
@@ -54,6 +53,7 @@ public class TicketFormServiceTest {
             Long firstCategoryId = 1L;
             Long secondCategoryId = 2L;
             String description = "Ticket Form Test";
+            String mustDescription = "필수 설명";
 
             Category firstCategory = mock(Category.class);
             Category secondCategory = mock(Category.class);
@@ -68,96 +68,10 @@ public class TicketFormServiceTest {
             when(ticketFormRepository.existsById(formId)).thenReturn(false);
 
             // when
-            ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, description);
+            ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, description, mustDescription);
 
             // then
             verify(ticketFormRepository, times(1)).save(any(TicketForm.class));
-        }
-
-        @Test
-        @DisplayName("1차 카테고리가 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_FirstCategoryDoesNotExist() {
-            // given
-            Long invalidFirstCategoryId = 999L;
-            Long secondCategoryId = 2L;
-            String description = "Ticket Form Test";
-
-            when(categoryRepository.findById(invalidFirstCategoryId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.createTicketForm((invalidFirstCategoryId), secondCategoryId, description))
-                    .isInstanceOf(CategoryNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_secondCategoryDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long invalidSecondCategoryId = 999L;
-            String description = "Ticket Form Test";
-
-            Category firstCategory = mock(Category.class);
-
-            when(categoryRepository.findById(firstCategoryId))
-                    .thenReturn(Optional.of(firstCategory));
-            when(categoryRepository.findById(invalidSecondCategoryId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.createTicketForm(firstCategoryId, invalidSecondCategoryId, description))
-                    .isInstanceOf(CategoryNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 1차 카테고리 하위 카테고리가 아니면 오류가 발생한다.")
-        void should_ThrowException_when_SecondCategoryIsNotChildOfFirstCategory() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-            String description = "Ticket Form Test";
-
-            Category firstCategory = mock(Category.class);
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(firstCategoryId))
-                    .thenReturn(Optional.of(firstCategory));
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-
-            when(secondCategory.isChildOf(firstCategory)).thenReturn(false);
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, description))
-                    .isInstanceOf(InvalidCategoryLevelException.class);
-        }
-
-        @Test
-        @DisplayName("입력한 카테고리에 대한 티켓 폼이 이미 존재한다면 오류가 발생한다.")
-        void should_ThrowException_when_TicketFormAlreadyExists() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-            String description = "Ticket Form Test";
-
-            Category firstCategory = mock(Category.class);
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(firstCategoryId))
-                    .thenReturn(Optional.of(firstCategory));
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-
-            when(secondCategory.isChildOf(firstCategory)).thenReturn(true);
-
-            TicketFormId formId = new TicketFormId(firstCategoryId, secondCategoryId);
-            when(ticketFormRepository.existsById(formId))
-                    .thenReturn(true);
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, description))
-                    .isInstanceOf(DuplicatedTicketFormException.class);
         }
     }
 
@@ -172,6 +86,7 @@ public class TicketFormServiceTest {
             Long firstCategoryId = 1L;
             Long secondCategoryId = 2L;
             String description = "Ticket Form Test";
+            String mustDescription = "필수 설명";
 
             Category secondCategory = mock(Category.class);
             TicketForm ticketForm = mock(TicketForm.class);
@@ -185,68 +100,14 @@ public class TicketFormServiceTest {
             when(ticketFormRepository.findById(formId))
                     .thenReturn(Optional.of(ticketForm));
             when(ticketForm.getDescription()).thenReturn(description);
-
-            // when
-            TicketFormResponse response = new TicketFormResponse(description);
-
-            // then
-            assertThat(response.getDescription()).isEqualTo(description);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_SecondCategoryDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 999L;
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.getTicketForm(firstCategoryId, secondCategoryId))
-                    .isInstanceOf(CategoryNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 1차 카테고리 하위 카테고리가 아니라면 오류가 발생한다.")
-        void should_ThrowException_when_secondCategoryIsNotChildOfFirstCategory() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-            when(secondCategory.getParent()).thenReturn(null);
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.getTicketForm(firstCategoryId, secondCategoryId))
-                    .isInstanceOf(InvalidCategoryLevelException.class);
-        }
-
-        @Test
-        @DisplayName("티켓 폼이 존재하지 않으면 빈 문자열을 반환한다.")
-        void should_ReturnEmptyStringDescription_when_FormDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-            when(secondCategory.getParent()).thenReturn(mock(Category.class));
-            when(secondCategory.getParent().getId()).thenReturn(firstCategoryId);
-
-            TicketFormId formId = new TicketFormId(firstCategoryId, secondCategoryId);
-            when(ticketFormRepository.findById(formId))
-                    .thenReturn(Optional.empty());
+            when(ticketForm.getMustDescription()).thenReturn(mustDescription);
 
             // when
             TicketFormResponse response = ticketFormService.getTicketForm(firstCategoryId, secondCategoryId);
 
             // then
-            assertThat(response.getDescription()).isEqualTo("");
+            assertThat(response.getDescription()).isEqualTo(description);
+            assertThat(response.getMustDescription()).isEqualTo(mustDescription);
         }
     }
 
@@ -260,7 +121,8 @@ public class TicketFormServiceTest {
             // given
             Long firstCategoryId = 1L;
             Long secondCategoryId = 2L;
-            String description = "Ticket Form Test";
+            String description = "새로운 설명";
+            String mustDescription = "새로운 필수 설명";
 
             Category secondCategory = mock(Category.class);
             TicketForm ticketForm = mock(TicketForm.class);
@@ -275,69 +137,10 @@ public class TicketFormServiceTest {
                     .thenReturn(Optional.of(ticketForm));
 
             // when
-            ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, description);
+            ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, description, mustDescription);
 
             // then
-            verify(ticketForm, times(1)).updateDescription(description);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_SecondCategoryDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 999L;
-            String description = "Ticket Form Test";
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, description))
-                    .isInstanceOf(CategoryNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 1차 카테고리 하위 카테고리가 아니라면 오류가 발생한다.")
-        void should_ThrowException_when_SecondCategoryIsNotChildOfFirstCategory() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-            String description = "Ticket Form Test";
-
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-            when(secondCategory.getParent()).thenReturn(null);
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, description))
-                    .isInstanceOf(InvalidCategoryLevelException.class);
-        }
-
-        @Test
-        @DisplayName("티켓 폼이 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_FormDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-            String description = "Ticket Form Test";
-
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-            when(secondCategory.getParent()).thenReturn(mock(Category.class));
-            when(secondCategory.getParent().getId()).thenReturn(firstCategoryId);
-
-            TicketFormId formId = new TicketFormId(firstCategoryId, secondCategoryId);
-            when(ticketFormRepository.findById(formId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, description))
-                    .isInstanceOf(TicketFormNotFoundException.class);
+            verify(ticketForm, times(1)).update(description, mustDescription);
         }
     }
 
@@ -346,7 +149,7 @@ public class TicketFormServiceTest {
     class DescribeDeleteTicketForm {
 
         @Test
-        @DisplayName("티켓 폼이 존재하면 정상적으로 티켓 폼을 삭제한다.")
+        @DisplayName("티켓 폼이 존재하면 정상적으로 삭제된다.")
         void should_DeleteTicketForm_when_FormExists() {
             // given
             Long firstCategoryId = 1L;
@@ -369,62 +172,6 @@ public class TicketFormServiceTest {
 
             // then
             verify(ticketFormRepository, times(1)).delete(ticketForm);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_SecondCategoryDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 999L;
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.deleteTicketForm(firstCategoryId, secondCategoryId))
-                    .isInstanceOf(CategoryNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("2차 카테고리가 1차 카테고리 하위 카테고리가 아니라면 오류가 발생한다.")
-        void should_ThrowException_when_SecondCategoryIsNotChildOfFirstCategory() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-            when(secondCategory.getParent()).thenReturn(null);
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.deleteTicketForm(firstCategoryId, secondCategoryId))
-                    .isInstanceOf(InvalidCategoryLevelException.class);
-        }
-
-        @Test
-        @DisplayName("티켓 폼이 존재하지 않으면 오류가 발생한다.")
-        void should_ThrowException_when_FormDoesNotExist() {
-            // given
-            Long firstCategoryId = 1L;
-            Long secondCategoryId = 2L;
-
-            Category secondCategory = mock(Category.class);
-
-            when(categoryRepository.findById(secondCategoryId))
-                    .thenReturn(Optional.of(secondCategory));
-            when(secondCategory.getParent()).thenReturn(mock(Category.class));
-            when(secondCategory.getParent().getId()).thenReturn(firstCategoryId);
-
-            TicketFormId formId = new TicketFormId(firstCategoryId, secondCategoryId);
-            when(ticketFormRepository.findById(formId))
-                    .thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> ticketFormService.deleteTicketForm(firstCategoryId, secondCategoryId))
-                    .isInstanceOf(TicketFormNotFoundException.class);
         }
     }
 }

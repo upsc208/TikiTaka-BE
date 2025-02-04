@@ -7,6 +7,7 @@ import com.trillion.tikitaka.tickettemplate.exception.TicketTemplateNotFoundExce
 import com.trillion.tikitaka.tickettemplate.infrastructure.TicketTemplateRepository;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
+import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,15 @@ public class TicketTemplateService {
     public Long createTicketTemplate(TicketTemplateRequest req) {
         if (!typeRepository.existsById(req.getTypeId())
                 || !categoryRepository.existsById(req.getFirstCategoryId())
-                || !categoryRepository.existsById(req.getSecondCategoryId())
-                || !userRepository.existsById(req.getRequesterId())) {
+                || !categoryRepository.existsById(req.getSecondCategoryId())) {
             throw new TicketTemplateInvalidFKException();
+        }
+        User requester = userRepository.findById(req.getRequesterId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+        User manager = null;
+        if (req.getManagerId() != null) {
+            manager = userRepository.findById(req.getManagerId())
+                    .orElseThrow(TicketTemplateInvalidFKException::new);
         }
 
         TicketTemplate entity = TicketTemplate.builder()
@@ -38,8 +45,8 @@ public class TicketTemplateService {
                 .typeId(req.getTypeId())
                 .firstCategoryId(req.getFirstCategoryId())
                 .secondCategoryId(req.getSecondCategoryId())
-                .requesterId(req.getRequesterId())
-                .managerId(req.getManagerId()) // optional
+                .requester(requester)
+                .manager(manager)
                 .build();
 
         return templateRepository.save(entity).getId();
@@ -49,12 +56,18 @@ public class TicketTemplateService {
     public void updateTicketTemplate(Long id, TicketTemplateRequest req) {
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
-
         if (!typeRepository.existsById(req.getTypeId())
                 || !categoryRepository.existsById(req.getFirstCategoryId())
-                || !categoryRepository.existsById(req.getSecondCategoryId())
-                || !userRepository.existsById(req.getRequesterId())) {
+                || !categoryRepository.existsById(req.getSecondCategoryId())) {
             throw new TicketTemplateInvalidFKException();
+        }
+
+        User requester = userRepository.findById(req.getRequesterId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+        User manager = null;
+        if (req.getManagerId() != null) {
+            manager = userRepository.findById(req.getManagerId())
+                    .orElseThrow(TicketTemplateInvalidFKException::new);
         }
 
         template.update(
@@ -64,16 +77,10 @@ public class TicketTemplateService {
                 req.getTypeId(),
                 req.getFirstCategoryId(),
                 req.getSecondCategoryId(),
-                req.getRequesterId(),
-                req.getManagerId()
+                requester,
+                manager
         );
     }
 
-    @Transactional
-    public void deleteTicketTemplate(Long id) {
-        TicketTemplate template = templateRepository.findById(id)
-                .orElseThrow(TicketTemplateNotFoundException::new);
 
-        templateRepository.delete(template);
-    }
 }
