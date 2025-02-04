@@ -47,7 +47,7 @@ public class UserController {
         return new ApiResponse<>(null);
     }
 
-    @PatchMapping("/{userId}")
+    @DeleteMapping("/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Void> deleteUser(@PathVariable("userId") Long userId) {
         userService.deleteUser(userId);
