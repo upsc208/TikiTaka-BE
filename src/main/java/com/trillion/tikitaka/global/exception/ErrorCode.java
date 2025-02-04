@@ -38,6 +38,8 @@ public enum ErrorCode {
     INVALID_TICKET_MANAGER(HttpStatus.BAD_REQUEST, "TI003", "유효하지 않은 담당자 ID입니다."),
     INVALID_EDIT_VALUE(HttpStatus.BAD_REQUEST,"TI004","사용자는 우선순위와 담당자를 수정할수없습니다."),
     UNAUTHORIZED_TICKET_EDIT(HttpStatus.FORBIDDEN, "TI005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
+    TICKET_REVIEW_NOT_REQUIRED(HttpStatus.BAD_REQUEST, "TI006", "검토를 요청하지 않은 티켓입니다."),
+    TICKET_REVIEW_ALREADY_DONE(HttpStatus.BAD_REQUEST, "TI007", "이미 검토한 티켓입니다."),
 
     // Subtask
     SUBTASK_NOT_FOUND(HttpStatus.NOT_FOUND,"S001","해당 하위태스크를 찾을수없습니다"),
