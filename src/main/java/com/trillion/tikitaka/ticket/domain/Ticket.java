@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.ticket.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import com.trillion.tikitaka.subtask.domain.Subtask;
@@ -59,6 +60,7 @@ public class Ticket extends DeletedBaseEntity {
     @JoinColumn(name = "second_category_id")
     private Category secondCategory;
 
+
     @Column(nullable = false)
     private LocalDateTime deadline;
 
@@ -83,21 +85,44 @@ public class Ticket extends DeletedBaseEntity {
     public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
         if (request.getDescription() != null) this.description = request.getDescription();
+        if (request.getDeadline() != null) this.deadline = request.getDeadline();
         if (firstCategory != null) this.firstCategory = firstCategory;
         if (secondCategory != null) this.secondCategory = secondCategory;
         if (request.getUrgent() != null) this.urgent = request.getUrgent();
         if (ticketType != null) this.ticketType = ticketType;
     }
 
-    public void updateSetting(EditSettingRequest request){
-        if (request.getPriority() != null) this.priority = request.getPriority();
-        //if (request.getManagerId() != null) this.manager = request.getManagerId();
+    //사용자
+    public void updateTitle(EditTicketRequest request){if (request.getTitle() != null) this.title = request.getTitle();}
+    public void updateDescription(EditTicketRequest request){if (request.getDescription() != null) this.description = request.getDescription();}
+    public void updateCategory(Category firstCategory, Category secondCategory){
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
+    }
+    public void updateUrgent(EditTicketRequest request){if (request.getUrgent() != null) this.urgent = request.getUrgent();}
+    public void updateType(TicketType ticketType){this.ticketType = ticketType;}
+    public void updateDaedline(EditTicketRequest request){
         if (request.getDeadline() != null) this.deadline = request.getDeadline();
+    }
+    //사용자
+
+    //담당자
+    public void updatePriority(Priority priority){
+        if (priority != null) this.priority = priority;
+    }
+    public void updateManager(User manager){
+        if (manager != null) this.manager = manager;
+    }
+
+    public void updateDaedlineForManager(LocalDateTime dateline){
+        if (dateline != null) this.deadline = dateline;
     }
 
     public void updateStatus(Status status){
         this.status = status;
     }
+    //담당자
+
 
     public boolean canComment(User user) {
         if (user.getRole() == Role.USER) {

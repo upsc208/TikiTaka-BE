@@ -37,6 +37,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,9 +55,6 @@ public class TicketService {
 
     @Transactional
     public void createTicket(CreateTicketRequest request, Long requesterId) {
-        validateTicketType(request.getTypeId());
-        validateCategoryRelation(request.getFirstCategoryId(), request.getSecondCategoryId());
-        validateUserExistence(requesterId);
         if (request.getManagerId() != null) {
             validateUserExistence(request.getManagerId());
         }
@@ -156,12 +154,9 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
-        validateTicketType(request.getTicketTypeId());
         TicketType ticketType = request.getTicketTypeId() != null
                 ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
                 : ticket.getTicketType();
-
-        validateCategoryRelation(request.getFirstCategoryId(), request.getSecondCategoryId());
 
         Category firstCategory = request.getFirstCategoryId() != null
                 ? categoryRepository.findById(request.getFirstCategoryId()).orElseThrow(CategoryNotFoundException::new)
@@ -171,31 +166,146 @@ public class TicketService {
                 ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
                 : null;
 
+        //생성이랑 비슷하게 다시 수정
         ticket.update(request, ticketType, firstCategory, secondCategory);
     }
 
+    /*/////////사용자 수정 일괄 - 제목, 내용, 티켓 유형, 카테고리, 마감기한, 긴급여부
     @Transactional
-    public void editSetting(Long ticketId, Role role, EditSettingRequest editSettingRequest) {
+    public void editTitle(EditTicketRequest request, Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
-
-        if (Role.USER.equals(role)) {
-            throw new UnauthorizedTicketEditExeception();
-        } else {
-            ticket.updateSetting(editSettingRequest);
-        }
+        ticket.updateTitle(request);
+        ticketRepository.save(ticket);
     }
 
     @Transactional
-    public void editStatus(Long ticketId, Role role, Ticket.Status status){
+    public void editDescription(EditTicketRequest request, Long ticketId){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
-        if (Role.USER.equals(role)) {
-            throw new UnauthorizedTicketEditExeception();
-        }else{
-            ticket.updateStatus(status);
-        }
+        ticket.updateDescription(request);
+        ticketRepository.save(ticket);
     }
+    @Transactional
+    public void editType(EditTicketRequest request,Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        TicketType ticketType = request.getTicketTypeId() != null
+                ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
+                : ticket.getTicketType();
+        ticket.updateType(ticketType);
+    }
+    @Transactional
+    public void editCategory(EditTicketRequest request, Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        validateCategoryRelation(request.getFirstCategoryId(), request.getSecondCategoryId());
+
+        Category firstCategory = request.getFirstCategoryId() != null
+                ? categoryRepository.findById(request.getFirstCategoryId()).orElseThrow(CategoryNotFoundException::new)
+                : null;
+
+        Category secondCategory = request.getSecondCategoryId() != null
+                ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
+                : null;
+        ticket.updateCategory(firstCategory,secondCategory);
+    }
+    @Transactional
+    public void editDeadline(Long ticketId, EditTicketRequest request){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+
+        ticket.updateDaedline(request);
+        ticketRepository.save(ticket);
+
+    }
+    @Transactional
+    public void editUrgent(EditTicketRequest request, Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        ticket.updateUrgent(request);
+        ticketRepository.save(ticket);
+    }
+    ////// 사용자*/
+
+    //////담당자 개별 수정 - 티켓 유형, 우선순위, 상태, 담당자, 마감기한, 카테고리
+    public void editTypeForManager(Long ticketId,Long typeId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        TicketType ticketType = typeId != null
+                ? ticketTypeRepository.findById(typeId).orElseThrow(TicketTypeNotFoundException::new)
+                : ticket.getTicketType();
+        ticket.updateType(ticketType);
+    }
+    public void editManager(Long ticketId, Long managerId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(UserNotFoundException::new);
+
+        ticket.updateManager(manager);
+        ticketRepository.save(ticket);
+    }
+
+    public void editCategoryForManager(Long firstCategoryId,Long secondCategoryId, Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        validateCategoryRelation(firstCategoryId, secondCategoryId);
+
+        Category firstCategory = firstCategoryId != null
+                ? categoryRepository.findById(firstCategoryId).orElseThrow(CategoryNotFoundException::new)
+                : null;
+
+        Category secondCategory = secondCategoryId != null
+                ? categoryRepository.findById(secondCategoryId).orElseThrow(CategoryNotFoundException::new)
+                : null;
+        ticket.updateCategory(firstCategory,secondCategory);
+        ticketRepository.save(ticket);
+    }
+    public void editDeadlineForManager(Long ticketId, LocalDateTime time){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+
+        ticket.updateDaedlineForManager(time);
+        ticketRepository.save(ticket);
+
+    }
+    public void editPriorty(Long ticketId, Ticket.Priority priority){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+
+
+        ticket.updatePriority(priority);
+    }
+
+    @Transactional
+    public void editStatus(Long ticketId, Ticket.Status status){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        ticket.updateStatus(status);
+
+    }
+    ////////담당자
+
+    @Transactional
+    public void approveTicket(Long ticketId,CustomUserDetails userDetails){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        User manager = userRepository.findById(userDetails.getId())
+                .orElseThrow(UserNotFoundException::new);
+        ticket.updateStatus(Ticket.Status.IN_PROGRESS);
+        ticket.updateManager(manager);
+        ticketRepository.save(ticket);
+    }
+
+    @Transactional
+    public void rejectTicket(Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        ticket.updateStatus(Ticket.Status.REJECTED);
+    }
+
 
     @Transactional
     public void deleteTicket(Long ticketId) {

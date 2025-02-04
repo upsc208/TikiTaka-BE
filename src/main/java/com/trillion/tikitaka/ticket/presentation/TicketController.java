@@ -6,6 +6,7 @@ import com.trillion.tikitaka.subtask.application.SubtaskService;
 import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditCategory;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
@@ -20,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/tickets")
@@ -37,6 +40,21 @@ public class TicketController {
         ticketService.createTicket(request, requesterId);
         return new ApiResponse<>("티켓이 생성되었습니다", null);
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @PatchMapping("/approve/{ticketId}")
+    public ApiResponse<Void> approveTicket(@PathVariable Long ticketId,@AuthenticationPrincipal CustomUserDetails userDetails){
+        ticketService.approveTicket(ticketId,userDetails);
+        return new ApiResponse<>("티켓이 승인되었습니다.",null);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @PatchMapping("/reject/{ticketId}")
+    public ApiResponse<Void> rejectTicket(@PathVariable Long ticketId){
+        ticketService.rejectTicket(ticketId);
+        return new ApiResponse<>("티켓이 거절되었습니다.",null);
+    }
+
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @GetMapping("/count")
@@ -73,32 +91,73 @@ public class TicketController {
         return new ApiResponse<>(ticketList);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PatchMapping("/{ticketId}")
     public ApiResponse<Void> editTicket(@PathVariable Long ticketId, @RequestBody @Valid EditTicketRequest request){
         ticketService.editTicket(request,ticketId);
         return new ApiResponse<>("티켓이 수정되었습니다.",null);
     }
 
+    /*@PreAuthorize("hasAnyAuthority('ADMIN','USER')") //사용자 전용 일괄수정,다시고민 해볼것
+    @PatchMapping("/{ticketId}")
+    public ApiResponse<Void> editTicket(@PathVariable Long ticketId, @RequestBody @Valid EditTicketRequest request){
+        ticketService.editTitle(request,ticketId);
+        ticketService.editCategory(request,ticketId);
+        ticketService.editDescription(request,ticketId);
+        ticketService.editType(request,ticketId);
+        ticketService.editUrgent(request,ticketId);
+        ticketService.editDeadline(ticketId,request);
+        return new ApiResponse<>("티켓 세부 내용이 수정되었습니다.",null);
+    }*/
+
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
-    @PatchMapping("/{ticketId}/{status}")
+    @PatchMapping("/status/{ticketId}")
     public ApiResponse<Void> editTicketStatus(@PathVariable Long ticketId,
-                                              @PathVariable Ticket.Status status,
-                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Role role = userDetails.getUser().getRole();
-        ticketService.editStatus(ticketId,role,status);
+                                              @RequestBody Ticket.Status status) {
+        ticketService.editStatus(ticketId,status);
         return new ApiResponse<>("티켓 상태가 수정되었습니다.",null);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
-    @PatchMapping("/setting/{ticketId}")
-    public ApiResponse<Void> editTicketSetting(@PathVariable Long ticketId,
-                                               @RequestBody EditSettingRequest editSettingRequest,
-                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Role role = userDetails.getUser().getRole();
-        ticketService.editSetting(ticketId, role, editSettingRequest);
-        return new ApiResponse<>("티켓설정이 수정되었습니다.", null);
+    @PatchMapping("/manager/{ticketId}")
+    public ApiResponse<Void> editManager(@PathVariable Long ticketId,@RequestBody Long managerId){
+        ticketService.editManager(ticketId,managerId);
+        return new ApiResponse<>("담당자 수정",null);
+        //return new ApiResponse.success(); //추후 수정
     }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PatchMapping("/deadline/{ticketId}")
+    public ApiResponse<Void> editDeadline(@PathVariable Long ticketId, @RequestBody LocalDateTime deadline){
+        ticketService.editDeadlineForManager(ticketId,deadline);
+        return new ApiResponse<>("마감기한 수정",null);
+        //return new ApiResponse.success(); //추후 수정
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PatchMapping("/priority/{ticketId}")
+    public ApiResponse<Void> editPriority(@PathVariable Long ticketId, @RequestBody Ticket.Priority priority){
+        ticketService.editPriorty(ticketId,priority);
+        return new ApiResponse<>("우선순위 수정",null);
+        //return new ApiResponse.success(); //추후 수정
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PatchMapping("/category/{ticketId}")
+    public ApiResponse<Void> editCategory(@PathVariable Long ticketId, @RequestBody EditCategory editCategory){
+        ticketService.editCategoryForManager(editCategory.getFirstCategoryId(), editCategory.getSecondCategoryId(), ticketId);
+        return new ApiResponse<>("카테고리 수정",null);
+        //return new ApiResponse.success(); //추후 수정
+    }
+
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PatchMapping("/type/{ticketId}")
+    public ApiResponse<Void> editType(@PathVariable Long ticketId, @RequestBody Long typeId){
+        ticketService.editTypeForManager(ticketId,typeId);
+        return new ApiResponse<>("티켓 유형 수정",null);
+        //return new ApiResponse.success(); //추후 수정
+    }
+
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     @DeleteMapping("/{ticketId}")

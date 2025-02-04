@@ -26,7 +26,7 @@ public class CreateTicketRequest {
     private Long secondCategoryId;
 
     @NotNull(message = "마감일은 필수 항목입니다.")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deadline;
 
     private Long managerId;
