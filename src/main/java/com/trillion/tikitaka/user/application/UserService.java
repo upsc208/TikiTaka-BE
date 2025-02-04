@@ -31,7 +31,8 @@ public class UserService {
         user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
-    public void softDeleteUser(Long userId) {
+
+    public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
