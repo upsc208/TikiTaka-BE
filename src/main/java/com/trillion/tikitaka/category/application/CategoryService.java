@@ -70,5 +70,6 @@ public class CategoryService {
                 .orElseThrow(CategoryNotFoundException::new);
 
         categoryRepository.deleteAll(category.getChildren());
+        categoryRepository.delete(category);
     }
 }
