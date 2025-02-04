@@ -38,6 +38,8 @@ public class User extends DeletedBaseEntity {
     @Column(nullable = false)
     private String password;
 
+    private String profileImageUrl;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -90,4 +92,7 @@ public class User extends DeletedBaseEntity {
         this.lastPasswordChangedAt = LocalDateTime.now();
     }
 
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }

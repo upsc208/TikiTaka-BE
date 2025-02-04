@@ -77,7 +77,15 @@ public enum ErrorCode {
     // KakaoWork
     FETCHING_USER_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K001", "카카오워크 사용자 정보를 가져올 수 없습니다."),
     FETCHING_CONVERSATION_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K002", "카카오워크 채팅방을 열 수 없습니다."),
-    SENDING_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오워크 메시지를 보내는 중 오류가 발생했습니다.");
+    SENDING_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오워크 메시지를 보내는 중 오류가 발생했습니다."),
+
+    // Object Storage
+    FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "O001", "최대 파일 크기는 10MB 입니다."),
+    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "O002", "유효하지 않은 파일명입니다."),
+    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O003", "허용되지 않는 파일 확장자입니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O004", "파일을 찾을 수 없습니다."),
+
+    ;
 
     private final HttpStatus httpStatus;
     private final String errorCode;
