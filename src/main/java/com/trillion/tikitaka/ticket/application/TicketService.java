@@ -7,6 +7,8 @@ import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
+import com.trillion.tikitaka.history.application.HistoryService;
+import com.trillion.tikitaka.history.domain.TicketHistory;
 import com.trillion.tikitaka.subtask.application.SubtaskService;
 import com.trillion.tikitaka.notification.domain.NotificationType;
 import com.trillion.tikitaka.notification.event.TicketCreationEvent;
@@ -52,6 +54,7 @@ public class TicketService {
     private final TicketTypeRepository ticketTypeRepository;
     private final CategoryRepository categoryRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final HistoryService historyService;
 
 
     @Transactional
@@ -91,6 +94,8 @@ public class TicketService {
                 .build();
 
         ticketRepository.save(ticket);
+
+        historyService.recordHistory(ticket,requester, TicketHistory.UpdateType.TICKET_CREATED);
 
         if (ticket.getManager() != null){
             eventPublisher.publishEvent(
@@ -151,7 +156,7 @@ public class TicketService {
     }
 
     @Transactional
-    public void editTicket(EditTicketRequest request, Long ticketId) {
+    public void editTicket(EditTicketRequest request, Long ticketId,CustomUserDetails userDetails) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -167,8 +172,10 @@ public class TicketService {
                 ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
                 : null;
 
-        //생성이랑 비슷하게 다시 수정
+        User user = userDetails.getUser();
+
         ticket.update(request, ticketType, firstCategory, secondCategory);
+        historyService.recordHistory(ticket,user,TicketHistory.UpdateType.TICKET_EDITED);
     }
 
     /*/////////사용자 수정 일괄 - 제목, 내용, 티켓 유형, 카테고리, 마감기한, 긴급여부
@@ -231,28 +238,38 @@ public class TicketService {
 
     //////담당자 개별 수정 - 티켓 유형, 우선순위, 상태, 담당자, 마감기한, 카테고리
     @Transactional
-    public void editTypeForManager(Long ticketId,Long typeId){
+    public void editTypeForManager(Long ticketId,Long typeId,CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+
         TicketType ticketType = typeId != null
                 ? ticketTypeRepository.findById(typeId).orElseThrow(TicketTypeNotFoundException::new)
                 : ticket.getTicketType();
+
         ticket.updateType(ticketType);
+
+        User user = userDetails.getUser();
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.TYPE_CHANGE);
+
     }
     @Transactional
-    public void editManager(Long ticketId, Long managerId){
+    public void editManager(Long ticketId, Long managerId,CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
         User manager = userRepository.findById(managerId)
                 .orElseThrow(UserNotFoundException::new);
 
+        User user = userDetails.getUser();
+
         ticket.updateManager(manager);
+
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.MANAGER_CHANGE);
 
     }
 
     @Transactional
-    public void editCategoryForManager(Long firstCategoryId,Long secondCategoryId, Long ticketId){
+    public void editCategoryForManager(Long firstCategoryId,Long secondCategoryId, Long ticketId,CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         validateCategoryRelation(firstCategoryId, secondCategoryId);
@@ -265,28 +282,47 @@ public class TicketService {
                 ? categoryRepository.findById(secondCategoryId).orElseThrow(CategoryNotFoundException::new)
                 : null;
         ticket.updateCategory(firstCategory,secondCategory);
+
+        User user = userDetails.getUser();
+
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.CATEGORY_CHANGE);
     }
     @Transactional
-    public void editDeadlineForManager(Long ticketId, EditSettingRequest editSettingRequest){
+    public void editDeadlineForManager(Long ticketId, EditSettingRequest editSettingRequest,CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
         ticket.updateDaedlineForManager(editSettingRequest.getDeadline());
 
+        User user = userDetails.getUser();
+
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.DEADLINE_CHANGE);
+
     }
     @Transactional
-    public void editPriorty(Long ticketId, Ticket.Priority priority){
+    public void editPriorty(Long ticketId, Ticket.Priority priority,CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+
         ticket.updatePriority(priority);
 
+        User user = userDetails.getUser();
+
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.PRIORITY_CHANGE);
+
     }
 
     @Transactional
-    public void editStatus(Long ticketId, Ticket.Status status){
+    public void editStatus(Long ticketId, Ticket.Status status,CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+
         ticket.updateStatus(status);
+
+        User user = userDetails.getUser();
+
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.STATUS_CHANGE);
+
 
     }
 
@@ -298,8 +334,12 @@ public class TicketService {
                 .orElseThrow(TicketNotFoundException::new);
         User manager = userRepository.findById(userDetails.getId())
                 .orElseThrow(UserNotFoundException::new);
+
         ticket.updateStatus(Ticket.Status.IN_PROGRESS);
+
         ticket.updateManager(manager);
+
+        historyService.recordHistory(ticket,manager, TicketHistory.UpdateType.TICKET_APPROVED);
 
     }
 
@@ -312,10 +352,15 @@ public class TicketService {
 
 
     @Transactional
-    public void deleteTicket(Long ticketId) {
+    public void deleteTicket(Long ticketId, CustomUserDetails userDetails) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+
         ticketRepository.delete(ticket);
+
+        User user = userDetails.getUser();
+
+        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.TICKET_DELETE);
 
     }
 
