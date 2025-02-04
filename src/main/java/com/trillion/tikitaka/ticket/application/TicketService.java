@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.ticket.application;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
@@ -229,6 +230,7 @@ public class TicketService {
     ////// 사용자*/
 
     //////담당자 개별 수정 - 티켓 유형, 우선순위, 상태, 담당자, 마감기한, 카테고리
+    @Transactional
     public void editTypeForManager(Long ticketId,Long typeId){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
@@ -237,6 +239,7 @@ public class TicketService {
                 : ticket.getTicketType();
         ticket.updateType(ticketType);
     }
+    @Transactional
     public void editManager(Long ticketId, Long managerId){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
@@ -245,9 +248,10 @@ public class TicketService {
                 .orElseThrow(UserNotFoundException::new);
 
         ticket.updateManager(manager);
-        ticketRepository.save(ticket);
+
     }
 
+    @Transactional
     public void editCategoryForManager(Long firstCategoryId,Long secondCategoryId, Long ticketId){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
@@ -261,22 +265,21 @@ public class TicketService {
                 ? categoryRepository.findById(secondCategoryId).orElseThrow(CategoryNotFoundException::new)
                 : null;
         ticket.updateCategory(firstCategory,secondCategory);
-        ticketRepository.save(ticket);
     }
-    public void editDeadlineForManager(Long ticketId, LocalDateTime time){
+    @Transactional
+    public void editDeadlineForManager(Long ticketId, EditSettingRequest editSettingRequest){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
-        ticket.updateDaedlineForManager(time);
-        ticketRepository.save(ticket);
+        ticket.updateDaedlineForManager(editSettingRequest.getDeadline());
 
     }
+    @Transactional
     public void editPriorty(Long ticketId, Ticket.Priority priority){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
-
-
         ticket.updatePriority(priority);
+
     }
 
     @Transactional
@@ -286,6 +289,7 @@ public class TicketService {
         ticket.updateStatus(status);
 
     }
+
     ////////담당자
 
     @Transactional
@@ -296,7 +300,7 @@ public class TicketService {
                 .orElseThrow(UserNotFoundException::new);
         ticket.updateStatus(Ticket.Status.IN_PROGRESS);
         ticket.updateManager(manager);
-        ticketRepository.save(ticket);
+
     }
 
     @Transactional

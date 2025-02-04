@@ -128,8 +128,8 @@ public class TicketController {
 
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/deadline/{ticketId}")
-    public ApiResponse<Void> editDeadline(@PathVariable Long ticketId, @RequestBody LocalDateTime deadline){
-        ticketService.editDeadlineForManager(ticketId,deadline);
+    public ApiResponse<Void> editDeadline(@PathVariable Long ticketId, @RequestBody EditSettingRequest editSettingRequest){
+        ticketService.editDeadlineForManager(ticketId,editSettingRequest);
         return new ApiResponse<>("마감기한 수정",null);
         //return new ApiResponse.success(); //추후 수정
     }
