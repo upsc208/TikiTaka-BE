@@ -48,9 +48,10 @@ public class ReviewService {
     }
 
     public List<ReviewListResponse> getReviews(Long ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(TicketNotFoundException::new);
-
+        boolean existTicket = ticketRepository.existsById(ticketId);
+        if (!existTicket) {
+            throw new TicketNotFoundException();
+        }
         return reviewRepository.findAllByTicketId(ticketId);
     }
 }
