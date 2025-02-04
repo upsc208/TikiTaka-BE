@@ -35,4 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
 **/application-local.yml
+**/.DS_Store
+**/AdminInitializer.java
+

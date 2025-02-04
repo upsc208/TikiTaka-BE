@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -21,8 +22,8 @@ import java.time.LocalDateTime;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLRestriction("deleted_at IS NULL") // ✅ 삭제된 데이터는 자동으로 제외됨
-@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?") // ✅ 논리 삭제 처리
+@SQLRestriction("deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
 public class User extends DeletedBaseEntity {
 
     @Id
@@ -51,6 +52,9 @@ public class User extends DeletedBaseEntity {
     private boolean locked = false;
 
     private LocalDateTime lockExpireAt = null;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserPasswordHistory passwordHistory;
 
     @Builder
     public User(String username, String email, String password, Role role) {
@@ -88,5 +92,17 @@ public class User extends DeletedBaseEntity {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
         this.lastPasswordChangedAt = LocalDateTime.now();
+    }
+
+    public boolean isSameAsPreviousPassword(String encodedPassword) {
+        return passwordHistory != null && Objects.equals(passwordHistory.getOldPassword(), encodedPassword);
+    }
+
+    public void updatePasswordHistory(String newPassword) {
+        if (passwordHistory == null) {
+            this.passwordHistory = new UserPasswordHistory(this, newPassword);
+        } else {
+            this.passwordHistory.updatePassword(newPassword);
+        }
     }
 }

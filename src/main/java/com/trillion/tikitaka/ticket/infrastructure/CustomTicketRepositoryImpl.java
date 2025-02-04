@@ -133,7 +133,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.deadline,
                         ticket.createdAt,
-                        ticket.updatedAt
+                        ticket.updatedAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)

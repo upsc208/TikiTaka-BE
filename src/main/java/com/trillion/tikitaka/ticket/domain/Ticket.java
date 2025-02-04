@@ -2,9 +2,11 @@ package com.trillion.tikitaka.ticket.domain;
 
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
+import com.trillion.tikitaka.subtask.domain.Subtask;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +14,9 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Builder
 @Entity
@@ -20,7 +25,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE ticket SET deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE tickets SET deleted_at = NOW() WHERE id = ?")
 public class Ticket extends DeletedBaseEntity {
 
     @Id
@@ -69,6 +74,12 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Boolean urgent = false;
 
+    @Column
+    @Builder.Default
+    private Double progress = null;
+
+
+
     public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
         if (request.getDescription() != null) this.description = request.getDescription();
@@ -78,10 +89,9 @@ public class Ticket extends DeletedBaseEntity {
         if (ticketType != null) this.ticketType = ticketType;
     }
 
-
     public void updateSetting(EditSettingRequest request){
         if (request.getPriority() != null) this.priority = request.getPriority();
-        if (request.getManagerId() != null) this.manager = manager;
+        //if (request.getManagerId() != null) this.manager = request.getManagerId();
         if (request.getDeadline() != null) this.deadline = request.getDeadline();
     }
 
@@ -89,6 +99,13 @@ public class Ticket extends DeletedBaseEntity {
         this.status = status;
     }
 
+    public boolean canComment(User user) {
+        if (user.getRole() == Role.USER) {
+            return Objects.equals(this.requester.getId(), user.getId());
+        }
+        return true;
+    }
+    public void updateProgress(Double progress){this.progress = progress;}
     public enum Priority {
         HIGH, MIDDLE, LOW
     }
