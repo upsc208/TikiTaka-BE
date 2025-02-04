@@ -35,4 +35,11 @@ public class TicketTemplateController {
         templateService.updateTicketTemplate(id, request);
         return ResponseEntity.ok("Ticket Template updated successfully");
     }
+
+    @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTemplate(@PathVariable Long id) {
+        templateService.deleteTicketTemplate(id);
+        return ResponseEntity.ok("Ticket Template deleted successfully");
+    }
 }
