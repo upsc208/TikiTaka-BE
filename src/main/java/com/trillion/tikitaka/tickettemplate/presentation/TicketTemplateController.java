@@ -16,7 +16,7 @@ public class TicketTemplateController {
 
     private final TicketTemplateService templateService;
 
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @PostMapping
     public ResponseEntity<TicketTemplateCreateResponse> create(
             @Valid @RequestBody TicketTemplateRequest request
@@ -26,7 +26,7 @@ public class TicketTemplateController {
         return ResponseEntity.ok(resp);
     }
 
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @PatchMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable Long id,
@@ -35,4 +35,5 @@ public class TicketTemplateController {
         templateService.updateTicketTemplate(id, request);
         return ResponseEntity.ok("Ticket Template updated successfully");
     }
+
 }

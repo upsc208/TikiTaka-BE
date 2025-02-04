@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.trillion.tikitaka.user.domain.User;
 
 import java.time.LocalDateTime;
 
@@ -37,11 +38,13 @@ public class TicketTemplate {
     @Column(nullable = false)
     private Long secondCategoryId;
 
-    @Column(nullable = false)
-    private Long requesterId;
+    @ManyToOne
+    @JoinColumn(name = "requester_id", nullable = false)
+    private User requester;  // 필수
 
-    // optional
-    private Long managerId;
+    @ManyToOne
+    @JoinColumn(name = "manager_id")
+    private User manager;
 
     @CreatedDate
     @Column(updatable = false)
@@ -57,16 +60,17 @@ public class TicketTemplate {
                           Long typeId,
                           Long firstCategoryId,
                           Long secondCategoryId,
-                          Long requesterId,
-                          Long managerId) {
+                          User requester,
+                          User manager
+    ) {
         this.templateTitle = templateTitle;
         this.title = title;
         this.description = description;
         this.typeId = typeId;
         this.firstCategoryId = firstCategoryId;
         this.secondCategoryId = secondCategoryId;
-        this.requesterId = requesterId;
-        this.managerId = managerId;
+        this.requester = requester;
+        this.manager = manager;
     }
 
     public void update(String templateTitle,
@@ -75,8 +79,8 @@ public class TicketTemplate {
                        Long typeId,
                        Long firstCategoryId,
                        Long secondCategoryId,
-                       Long requesterId,
-                       Long managerId
+                       User requester,
+                       User manager
     ) {
         this.templateTitle = templateTitle;
         this.title = title;
@@ -84,7 +88,7 @@ public class TicketTemplate {
         this.typeId = typeId;
         this.firstCategoryId = firstCategoryId;
         this.secondCategoryId = secondCategoryId;
-        this.requesterId = requesterId;
-        this.managerId = managerId;
+        this.requester = requester;
+        this.manager = manager;
     }
 }
