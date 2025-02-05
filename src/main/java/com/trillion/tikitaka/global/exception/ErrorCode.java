@@ -81,9 +81,11 @@ public enum ErrorCode {
 
     // Object Storage
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "O001", "최대 파일 크기는 10MB 입니다."),
-    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "O002", "유효하지 않은 파일명입니다."),
-    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O003", "허용되지 않는 파일 확장자입니다."),
-    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O004", "파일을 찾을 수 없습니다."),
+    TOO_MANY_FILES(HttpStatus.BAD_REQUEST, "O002", "파일은 최대 5개까지 첨부할 수 있습니다."),
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "O003", "파일 업로드 중 오류가 발생했습니다."),
+    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "O004", "유효하지 않은 파일명입니다."),
+    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O005", "허용되지 않는 파일 확장자입니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O006", "파일을 찾을 수 없습니다."),
 
     ;
 

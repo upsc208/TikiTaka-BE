@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.ticket.application;
 
 
+import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
@@ -35,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -49,19 +51,25 @@ public class TicketService {
     private final CategoryRepository categoryRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final HistoryService historyService;
+    private final FileService fileService;
 
     @Transactional
-    public void createTicket(CreateTicketRequest request, Long requesterId) {
+    public void createTicket(CreateTicketRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
         TicketType ticketType = getTicketTypeOrThrow(request.getTypeId());
         Category firstCategory = getCategoryOrNull(request.getFirstCategoryId());
         Category secondCategory = getCategoryOrNull(request.getSecondCategoryId());
         validateCategoryRelation(firstCategory, secondCategory);
 
-        User requester = getUserOrThrow(requesterId);
+        User requester = getUserOrThrow(userDetails.getId());
         User manager = request.getManagerId() != null ? getUserOrThrowForManager(request.getManagerId()) : null;
 
         Ticket ticket = buildTicket(request, requester, manager, ticketType, firstCategory, secondCategory);
         ticketRepository.save(ticket);
+        ticketRepository.flush();
+
+        if (files != null && !files.isEmpty()) {
+            fileService.uploadFilesForTicket(files, ticket);
+        }
 
         if (ticket.getManager() != null){
             eventPublisher.publishEvent(

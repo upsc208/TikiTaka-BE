@@ -19,9 +19,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -34,11 +36,12 @@ public class TicketController {
     private final SubtaskService subtaskService;
     private final ReviewService reviewService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-    public ApiResponse<Void> createTicket(@RequestBody @Valid CreateTicketRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long requesterId = userDetails.getId();
-        ticketService.createTicket(request, requesterId);
+    public ApiResponse<Void> createTicket(@RequestPart("request") @Valid CreateTicketRequest request,
+                                          @RequestPart(value = "files", required = false) List<@Valid MultipartFile> files,
+                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+        ticketService.createTicket(request, files, userDetails);
         return new ApiResponse<>("티켓이 생성되었습니다", null);
     }
 

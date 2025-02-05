@@ -12,20 +12,21 @@ import java.time.LocalDateTime;
 @Builder
 public class CreateTicketRequest {
 
-    @NotBlank(message = "제목은 필수 항목입니다.")
+    @NotBlank(message = "제목을 입력해주세요")
     private String title;
 
+    @NotNull(message = "상세 내용을 입력해주세요.")
     @Size(max = 5000, message = "상세 내용은 5000자를 초과할 수 없습니다.")
     private String description;
 
-    @NotNull(message = "티켓 유형 ID는 필수 항목입니다.")
+    @NotNull(message = "티켓 유형을 선택해주세요.")
     private Long typeId;
 
     private Long firstCategoryId;
 
     private Long secondCategoryId;
 
-    @NotNull(message = "마감일은 필수 항목입니다.")
+    @NotNull(message = "마감일을 입력해주세요.")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
 
@@ -33,7 +34,4 @@ public class CreateTicketRequest {
 
     @Builder.Default
     private Boolean urgent = false;
-
-
 }
-
