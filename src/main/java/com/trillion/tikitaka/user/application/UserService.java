@@ -66,6 +66,8 @@ public class UserService {
         if (userResponse == null) throw new UserNotFoundException();
         return userResponse;
     }
+
+    @Transactional
     public void changeUserRole(Long userId, Role newRole) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -73,6 +75,4 @@ public class UserService {
         user.updateRole(newRole);
         userRepository.save(user);
     }
-
-
 }
