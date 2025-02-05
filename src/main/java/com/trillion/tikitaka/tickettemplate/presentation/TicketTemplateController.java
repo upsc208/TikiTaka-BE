@@ -3,6 +3,7 @@ package com.trillion.tikitaka.tickettemplate.presentation;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.tickettemplate.application.TicketTemplateService;
 import com.trillion.tikitaka.tickettemplate.dto.request.TicketTemplateRequest;
+import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,4 +44,10 @@ public class TicketTemplateController {
         return ApiResponse.success(null);
     }
 
+    @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
+    @GetMapping("/{id}")
+    public ApiResponse<TicketTemplateResponse> getOne(@PathVariable Long id) {
+        TicketTemplateResponse data = templateService.getOneTicketTemplate(id);
+        return ApiResponse.success(data);
+    }
 }
