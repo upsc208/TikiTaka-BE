@@ -100,7 +100,7 @@ public class SubtaskService {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException());
         ticket.updateProgress(progress);
-        
+
         return Math.round(progress * 10.0) / 10.0;
     }
 
