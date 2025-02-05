@@ -23,7 +23,7 @@ public class TicketFormService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public void createTicketForm(Long firstCategoryId, Long secondCategoryId, String description) {
+    public void createTicketForm(Long firstCategoryId, Long secondCategoryId, String mustDescription, String description) {
         Category firstCategory = categoryRepository.findById(firstCategoryId)
                 .orElseThrow(CategoryNotFoundException::new);
         Category secondCategory = categoryRepository.findById(secondCategoryId)
@@ -41,6 +41,7 @@ public class TicketFormService {
         TicketForm ticketForm = TicketForm.builder()
                 .firstCategory(firstCategory)
                 .secondCategory(secondCategory)
+                .mustDescription(mustDescription)
                 .description(description)
                 .build();
         ticketFormRepository.save(ticketForm);
@@ -52,23 +53,25 @@ public class TicketFormService {
         TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
         TicketForm ticketForm = ticketFormRepository.findById(ticketFormId).orElse(null);
 
+        String mustDescription = "";
         String description = "";
         if (ticketForm != null) {
+            mustDescription = ticketForm.getMustDescription();
             description = ticketForm.getDescription();
         }
 
-        return new TicketFormResponse(description);
+        return new TicketFormResponse(mustDescription, description);
     }
 
     @Transactional
-    public void updateTicketForm(Long firstCategoryId, Long secondCategoryId, String newDescription) {
+    public void updateTicketForm(Long firstCategoryId, Long secondCategoryId, String newMustDescription, String newDescription) {
         validateCategoryRelationship(firstCategoryId, secondCategoryId);
 
         TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
         TicketForm ticketForm = ticketFormRepository.findById(ticketFormId)
                 .orElseThrow(TicketFormNotFoundException::new);
 
-        ticketForm.updateDescription(newDescription);
+        ticketForm.update(newMustDescription, newDescription);
     }
 
     @Transactional

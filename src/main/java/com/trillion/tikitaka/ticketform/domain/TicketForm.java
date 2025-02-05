@@ -30,15 +30,20 @@ public class TicketForm {
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String description;
 
+    @Column(nullable = false, length = 1000)
+    private String mustDescription;
+
     @Builder
-    public TicketForm(Category firstCategory, Category secondCategory, String description) {
+    public TicketForm(Category firstCategory, Category secondCategory, String description, String mustDescription) {
         this.id = new TicketFormId(firstCategory.getId(), secondCategory.getId());
         this.firstCategory = firstCategory;
         this.secondCategory = secondCategory;
         this.description = description;
+        this.mustDescription = mustDescription;
     }
 
-    public void updateDescription(String newDescription) {
+    public void update(String newDescription, String newMustDescription) {
         this.description = newDescription;
+        this.mustDescription = newMustDescription;
     }
 }

@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TicketFormResponse {
     private String description;
+    private String mustDescription;
 }

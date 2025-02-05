@@ -1,16 +1,14 @@
-# 빌드 스테이지: Gradle을 이용하여 프로젝트 빌드
-FROM gradle:8.0-jdk17 AS builder
-WORKDIR /app
-# 프로젝트 전체를 복사
-COPY . .
-# Gradle을 통해 프로젝트 빌드 (JAR 파일 생성)
-RUN gradle clean build --no-daemon
-
-# 실행 스테이지: 빌드 결과물만 복사하여 경량 이미지 생성
+# 기본 이미지 선택
 FROM openjdk:17-jdk-slim
-WORKDIR /app
-# 빌드 스테이지에서 생성된 JAR 파일을 실행 스테이지로 복사
-COPY --from=builder /app/build/libs/your-project.jar app.jar
 
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 빌드된 JAR 파일 복사
+COPY build/libs/tikitaka-0.0.1-SNAPSHOT.jar app.jar
+
+# 환경 변수를 사용하여 실행
+CMD ["java", "-jar", "app.jar"]
+
+# 컨테이너 포트 노출
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
