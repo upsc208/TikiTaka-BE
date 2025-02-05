@@ -1,11 +1,13 @@
 package com.trillion.tikitaka.history.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +17,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, TicketHistory.EntityCallback.class})
+
 public class TicketHistory {
 
     @Id
@@ -45,6 +48,8 @@ public class TicketHistory {
         TICKET_CREATED, TICKET_APPROVED, TICKET_EDITED, TYPE_CHANGE, STATUS_CHANGE, MANAGER_CHANGE, PRIORITY_CHANGE, CATEGORY_CHANGE, DEADLINE_CHANGE, TICKET_DELETE ,OTHER
     }
 
+
+
     // 변경 이력 생성 메서드
     public static TicketHistory createHistory(Ticket ticket, User updatedBy, UpdateType updateType) {
         return TicketHistory.builder()
@@ -52,5 +57,16 @@ public class TicketHistory {
                 .updatedBy(updatedBy)
                 .updateType(updateType)
                 .build();
+    }
+    @Component
+    public static class EntityCallback {
+
+        @PrePersist
+        @PreUpdate
+        public void truncateUpdatedAt(TicketHistory history) {
+            if (history.updatedAt != null) {
+                history.updatedAt = history.updatedAt.withNano(0);
+            }
+        }
     }
 }
