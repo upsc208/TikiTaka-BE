@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/inquiries")
 @RequiredArgsConstructor
@@ -20,11 +22,18 @@ public class InquiryController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
-    public ApiResponse<InquiryResponse> createInquiry(
+    public ApiResponse<Void> createInquiry(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid InquiryRequest request) {
 
-        InquiryResponse response = inquiryService.createInquiry(userDetails.getUser().getId(), request);
-        return ApiResponse.success(response);
+        inquiryService.createInquiry(userDetails.getUser().getId(), request);
+        return new ApiResponse<>(null);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<List<InquiryResponse>> getAllInquiries() {
+        List<InquiryResponse> responses = inquiryService.getAllInquiries();
+        return ApiResponse.success(responses);
     }
 }
