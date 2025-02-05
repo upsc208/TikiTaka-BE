@@ -21,7 +21,7 @@ public class TicketFormController {
     public ApiResponse<Void> createTicketForm(@PathVariable("firstCategoryId") Long firstCategoryId,
                                               @PathVariable("secondCategoryId") Long secondCategoryId,
                                               @RequestBody @Valid TicketFormRequest request) {
-        ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, request.getDescription());
+        ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, request.getDescription(), request.getMustDescription());
         return new ApiResponse<>(null);
     }
 
@@ -38,7 +38,7 @@ public class TicketFormController {
     public ApiResponse<Void> updateTicketForm(@PathVariable("firstCategoryId") Long firstCategoryId,
                                               @PathVariable("secondCategoryId") Long secondCategoryId,
                                               @RequestBody @Valid TicketFormRequest request) {
-        ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, request.getDescription());
+        ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, request.getDescription(), request.getMustDescription());
         return new ApiResponse<>(null);
     }
 
