@@ -337,9 +337,11 @@ public class TicketService {
 
         ticket.updateStatus(Ticket.Status.IN_PROGRESS);
 
-        ticket.updateManager(manager);
+        if(ticket.getManager() == null){
+            ticket.updateManager(manager);
+        }
 
-        historyService.recordHistory(ticket,manager, TicketHistory.UpdateType.TICKET_APPROVED);
+        historyService.recordHistory(ticket,manager, TicketHistory.UpdateType.STATUS_CHANGE);
 
     }
 
