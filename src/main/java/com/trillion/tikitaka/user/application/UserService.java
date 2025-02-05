@@ -66,12 +66,13 @@ public class UserService {
         if (userResponse == null) throw new UserNotFoundException();
         return userResponse;
     }
-    public void changeUserRole(Long userId, String newRole) {
+    public void changeUserRole(Long userId, Role newRole) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        user.updateRole(Role.valueOf(newRole));
+        user.updateRole(newRole);
         userRepository.save(user);
     }
+
 
 }
