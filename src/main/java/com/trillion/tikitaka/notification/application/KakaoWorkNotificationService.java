@@ -17,11 +17,11 @@ public class KakaoWorkNotificationService {
 
     private final KakaoWorkClient kakaoWorkClient;
 
-    public Mono<Void> sendKakaoWorkNotification(String email, List<Block> blocks) {
+    public Mono<Void> sendKakaoWorkNotification(String email, String text, List<Block> blocks) {
         return kakaoWorkClient.findUserIdByEmail(email)
                 .flatMap(userResponse -> kakaoWorkClient.openConversation(userResponse.getUser().getId()))
                 .flatMap(conversationResponse -> kakaoWorkClient.sendMessage(
-                        new KakaoWorkMessageRequest(conversationResponse.getConversation().getId(), "알림이 전송되었습니다.", blocks)
+                        new KakaoWorkMessageRequest(conversationResponse.getConversation().getId(), text, blocks)
                 ))
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(10))
                         .maxBackoff(Duration.ofSeconds(60))

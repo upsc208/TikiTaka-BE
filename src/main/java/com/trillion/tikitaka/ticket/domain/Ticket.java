@@ -1,10 +1,7 @@
 package com.trillion.tikitaka.ticket.domain;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
-import com.trillion.tikitaka.subtask.domain.Subtask;
-import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.user.domain.Role;
@@ -15,8 +12,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Builder
@@ -80,8 +75,6 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Double progress = null;
 
-
-
     public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
         if (request.getDescription() != null) this.description = request.getDescription();
@@ -93,15 +86,28 @@ public class Ticket extends DeletedBaseEntity {
     }
 
     //사용자
-    public void updateTitle(EditTicketRequest request){if (request.getTitle() != null) this.title = request.getTitle();}
-    public void updateDescription(EditTicketRequest request){if (request.getDescription() != null) this.description = request.getDescription();}
+    public void updateTitle(EditTicketRequest request) {
+        if (request.getTitle() != null) this.title = request.getTitle();
+    }
+
+    public void updateDescription(EditTicketRequest request) {
+        if (request.getDescription() != null) this.description = request.getDescription();
+    }
+
     public void updateCategory(Category firstCategory, Category secondCategory){
         this.firstCategory = firstCategory;
         this.secondCategory = secondCategory;
     }
-    public void updateUrgent(EditTicketRequest request){if (request.getUrgent() != null) this.urgent = request.getUrgent();}
-    public void updateType(TicketType ticketType){this.ticketType = ticketType;}
-    public void updateDaedline(EditTicketRequest request){
+
+    public void updateUrgent(EditTicketRequest request) {
+        if (request.getUrgent() != null) this.urgent = request.getUrgent();
+    }
+
+    public void updateType(TicketType ticketType) {
+        this.ticketType = ticketType;
+    }
+
+    public void updateDaedline(EditTicketRequest request) {
         if (request.getDeadline() != null) this.deadline = request.getDeadline();
     }
     //사용자
@@ -123,14 +129,17 @@ public class Ticket extends DeletedBaseEntity {
     }
     //담당자
 
-
     public boolean canComment(User user) {
         if (user.getRole() == Role.USER) {
             return Objects.equals(this.requester.getId(), user.getId());
         }
         return true;
     }
-    public void updateProgress(Double progress){this.progress = progress;}
+
+    public void updateProgress(Double progress) {
+        this.progress = progress;
+    }
+
     public enum Priority {
         HIGH, MIDDLE, LOW
     }

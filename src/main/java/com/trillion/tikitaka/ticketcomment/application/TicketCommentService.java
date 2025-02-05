@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.ticketcomment.application;
 
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.notification.event.CommentCreateEvent;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
@@ -10,8 +11,10 @@ import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
 import com.trillion.tikitaka.ticketcomment.exception.TicketCommentNotFoundException;
 import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentException;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +27,7 @@ public class TicketCommentService {
 
     private final TicketCommentRepository ticketCommentRepository;
     private final TicketRepository ticketRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void createTicketComment(Long ticketId, TicketCommentRequest request, CustomUserDetails userDetails) {
@@ -41,6 +45,12 @@ public class TicketCommentService {
                 .content(request.getContent())
                 .build();
         ticketCommentRepository.save(comment);
+
+        if (author.getRole() == Role.USER) {
+            eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getManager().getEmail(), ticket, author.getUsername()));
+        } else {
+            eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getRequester().getEmail(), ticket, author.getUsername()));
+        }
     }
 
     public List<TicketCommentResponse> getTicketComments(Long ticketId, CustomUserDetails userDetails) {

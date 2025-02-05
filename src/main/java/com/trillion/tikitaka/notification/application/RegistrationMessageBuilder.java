@@ -13,7 +13,7 @@ public class RegistrationMessageBuilder implements KakaoWorkMessageBuilder<Regis
 
     @Override
     public List<Block> buildMessage(RegistrationEvent event) {
-        HeaderBlock header = new HeaderBlock("TikiTaka 계정 등록", "yellow");
+        HeaderBlock header = new HeaderBlock("TikiTaka 계정 등록", "white");
         TextBlock textBlock;
         DescriptionBlock descriptionBlock;
 
@@ -35,5 +35,16 @@ public class RegistrationMessageBuilder implements KakaoWorkMessageBuilder<Regis
     @Override
     public boolean supports(NotificationEvent event) {
         return event instanceof RegistrationEvent;
+    }
+
+    @Override
+    public String buildPreviewText(RegistrationEvent event) {
+        String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+
+        if (event.getRegistrationStatus() == RegistrationStatus.APPROVED) {
+            return String.format("%s 계정 등록 신청 approved %s", date, event.getRole().toString());
+        } else {
+            return String.format("%s 계정 등록 신청 rejected", date);
+        }
     }
 }
