@@ -2,6 +2,8 @@ package com.trillion.tikitaka.ticket.application;
 
 
 import com.trillion.tikitaka.attachment.application.FileService;
+import com.trillion.tikitaka.attachment.dto.response.TicketAttachmentResponse;
+import com.trillion.tikitaka.attachment.infrastructure.AttachmentRepository;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
@@ -49,9 +51,10 @@ public class TicketService {
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final CategoryRepository categoryRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final AttachmentRepository attachmentRepository;
     private final HistoryService historyService;
     private final FileService fileService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void createTicket(CreateTicketRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
@@ -118,6 +121,9 @@ public class TicketService {
 
         TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
         if (response == null) throw new TicketNotFoundException();
+
+        List<TicketAttachmentResponse> attachmentResponse = attachmentRepository.getTicketAttachments(ticketId);
+        response.setAttachments(attachmentResponse);
 
         if ("USER".equals(role)) {
             response.setPriority(null);
