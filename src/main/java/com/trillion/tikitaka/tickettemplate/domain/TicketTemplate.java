@@ -2,8 +2,8 @@ package com.trillion.tikitaka.tickettemplate.domain;
 
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.user.domain.User;
-import com.trillion.tikitaka.category.domain.Category;   // 예시로 Category 도메인
-import com.trillion.tikitaka.tickettype.domain.TicketType; // 예시로 TicketType 도메인
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,20 +26,18 @@ public class TicketTemplate extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    // ---- 연관관계 매핑 (ID 대신 엔티티) ----
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id", nullable = false)
-    private TicketType type;  // 기존: private Long typeId;
+    private TicketType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "first_category_id", nullable = false)
-    private Category firstCategory; // 기존: private Long firstCategoryId;
+    private Category firstCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "second_category_id", nullable = false)
-    private Category secondCategory; // 기존: private Long secondCategoryId;
+    private Category secondCategory;
 
-    // ---- User 관계도 LAZY로 ----
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
@@ -48,9 +46,6 @@ public class TicketTemplate extends BaseEntity {
     @JoinColumn(name = "manager_id")
     private User manager;
 
-    // ------------------------------
-    // 생성자 (Builder)
-    // ------------------------------
     @Builder
     public TicketTemplate(String templateTitle,
                           String title,
@@ -71,9 +66,6 @@ public class TicketTemplate extends BaseEntity {
         this.manager = manager;
     }
 
-    // ------------------------------
-    // 업데이트 메서드
-    // ------------------------------
     public void update(String templateTitle,
                        String title,
                        String description,
