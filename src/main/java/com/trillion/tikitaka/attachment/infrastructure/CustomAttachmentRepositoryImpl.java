@@ -2,8 +2,8 @@ package com.trillion.tikitaka.attachment.infrastructure;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.trillion.tikitaka.attachment.dto.response.QTicketAttachmentResponse;
-import com.trillion.tikitaka.attachment.dto.response.TicketAttachmentResponse;
+import com.trillion.tikitaka.attachment.dto.response.AttachmentResponse;
+import com.trillion.tikitaka.attachment.dto.response.QAttachmentResponse;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -16,9 +16,9 @@ public class CustomAttachmentRepositoryImpl implements CustomAttachmentRepositor
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<TicketAttachmentResponse> getTicketAttachments(Long ticketId) {
+    public List<AttachmentResponse> getTicketAttachments(Long ticketId) {
         return queryFactory
-                .select(new QTicketAttachmentResponse(
+                .select(new QAttachmentResponse(
                         attachment.id.as("attachmentId"),
                         attachment.fileName,
                         attachment.filePath,

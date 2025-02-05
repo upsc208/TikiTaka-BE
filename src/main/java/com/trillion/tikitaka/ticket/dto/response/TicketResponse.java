@@ -2,7 +2,7 @@ package com.trillion.tikitaka.ticket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.querydsl.core.annotations.QueryProjection;
-import com.trillion.tikitaka.attachment.dto.response.TicketAttachmentResponse;
+import com.trillion.tikitaka.attachment.dto.response.AttachmentResponse;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +37,7 @@ public class TicketResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime updatedAt;
 
-    private List<TicketAttachmentResponse> attachments;
+    private List<AttachmentResponse> attachments;
 
     @QueryProjection
     public TicketResponse(Long ticketId, String title, String description, Ticket.Priority priority, Ticket.Status status,

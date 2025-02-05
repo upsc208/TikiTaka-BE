@@ -6,14 +6,14 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TicketAttachmentResponse {
+public class AttachmentResponse {
     private Long attachmentId;
     private String fileName;
     private String filePath;
     private Long fileSize;
 
     @QueryProjection
-    public TicketAttachmentResponse(Long attachmentId, String fileName, String filePath, Long fileSize) {
+    public AttachmentResponse(Long attachmentId, String fileName, String filePath, Long fileSize) {
         this.attachmentId = attachmentId;
         this.fileName = fileName;
         this.filePath = filePath;

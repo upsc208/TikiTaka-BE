@@ -2,7 +2,7 @@ package com.trillion.tikitaka.ticket.application;
 
 
 import com.trillion.tikitaka.attachment.application.FileService;
-import com.trillion.tikitaka.attachment.dto.response.TicketAttachmentResponse;
+import com.trillion.tikitaka.attachment.dto.response.AttachmentResponse;
 import com.trillion.tikitaka.attachment.infrastructure.AttachmentRepository;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
@@ -122,7 +122,7 @@ public class TicketService {
         TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
         if (response == null) throw new TicketNotFoundException();
 
-        List<TicketAttachmentResponse> attachmentResponse = attachmentRepository.getTicketAttachments(ticketId);
+        List<AttachmentResponse> attachmentResponse = attachmentRepository.getTicketAttachments(ticketId);
         response.setAttachments(attachmentResponse);
 
         if ("USER".equals(role)) {
