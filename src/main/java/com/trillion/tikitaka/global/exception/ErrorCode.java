@@ -18,6 +18,10 @@ public enum ErrorCode {
     INVALID_USERNAME_OR_PASSWORD(HttpStatus.BAD_REQUEST, "A003", "아이디 또는 비밀번호가 올바르지 않습니다."),
     ACCOUNT_LOCKED(HttpStatus.FORBIDDEN, "A004", "계정이 잠겨있습니다. 잠시 후 다시 시도해주세요."),
 
+    // Inquiry
+    INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "문의사항을 찾을 수 없습니다."),
+    INQUIRY_ALREADY_ANSWERED(HttpStatus.BAD_REQUEST, "I002", "이미 답변이 작성된 문의사항입니다."),
+
     // Token
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "T001", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "T002", "토큰이 만료되었습니다."),
@@ -81,9 +85,11 @@ public enum ErrorCode {
 
     // Object Storage
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "O001", "최대 파일 크기는 10MB 입니다."),
-    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "O002", "유효하지 않은 파일명입니다."),
-    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O003", "허용되지 않는 파일 확장자입니다."),
-    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O004", "파일을 찾을 수 없습니다."),
+    TOO_MANY_FILES(HttpStatus.BAD_REQUEST, "O002", "파일은 최대 5개까지 첨부할 수 있습니다."),
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "O003", "파일 업로드 중 오류가 발생했습니다."),
+    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "O004", "유효하지 않은 파일명입니다."),
+    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O005", "허용되지 않는 파일 확장자입니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O006", "파일을 찾을 수 없습니다."),
 
     ;
 

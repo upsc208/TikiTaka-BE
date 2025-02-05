@@ -1,21 +1,25 @@
 package com.trillion.tikitaka.tickettemplate.application;
 
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.tickettemplate.domain.TicketTemplate;
 import com.trillion.tikitaka.tickettemplate.dto.request.TicketTemplateRequest;
+import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateListResponse;
 import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateResponse;
 import com.trillion.tikitaka.tickettemplate.exception.TicketTemplateInvalidFKException;
 import com.trillion.tikitaka.tickettemplate.exception.TicketTemplateNotFoundException;
 import com.trillion.tikitaka.tickettemplate.infrastructure.TicketTemplateRepository;
-
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
-import com.trillion.tikitaka.tickettype.domain.TicketType;        // 예: we assume there's a TicketType entity with getName()
-import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
-import com.trillion.tikitaka.category.domain.Category;           // assume a Category entity with getName()
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +31,17 @@ public class TicketTemplateService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
 
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     @Transactional
     public Long createTicketTemplate(TicketTemplateRequest req) {
-        if (!typeRepository.existsById(req.getTypeId())
-                || !categoryRepository.existsById(req.getFirstCategoryId())
-                || !categoryRepository.existsById(req.getSecondCategoryId())) {
-            throw new TicketTemplateInvalidFKException();
-        }
+        TicketType type = typeRepository.findById(req.getTypeId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+        Category firstCat = categoryRepository.findById(req.getFirstCategoryId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+        Category secondCat = categoryRepository.findById(req.getSecondCategoryId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+
         User requester = userRepository.findById(req.getRequesterId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
         User manager = null;
@@ -46,9 +54,9 @@ public class TicketTemplateService {
                 .templateTitle(req.getTemplateTitle())
                 .title(req.getTitle())
                 .description(req.getDescription())
-                .typeId(req.getTypeId())
-                .firstCategoryId(req.getFirstCategoryId())
-                .secondCategoryId(req.getSecondCategoryId())
+                .type(type)
+                .firstCategory(firstCat)
+                .secondCategory(secondCat)
                 .requester(requester)
                 .manager(manager)
                 .build();
@@ -61,11 +69,12 @@ public class TicketTemplateService {
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
 
-        if (!typeRepository.existsById(req.getTypeId())
-                || !categoryRepository.existsById(req.getFirstCategoryId())
-                || !categoryRepository.existsById(req.getSecondCategoryId())) {
-            throw new TicketTemplateInvalidFKException();
-        }
+        TicketType type = typeRepository.findById(req.getTypeId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+        Category firstCat = categoryRepository.findById(req.getFirstCategoryId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
+        Category secondCat = categoryRepository.findById(req.getSecondCategoryId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
 
         User requester = userRepository.findById(req.getRequesterId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
@@ -79,9 +88,9 @@ public class TicketTemplateService {
                 req.getTemplateTitle(),
                 req.getTitle(),
                 req.getDescription(),
-                req.getTypeId(),
-                req.getFirstCategoryId(),
-                req.getSecondCategoryId(),
+                type,
+                firstCat,
+                secondCat,
                 requester,
                 manager
         );
@@ -99,17 +108,17 @@ public class TicketTemplateService {
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
 
-        TicketType typeEntity = typeRepository.findById(template.getTypeId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
+        TicketType typeEntity = template.getType();
+        Long typeId = typeEntity.getId();
         String typeName = typeEntity.getName();
 
-        Category firstCat = categoryRepository.findById(template.getFirstCategoryId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        String firstCategoryName = firstCat.getName();
+        Category firstCat = template.getFirstCategory();
+        Long firstCatId = firstCat.getId();
+        String firstCatName = firstCat.getName();
 
-        Category secondCat = categoryRepository.findById(template.getSecondCategoryId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        String secondCategoryName = secondCat.getName();
+        Category secondCat = template.getSecondCategory();
+        Long secondCatId = secondCat.getId();
+        String secondCatName = secondCat.getName();
 
         User requester = template.getRequester();
         Long requesterId = requester.getId();
@@ -127,16 +136,57 @@ public class TicketTemplateService {
                 template.getTemplateTitle(),
                 template.getTitle(),
                 template.getDescription(),
-                template.getTypeId(),
+                typeId,
                 typeName,
-                template.getFirstCategoryId(),
-                firstCategoryName,
-                template.getSecondCategoryId(),
-                secondCategoryName,
+                firstCatId,
+                firstCatName,
+                secondCatId,
+                secondCatName,
                 requesterId,
                 requesterName,
                 managerId,
                 managerName
         );
+    }
+
+    public List<TicketTemplateListResponse> getAllTicketTemplates() {
+        List<TicketTemplate> templates = templateRepository.findAll();
+
+        return templates.stream()
+                .map(template -> {
+                    TicketType typeEntity = template.getType();
+                    Long typeId = typeEntity.getId();
+                    String typeName = typeEntity.getName();
+
+                    Category firstCat = template.getFirstCategory();
+                    Long firstCatId = firstCat.getId();
+                    String firstCatName = firstCat.getName();
+
+                    Category secondCat = template.getSecondCategory();
+                    Long secondCatId = secondCat.getId();
+                    String secondCatName = secondCat.getName();
+
+                    String createdAtStr = (template.getCreatedAt() != null)
+                            ? template.getCreatedAt().format(FORMATTER)
+                            : null;
+                    String updatedAtStr = (template.getUpdatedAt() != null)
+                            ? template.getUpdatedAt().format(FORMATTER)
+                            : null;
+
+                    return new TicketTemplateListResponse(
+                            template.getId(),
+                            template.getTemplateTitle(),
+                            template.getTitle(),
+                            typeId,
+                            typeName,
+                            firstCatId,
+                            firstCatName,
+                            secondCatId,
+                            secondCatName,
+                            createdAtStr,
+                            updatedAtStr
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }

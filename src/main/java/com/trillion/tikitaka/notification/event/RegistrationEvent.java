@@ -2,6 +2,7 @@ package com.trillion.tikitaka.notification.event;
 
 import com.trillion.tikitaka.notification.domain.NotificationType;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
+import com.trillion.tikitaka.user.domain.Role;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
@@ -10,15 +11,17 @@ public class RegistrationEvent extends ApplicationEvent implements NotificationE
     private final String username;
     private final String email;
     private final String message;
+    private final Role role;
     private final RegistrationStatus registrationStatus;
     private final NotificationType notificationType;
 
-    public RegistrationEvent(Object source, String username, String email, String message,
+    public RegistrationEvent(Object source, String username, String email, String message, Role role,
                              RegistrationStatus registrationStatus, NotificationType notificationType) {
         super(source);
         this.username = username;
         this.email = email;
         this.message = message;
+        this.role = role;
         this.registrationStatus = registrationStatus;
         this.notificationType = notificationType;
     }

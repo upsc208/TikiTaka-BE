@@ -7,9 +7,11 @@ import com.trillion.tikitaka.ticketcomment.dto.request.TicketCommentRequest;
 import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,12 +22,13 @@ public class TicketCommentController {
 
     private final TicketCommentService ticketCommentService;
 
-    @PostMapping("/{ticketId}/comments")
+    @PostMapping(path = "/{ticketId}/comments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('MANAGER', 'USER')")
     public ApiResponse<Void> createTicketComment(@PathVariable("ticketId") Long ticketId,
-                                                 @RequestBody @Valid TicketCommentRequest request,
+                                                 @RequestPart @Valid TicketCommentRequest request,
+                                                 @RequestPart(value = "files", required = false) List<@Valid MultipartFile> files,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
-        ticketCommentService.createTicketComment(ticketId, request, userDetails);
+        ticketCommentService.createTicketComment(ticketId, request, files, userDetails);
         return new ApiResponse<>(null);
     }
 

@@ -62,4 +62,21 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
     public boolean supports(NotificationEvent event) {
         return event instanceof TicketCreationEvent;
     }
+
+    @Override
+    public String buildPreviewText(TicketCreationEvent event) {
+        String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+
+        Ticket ticket = event.getTicket();
+
+        String secondCategoryName = (ticket.getSecondCategory() != null)
+                ? ticket.getSecondCategory().getName()
+                : "-";
+
+        String ticketTypeName = (ticket.getTicketType() != null)
+                ? ticket.getTicketType().getName()
+                : "-";
+
+        return String.format("%s %d %s %s created", date, ticket.getId(), secondCategoryName, ticketTypeName);
+    }
 }

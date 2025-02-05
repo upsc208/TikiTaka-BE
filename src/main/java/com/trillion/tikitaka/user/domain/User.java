@@ -95,4 +95,7 @@ public class User extends DeletedBaseEntity {
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
     }
+    public void updateRole(Role newRole) {
+        this.role = newRole;
+    }
 }

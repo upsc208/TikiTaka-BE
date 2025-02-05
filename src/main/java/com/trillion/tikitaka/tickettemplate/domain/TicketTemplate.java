@@ -2,6 +2,8 @@ package com.trillion.tikitaka.tickettemplate.domain;
 
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.user.domain.User;
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,20 +26,23 @@ public class TicketTemplate extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    private Long typeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id", nullable = false)
+    private TicketType type;
 
-    @Column(nullable = false)
-    private Long firstCategoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "first_category_id", nullable = false)
+    private Category firstCategory;
 
-    @Column(nullable = false)
-    private Long secondCategoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "second_category_id", nullable = false)
+    private Category secondCategory;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private User manager;
 
@@ -45,18 +50,18 @@ public class TicketTemplate extends BaseEntity {
     public TicketTemplate(String templateTitle,
                           String title,
                           String description,
-                          Long typeId,
-                          Long firstCategoryId,
-                          Long secondCategoryId,
+                          TicketType type,
+                          Category firstCategory,
+                          Category secondCategory,
                           User requester,
                           User manager
     ) {
         this.templateTitle = templateTitle;
         this.title = title;
         this.description = description;
-        this.typeId = typeId;
-        this.firstCategoryId = firstCategoryId;
-        this.secondCategoryId = secondCategoryId;
+        this.type = type;
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
         this.requester = requester;
         this.manager = manager;
     }
@@ -64,18 +69,18 @@ public class TicketTemplate extends BaseEntity {
     public void update(String templateTitle,
                        String title,
                        String description,
-                       Long typeId,
-                       Long firstCategoryId,
-                       Long secondCategoryId,
+                       TicketType type,
+                       Category firstCategory,
+                       Category secondCategory,
                        User requester,
                        User manager
     ) {
         this.templateTitle = templateTitle;
         this.title = title;
         this.description = description;
-        this.typeId = typeId;
-        this.firstCategoryId = firstCategoryId;
-        this.secondCategoryId = secondCategoryId;
+        this.type = type;
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
         this.requester = requester;
         this.manager = manager;
     }
