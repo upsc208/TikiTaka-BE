@@ -357,12 +357,13 @@ public class TicketService {
     public void deleteTicket(Long ticketId, CustomUserDetails userDetails) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
-
-        ticketRepository.delete(ticket);
-
         User user = userDetails.getUser();
-
-        historyService.recordHistory(ticket,user, TicketHistory.UpdateType.TICKET_DELETE);
+        User requester = userRepository.findById(ticket.getRequester().getId())
+                .orElseThrow(UserNotFoundException::new);
+        if(user.getRole().equals(requester) && ticket.getStatus().equals(Ticket.Status.PENDING)) {
+            ticketRepository.delete(ticket);
+            historyService.recordHistory(ticket,user, TicketHistory.UpdateType.TICKET_DELETE);
+        }else{ throw new UnauthorizedTicketAccessException();}
 
     }
 
