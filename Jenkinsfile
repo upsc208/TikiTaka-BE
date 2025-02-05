@@ -68,7 +68,9 @@ pipeline {
                     string(credentialsId: 'storage-endpoint', variable: 'STORAGE_ENDPOINT'),
                     string(credentialsId: 'storage-region', variable: 'STORAGE_REGION'),
                     string(credentialsId: 'storage-name', variable: 'STORAGE_NAME'),
-                    string(credentialsId: 'spring-instance-ip', variable: 'SPRING_INSTANCE_IP')
+                    string(credentialsId: 'spring-instance-ip', variable: 'SPRING_INSTANCE_IP'),
+                    string(credentialsId: 'kakaowork-api-url', variable: 'KAKAOWORK_API_URL'),
+                    string(credentialsId: 'kakaowork-api-key', variable: 'KAKAOWORK_API_KEY')
                 ]) {
                     sshagent(['spring-instance-ssh-key']) {
                         sh """
@@ -93,6 +95,8 @@ pipeline {
                                 -e STORAGE_ENDPOINT=${STORAGE_ENDPOINT} \
                                 -e STORAGE_REGION=${STORAGE_REGION} \
                                 -e STORAGE_NAME=${STORAGE_NAME} \
+                                -e KAKAOWORK_API_URL=${KAKAOWORK_API_URL} \
+                                -e KAKAOWORK_API_KEY=${KAKAOWORK_API_KEY} \
                                 ${CONTAINER_REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG} && \\
                             echo 'Deployment complete. Running containers:' && \\
                             docker ps
@@ -107,23 +111,23 @@ pipeline {
     post {
         success {
             echo "Build and Deployment successful!"
-/*
+
             sh """
             curl -H "Content-Type: application/json" -X POST \
                 -d '{"content": "✅ BE Deployment Successful"}' \
                 https://discord.com/api/webhooks/1335591978762768384/GN2TZLNWOKRkQ2WQf6j7eB8Aq-FB52iMY2m0lEVJs8ICcFur0fhGhj6oeWEmQfheWmPk
             """
-*/
+
         }
         failure {
             echo "Build or Deployment failed!"
-/*
+
             sh """
             curl -H "Content-Type: application/json" -X POST \
                 -d '{"content": "❌ BE Deployment Failed"}' \
                 https://discord.com/api/webhooks/1335591978762768384/GN2TZLNWOKRkQ2WQf6j7eB8Aq-FB52iMY2m0lEVJs8ICcFur0fhGhj6oeWEmQfheWmPk
             """
-*/
+
         }
     }
 }
