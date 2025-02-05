@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.trillion.tikitaka.user.domain.Role;
 
 @Service
 @Transactional(readOnly = true)
@@ -65,4 +66,12 @@ public class UserService {
         if (userResponse == null) throw new UserNotFoundException();
         return userResponse;
     }
+    public void changeUserRole(Long userId, String newRole) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        user.updateRole(Role.valueOf(newRole));
+        userRepository.save(user);
+    }
+
 }
