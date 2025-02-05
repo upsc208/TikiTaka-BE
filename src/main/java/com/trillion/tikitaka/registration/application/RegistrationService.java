@@ -76,37 +76,28 @@ public class RegistrationService {
             throw new RegistrationAlreadyProcessedException();
         }
 
-        Role role = validateRole(request.getRole());
-
         String message = switch (status) {
             case APPROVED -> {
                 registration.approve(request.getReason());
-                yield createUser(registration.getUsername(), registration.getEmail(), role);
+                yield createUser(registration.getUsername(), registration.getEmail(), request.getRole());
             }
             case REJECTED -> {
                 registration.reject(request.getReason());
                 yield request.getReason();
             }
-            default -> throw new IllegalArgumentException(ErrorCode.INVALID_REQUEST_VALUE.getMessage());
+            default -> throw new CustomException(ErrorCode.INVALID_REQUEST_VALUE);
         };
 
-        publishRegistrationEvent(registration, message);
+        publishRegistrationEvent(registration, message, request.getRole());
     }
 
-    private Role validateRole(String role) {
-        try {
-            return Role.valueOf(role.toUpperCase());
-        } catch (CustomException e) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST_VALUE);
-        }
-    }
-
-    private void publishRegistrationEvent(Registration registration, String message) {
+    private void publishRegistrationEvent(Registration registration, String message, Role role) {
         eventPublisher.publishEvent(new RegistrationEvent(
                 this,
                 registration.getUsername(),
                 registration.getEmail(),
                 message,
+                role,
                 registration.getStatus(),
                 NotificationType.USER_REGISTRATION
         ));
