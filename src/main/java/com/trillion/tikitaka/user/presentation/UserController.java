@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.trillion.tikitaka.user.dto.request.RoleChangeRequest;
+
 
 @RestController
 @RequestMapping("/users")
@@ -53,4 +55,12 @@ public class UserController {
         userService.deleteUser(userId);
         return new ApiResponse<>(null);
     }
+    @PatchMapping("/{userId}/role")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> changeUserRole(@PathVariable("userId") Long userId,
+                                            @RequestBody @Valid RoleChangeRequest request) {
+        userService.changeUserRole(userId, request.getRole());
+        return new ApiResponse<>(null);
+    }
+
 }
