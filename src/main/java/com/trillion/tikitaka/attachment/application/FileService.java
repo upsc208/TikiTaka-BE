@@ -58,7 +58,7 @@ public class FileService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void uploadFiles(List<MultipartFile> files, Ticket ticket) {
+    public void uploadFilesForTicket(List<MultipartFile> files, Ticket ticket) {
         {
             if (files.size() > 5) throw new CustomException(ErrorCode.TOO_MANY_FILES);
 
@@ -97,6 +97,61 @@ public class FileService {
 
                     Attachment attachment = Attachment.builder()
                             .ticket(ticket)
+                            .fileName(uuid + "." + extension)
+                            .filePath(fileUrl)
+                            .fileSize(file.getSize())
+                            .build();
+
+                    attachmentRepository.save(attachment);
+                    attachments.add(attachment);
+
+                } catch (IOException e) {
+                    throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+                }
+            });
+        }
+    }
+
+    @Transactional
+    public void uploadFilesForComment(List<MultipartFile> files, TicketComment comment) {
+        {
+            if (files.size() > 5) throw new CustomException(ErrorCode.TOO_MANY_FILES);
+
+            List<Attachment> attachments = new ArrayList<>();
+
+            files.forEach(file -> {
+                if (file.getSize() > MAX_FILE_SIZE) throw new CustomException(ErrorCode.FILE_SIZE_EXCEEDED);
+
+                String originalFilename = file.getOriginalFilename();
+                if (originalFilename == null || originalFilename.lastIndexOf('.') == -1) {
+                    throw new CustomException(ErrorCode.INVALID_FILE_NAME);
+                }
+
+                String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+                if (!ALLOWED_EXTENSIONS.contains(extension)) {
+                    throw new CustomException(ErrorCode.INVALID_FILE_EXTENSION);
+                }
+
+                try {
+                    Path path = Files.createTempFile(null, null);
+                    Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+                    String uuid = UUID.randomUUID().toString();
+                    String fileName = "tickets/" + comment.getTicket().getId() + "/comments/" + comment.getId() + "/" + uuid + "." + extension;
+
+                    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(fileName)
+                            .build();
+
+                    s3Client.putObject(putObjectRequest, path);
+
+                    String fileUrl = endpoint + "/v1/" + projectId + "/" + bucketName + "/" + fileName;
+
+                    Files.delete(path);
+
+                    Attachment attachment = Attachment.builder()
+                            .comment(comment)
                             .fileName(uuid + "." + extension)
                             .filePath(fileUrl)
                             .fileSize(file.getSize())

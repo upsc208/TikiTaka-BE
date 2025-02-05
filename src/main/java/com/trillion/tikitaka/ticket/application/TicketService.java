@@ -68,7 +68,7 @@ public class TicketService {
         ticketRepository.flush();
 
         if (files != null && !files.isEmpty()) {
-            fileService.uploadFiles(files, ticket);
+            fileService.uploadFilesForTicket(files, ticket);
         }
 
         if (ticket.getManager() != null){
