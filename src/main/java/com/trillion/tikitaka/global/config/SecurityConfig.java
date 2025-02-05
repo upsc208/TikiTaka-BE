@@ -125,7 +125,7 @@ public class SecurityConfig {
     @Profile("dev")
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://210.109.54.71:8080", "http://localhost:3000")); // 허용할 Origin
+        configuration.setAllowedOrigins(List.of("*")); // 허용할 Origin
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
