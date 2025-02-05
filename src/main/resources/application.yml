@@ -4,4 +4,4 @@ spring:
 
   # profiles
   profiles:
-    active: local
+    active: dev
