@@ -44,7 +44,6 @@ public class TicketTemplateController {
         return ApiResponse.success(null);
     }
 
-    // [신규] 단일 조회
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @GetMapping("/{id}")
     public ApiResponse<TicketTemplateResponse> getOne(@PathVariable Long id) {
