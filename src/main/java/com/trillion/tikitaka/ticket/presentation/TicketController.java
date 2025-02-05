@@ -41,8 +41,6 @@ public class TicketController {
     public ApiResponse<Void> createTicket(@RequestPart("request") @Valid CreateTicketRequest request,
                                           @RequestPart(value = "files", required = false) List<@Valid MultipartFile> files,
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        Long requesterId = userDetails.getId();
         ticketService.createTicket(request, files, userDetails);
         return new ApiResponse<>("티켓이 생성되었습니다", null);
     }
