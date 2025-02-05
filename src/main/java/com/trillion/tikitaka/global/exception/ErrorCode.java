@@ -31,6 +31,8 @@ public enum ErrorCode {
 
     // User
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다."),
+    CURRENT_PASSWORD_NOT_MATCHED(HttpStatus.BAD_REQUEST, "U002", "현재 비밀번호가 일치하지 않습니다."),
+    NEW_PASSWORD_NOT_CHANGED(HttpStatus.BAD_REQUEST, "U003", "새로운 비밀빈호는 기존 비밀번호와 달라야 합니다."),
 
     // Ticket
     TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "TI001", "해당 티켓을 찾을 수 없습니다."),
@@ -38,6 +40,8 @@ public enum ErrorCode {
     INVALID_TICKET_MANAGER(HttpStatus.BAD_REQUEST, "TI003", "유효하지 않은 담당자 ID입니다."),
     INVALID_EDIT_VALUE(HttpStatus.BAD_REQUEST,"TI004","사용자는 우선순위와 담당자를 수정할수없습니다."),
     UNAUTHORIZED_TICKET_EDIT(HttpStatus.FORBIDDEN, "TI005", "티켓상태 수정에 대한 접근 권한이 없습니다."),
+    TICKET_REVIEW_NOT_REQUIRED(HttpStatus.BAD_REQUEST, "TI006", "검토를 요청하지 않은 티켓입니다."),
+    TICKET_REVIEW_ALREADY_DONE(HttpStatus.BAD_REQUEST, "TI007", "이미 검토한 티켓입니다."),
 
     // Subtask
     SUBTASK_NOT_FOUND(HttpStatus.NOT_FOUND,"S001","해당 하위태스크를 찾을수없습니다"),
@@ -73,7 +77,15 @@ public enum ErrorCode {
     // KakaoWork
     FETCHING_USER_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K001", "카카오워크 사용자 정보를 가져올 수 없습니다."),
     FETCHING_CONVERSATION_ID_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K002", "카카오워크 채팅방을 열 수 없습니다."),
-    SENDING_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오워크 메시지를 보내는 중 오류가 발생했습니다.");
+    SENDING_MESSAGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오워크 메시지를 보내는 중 오류가 발생했습니다."),
+
+    // Object Storage
+    FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "O001", "최대 파일 크기는 10MB 입니다."),
+    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "O002", "유효하지 않은 파일명입니다."),
+    INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O003", "허용되지 않는 파일 확장자입니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O004", "파일을 찾을 수 없습니다."),
+
+    ;
 
     private final HttpStatus httpStatus;
     private final String errorCode;

@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.user.infrastructure;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.response.QUserResponse;
@@ -24,7 +25,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         user.id.as("userId"),
                         user.username,
                         user.email,
-                        user.role
+                        user.role,
+                        Expressions.nullExpression(String.class)
                 ))
                 .from(user)
                 .fetch();
@@ -39,7 +41,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         user.id.as("userId"),
                         user.username,
                         user.email,
-                        user.role
+                        user.role,
+                        user.profileImageUrl
                 ))
                 .from(user)
                 .where(userIdEq(userId))
