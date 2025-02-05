@@ -16,23 +16,11 @@ public class FileController {
 
     private final FileService fileService;
 
-//    @PostMapping("/upload")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-//    public ApiResponse<String> uploadFile(@RequestParam("file") MultipartFile file,
-//                                          @RequestParam("prefix") String prefix,
-//                                          @RequestParam(value = "ticketId", required = false) String ticketId,
-//                                          @RequestParam(value = "commentId", required = false) String commentId,
-//                                          @RequestParam(value = "userId", required = false) String userId,
-//                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
-//        String fileUrl = fileService.uploadFile(file, prefix, ticketId, commentId, userId, userDetails);
-//        return new ApiResponse<>("파일이 업로드 되었습니다.", fileUrl);
-//    }
-//
-//    @DeleteMapping("/{attachmentId}")
-//    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-//    public ApiResponse<Void> deleteFile(@PathVariable("attachmentId") Long attachmentId,
-//                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-//        fileService.deleteFile(attachmentId, userDetails);
-//        return new ApiResponse<>("파일이 업로드 되었습니다.", null);
-//    }
+    @DeleteMapping("/{attachmentId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    public ApiResponse<Void> deleteFile(@PathVariable("attachmentId") Long attachmentId,
+                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        fileService.deleteFile(attachmentId, userDetails);
+        return new ApiResponse<>("파일이 업로드 되었습니다.", null);
+    }
 }
