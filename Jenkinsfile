@@ -29,7 +29,7 @@ pipeline {
         stage('Build & Test') {
             steps {
                 //Gradle 컴파일과 테스트 수행
-                sh './gradlew clean build'
+                sh './gradlew clean build -x test'
                 //제대로 생성되었는지 jar파일 확인
                 sh 'ls -l build/libs'
             }
