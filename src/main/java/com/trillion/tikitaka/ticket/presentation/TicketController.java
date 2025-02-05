@@ -159,7 +159,7 @@ public class TicketController {
     }
 
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     @DeleteMapping("/{ticketId}")
     public ApiResponse<Void> deleteTicket(@PathVariable Long ticketId,@AuthenticationPrincipal CustomUserDetails userDetails){
         subtaskService.deleteAllSubtask(ticketId);

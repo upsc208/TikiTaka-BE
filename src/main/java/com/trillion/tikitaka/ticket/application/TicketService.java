@@ -360,7 +360,7 @@ public class TicketService {
         User user = userDetails.getUser();
         User requester = userRepository.findById(ticket.getRequester().getId())
                 .orElseThrow(UserNotFoundException::new);
-        if(user.getRole().equals(requester) && ticket.getStatus().equals(Ticket.Status.PENDING)) {
+        if(user.getUsername().equals(requester.getUsername()) && ticket.getStatus().equals(Ticket.Status.PENDING)) {
             ticketRepository.delete(ticket);
             historyService.recordHistory(ticket,user, TicketHistory.UpdateType.TICKET_DELETE);
         }else{ throw new UnauthorizedTicketAccessException();}
