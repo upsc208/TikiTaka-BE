@@ -1,18 +1,15 @@
 package com.trillion.tikitaka.inquiry.domain;
 
+import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
 @Entity
-public class Inquiry {
+public class Inquiry extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,14 +34,6 @@ public class Inquiry {
 
     @Column(nullable = false)
     private boolean status;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     public Inquiry(User requester, InquiryType type, String title, String content) {
         this.requester = requester;

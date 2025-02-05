@@ -10,9 +10,8 @@ import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -27,16 +26,13 @@ public class InquiryService {
         User writer = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        Inquiry inquiry = new Inquiry(writer, request.getType(), request.getTitle(), request.getContent()); // ✅ title 추가
+        Inquiry inquiry = new Inquiry(writer, request.getType(), request.getTitle(), request.getContent());
         Inquiry savedInquiry = inquiryRepository.save(inquiry);
-
         return new InquiryResponse(savedInquiry);
     }
 
-
-    public List<InquiryResponse> getAllInquiries() {
-        return inquiryRepository.findAll().stream()
-                .map(InquiryResponse::new)
-                .collect(Collectors.toList());
+    public Page<InquiryResponse> getAllInquiries(Pageable pageable) {
+        return inquiryRepository.findAll(pageable).map(InquiryResponse::new);
     }
 }
+
