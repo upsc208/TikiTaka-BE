@@ -5,3 +5,4 @@ spring:
   # profiles
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local} # 기본값은 local
+

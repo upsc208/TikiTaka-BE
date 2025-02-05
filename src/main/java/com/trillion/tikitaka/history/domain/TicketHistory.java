@@ -38,14 +38,23 @@ public class TicketHistory {
     private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "change_type", length = 50)
+    @Column(name = "change_type", length = 100)
     private UpdateType updateType;
 
 
 
     // 변경 유형 ENUM 정의
     public enum UpdateType {
-        TICKET_CREATED, TICKET_APPROVED, TICKET_EDITED, TYPE_CHANGE, STATUS_CHANGE, MANAGER_CHANGE, PRIORITY_CHANGE, CATEGORY_CHANGE, DEADLINE_CHANGE, TICKET_DELETE ,OTHER
+        TICKET_CREATED,
+        TICKET_EDITED,
+        TYPE_CHANGE,
+        STATUS_CHANGE,
+        MANAGER_CHANGE,
+        PRIORITY_CHANGE,
+        CATEGORY_CHANGE,
+        DEADLINE_CHANGE,
+        TICKET_DELETE ,
+        OTHER
     }
 
 

@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.history.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.querydsl.core.annotations.QueryProjection;
 import com.trillion.tikitaka.history.domain.TicketHistory.UpdateType;
 import lombok.AllArgsConstructor;
@@ -10,10 +11,16 @@ import java.time.LocalDateTime;
 @Data
 public class HistoryResponse {
     private Long id;
+
     private Long ticketId;
+
     private String ticketTitle;
+
     private String updatedByUsername;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+
     private UpdateType updateType;
 
     @QueryProjection
