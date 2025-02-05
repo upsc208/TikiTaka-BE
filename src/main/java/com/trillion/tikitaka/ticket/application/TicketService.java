@@ -1,7 +1,6 @@
 package com.trillion.tikitaka.ticket.application;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
@@ -56,64 +55,35 @@ public class TicketService {
     private final ApplicationEventPublisher eventPublisher;
     private final HistoryService historyService;
 
-
     @Transactional
     public void createTicket(CreateTicketRequest request, Long requesterId) {
-        if (request.getManagerId() != null) {
-            validateUserExistence(request.getManagerId());
-        }
+        TicketType ticketType = getTicketTypeOrThrow(request.getTypeId());
+        Category firstCategory = getCategoryOrNull(request.getFirstCategoryId());
+        Category secondCategory = getCategoryOrNull(request.getSecondCategoryId());
+        validateCategoryRelation(firstCategory, secondCategory);
 
-        TicketType ticketType = ticketTypeRepository.findById(request.getTypeId())
-                .orElseThrow(DuplicatedTicketTypeException::new);
+        User requester = getUserOrThrow(requesterId);
+        User manager = request.getManagerId() != null ? getUserOrThrowForManager(request.getManagerId()) : null;
 
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Requester ID: " + requesterId));
-
-        User manager = request.getManagerId() != null ? userRepository.findById(request.getManagerId())
-                .orElseThrow(InvalidTicketManagerException::new) : null;
-
-        Category firstCategory = request.getFirstCategoryId() != null ?
-                categoryRepository.findById(request.getFirstCategoryId())
-                        .orElseThrow(CategoryNotFoundException::new) : null;
-
-        Category secondCategory = request.getSecondCategoryId() != null ?
-                categoryRepository.findById(request.getSecondCategoryId())
-                        .orElseThrow(CategoryNotFoundException::new) : null;
-
-        Ticket ticket = Ticket.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .urgent(request.getUrgent() != null ? request.getUrgent() : false)
-                .ticketType(ticketType)
-                .firstCategory(firstCategory)
-                .secondCategory(secondCategory)
-                .deadline(request.getDeadline())
-                .requester(requester)
-                .manager(manager)
-                .status(Ticket.Status.PENDING)
-                .build();
-
+        Ticket ticket = buildTicket(request, requester, manager, ticketType, firstCategory, secondCategory);
         ticketRepository.save(ticket);
-
-        historyService.recordHistory(ticket,requester, TicketHistory.UpdateType.TICKET_CREATED);
 
         if (ticket.getManager() != null){
             eventPublisher.publishEvent(
-                    new TicketCreationEvent(this, ticket.getManager().getEmail(), ticket, NotificationType.TICKET_CREATION)
+                    new TicketCreationEvent(this, ticket.getManager().getEmail(), ticket, NotificationType.TICKET_CREATE)
             );
         } else {
             List<User> managers = userRepository.findAllByRole(Role.MANAGER);
             for (User m : managers) {
                 eventPublisher.publishEvent(
-                        new TicketCreationEvent(this, m.getEmail(), ticket, NotificationType.TICKET_CREATION)
+                        new TicketCreationEvent(this, m.getEmail(), ticket, NotificationType.TICKET_CREATE)
                 );
             }
         }
     }
 
     public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
-        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
-        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        String role = userDetails.getUser().getRole().toString();
         Long requesterId = "USER".equals(role) ? userDetails.getUser().getId() : null;
 
         return ticketRepository.countTicketsByStatus(requesterId, role);
@@ -122,8 +92,7 @@ public class TicketService {
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
                                                   Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId,
                                                   CustomUserDetails userDetails) {
-        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
-        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        String role = userDetails.getUser().getRole().toString();
 
         if ("USER".equals(role)) {
             requesterId = userDetails.getUser().getId();
@@ -141,8 +110,7 @@ public class TicketService {
     }
 
     public TicketResponse getTicket(Long ticketId, CustomUserDetails userDetails) {
-        Optional<? extends GrantedAuthority> roleOpt = userDetails.getAuthorities().stream().findFirst();
-        String role = roleOpt.map(GrantedAuthority::getAuthority).orElse(null);
+        String role = userDetails.getUser().getRole().toString();
         Long userId = userDetails.getUser().getId();
 
         TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
@@ -396,6 +364,53 @@ public class TicketService {
     private void validateUserExistence(Long userId) {
         if (userId != null && !userRepository.existsById(userId)) {
             throw new UserNotFoundException();
+        }
+    }
+
+    private Ticket buildTicket(CreateTicketRequest request, User requester, User manager,
+                               TicketType ticketType, Category firstCategory, Category secondCategory) {
+        return Ticket.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .urgent(request.getUrgent() != null ? request.getUrgent() : false)
+                .ticketType(ticketType)
+                .firstCategory(firstCategory)
+                .secondCategory(secondCategory)
+                .deadline(request.getDeadline())
+                .requester(requester)
+                .manager(manager)
+                .status(Ticket.Status.PENDING)
+                .build();
+    }
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    private User getUserOrThrowForManager(Long userId) {
+        try {
+            return getUserOrThrow(userId);
+        } catch (UserNotFoundException e) {
+            throw new InvalidTicketManagerException();
+        }
+    }
+
+    private TicketType getTicketTypeOrThrow(Long ticketTypeId) {
+        return ticketTypeRepository.findById(ticketTypeId)
+                .orElseThrow(TicketTypeNotFoundException::new);
+    }
+
+    private Category getCategoryOrNull(Long categoryId) {
+        if (categoryId == null) return null;
+
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(CategoryNotFoundException::new);
+    }
+
+    private void validateCategoryRelation(Category firstCategory, Category secondCategory) {
+        if (secondCategory != null && (firstCategory == null || !secondCategory.isChildOf(firstCategory))) {
+            throw new InvalidCategoryLevelException();
         }
     }
 }
