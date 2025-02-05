@@ -4,6 +4,7 @@ import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.inquiry.application.InquiryService;
 import com.trillion.tikitaka.inquiry.dto.request.InquiryRequest;
 import com.trillion.tikitaka.inquiry.dto.response.InquiryResponse;
+import com.trillion.tikitaka.inquiry.dto.request.AnswerRequest;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,4 +42,15 @@ public class InquiryController {
         Page<InquiryResponse> responses = inquiryService.getAllInquiries(pageable);
         return ApiResponse.success(responses);
     }
+    @PatchMapping("/{inquiryId}/answer")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ApiResponse<Void> answerInquiry(
+            @PathVariable("inquiryId") Long inquiryId,
+            @RequestBody @Valid AnswerRequest request) {
+
+        inquiryService.answerInquiry(inquiryId, request.getAnswer());
+        return new ApiResponse<>(null);
+    }
+
+
 }

@@ -1,5 +1,7 @@
 package com.trillion.tikitaka.inquiry.application;
 
+import com.trillion.tikitaka.global.exception.CustomException;
+import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.inquiry.domain.Inquiry;
 import com.trillion.tikitaka.inquiry.dto.request.InquiryRequest;
 import com.trillion.tikitaka.inquiry.dto.response.InquiryResponse;
@@ -34,5 +36,19 @@ public class InquiryService {
     public Page<InquiryResponse> getAllInquiries(Pageable pageable) {
         return inquiryRepository.findAll(pageable).map(InquiryResponse::new);
     }
+    @Transactional
+    public void answerInquiry(Long inquiryId, String answer) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INQUIRY_NOT_FOUND));
+
+        if (inquiry.getAnswer() != null) {
+            throw new CustomException(ErrorCode.INQUIRY_ALREADY_ANSWERED);
+        }
+
+        inquiry.updateAnswer(answer);
+        inquiryRepository.save(inquiry);
+    }
+
+
 }
 
