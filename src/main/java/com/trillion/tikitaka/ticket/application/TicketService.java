@@ -16,6 +16,7 @@ import com.trillion.tikitaka.notification.event.TicketCreationEvent;
 import com.trillion.tikitaka.notification.event.TicketUpdateEvent;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
+import com.trillion.tikitaka.ticket.dto.request.EditCategory;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
@@ -202,10 +203,15 @@ public class TicketService {
     }
 
     @Transactional
-    public void editCategoryForManager(Long firstCategoryId, Long secondCategoryId, Long ticketId, CustomUserDetails userDetails){
+    public void editCategoryForManager(EditCategory editCategory, Long ticketId, CustomUserDetails userDetails){
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
-        validateCategoryRelation(firstCategoryId, secondCategoryId);
+        EditCategory category = editCategory;
+
+        validateCategoryRelation(category.getFirstCategoryId(), category.getSecondCategoryId());
+
+        Long firstCategoryId = editCategory.getFirstCategoryId();
+        Long secondCategoryId = editCategory.getSecondCategoryId();
 
         Category firstCategory = firstCategoryId != null
                 ? categoryRepository.findById(firstCategoryId).orElseThrow(CategoryNotFoundException::new)

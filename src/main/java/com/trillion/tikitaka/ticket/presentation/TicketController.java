@@ -107,15 +107,15 @@ public class TicketController {
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/{ticketId}/status")
     public ApiResponse<Void> editTicketStatus(@PathVariable Long ticketId,
-                                              @RequestBody Ticket.Status status,@AuthenticationPrincipal CustomUserDetails userDetails) {
-        ticketService.editStatus(ticketId,status,userDetails);
+                                              @RequestBody EditSettingRequest editSettingRequest,@AuthenticationPrincipal CustomUserDetails userDetails) {
+        ticketService.editStatus(ticketId,editSettingRequest.getStatus(),userDetails);
         return new ApiResponse<>("티켓 상태가 수정되었습니다.",null);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/{ticketId}/manager")
-    public ApiResponse<Void> editManager(@PathVariable Long ticketId,@RequestBody Long managerId,@AuthenticationPrincipal CustomUserDetails userDetails){
-        ticketService.editManager(ticketId,managerId,userDetails);
+    public ApiResponse<Void> editManager(@PathVariable Long ticketId,@RequestBody EditSettingRequest editSettingRequest,@AuthenticationPrincipal CustomUserDetails userDetails){
+        ticketService.editManager(ticketId,editSettingRequest.getManagerId(),userDetails);
         return new ApiResponse<>("담당자 수정",null);
     }
 
@@ -128,22 +128,22 @@ public class TicketController {
 
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/{ticketId}/priority")
-    public ApiResponse<Void> editPriority(@PathVariable Long ticketId, @RequestBody Ticket.Priority priority,@AuthenticationPrincipal CustomUserDetails userDetails){
-        ticketService.editPriority(ticketId,priority,userDetails);
+    public ApiResponse<Void> editPriority(@PathVariable Long ticketId, @RequestBody EditSettingRequest editSettingRequest,@AuthenticationPrincipal CustomUserDetails userDetails){
+        ticketService.editPriority(ticketId,editSettingRequest.getPriority(),userDetails);
         return new ApiResponse<>("우선순위 수정",null);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/{ticketId}/category")
     public ApiResponse<Void> editCategory(@PathVariable Long ticketId, @RequestBody EditCategory editCategory,@AuthenticationPrincipal CustomUserDetails userDetails){
-        ticketService.editCategoryForManager(editCategory.getFirstCategoryId(), editCategory.getSecondCategoryId(), ticketId,userDetails);
+        ticketService.editCategoryForManager(editCategory, ticketId,userDetails);
         return new ApiResponse<>("카테고리 수정",null);
     }
 
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/{ticketId}/type")
-    public ApiResponse<Void> editType(@PathVariable Long ticketId, @RequestBody Long typeId,@AuthenticationPrincipal CustomUserDetails userDetails){
-        ticketService.editTypeForManager(ticketId,typeId,userDetails);
+    public ApiResponse<Void> editType(@PathVariable Long ticketId, @RequestBody EditTicketRequest editSettingRequest,@AuthenticationPrincipal CustomUserDetails userDetails){
+        ticketService.editTypeForManager(ticketId,editSettingRequest.getTicketTypeId(),userDetails);
         return new ApiResponse<>("티켓 유형 수정",null);
     }
 
