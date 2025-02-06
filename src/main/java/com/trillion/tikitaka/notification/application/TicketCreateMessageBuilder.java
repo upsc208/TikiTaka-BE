@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<TicketCreationEvent> {
+public class TicketCreateMessageBuilder implements KakaoWorkMessageBuilder<TicketCreationEvent> {
 
     @Override
     public List<Block> buildMessage(TicketCreationEvent event) {
@@ -45,6 +45,12 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
         List<Inline> inlineRequester = List.of(new Inline("styled", requesterText, true));
         blocks.add(new DescriptionBlock(new Content(requesterText, inlineRequester), "요청자", true));
 
+        // 7. Button Block for "확인하기"
+        String url = "https://tikitaka.kr/manager/detail/" + ticket.getId();
+        ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
+        ButtonBlock buttons = new ButtonBlock("확인하기", "default", action);
+        blocks.add(buttons);
+
         return blocks;
     }
 
@@ -69,14 +75,39 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
 
         Ticket ticket = event.getTicket();
 
+        String firstCategoryName = (ticket.getFirstCategory() != null)
+                ? ticket.getFirstCategory().getName()
+                : null;
+
         String secondCategoryName = (ticket.getSecondCategory() != null)
                 ? ticket.getSecondCategory().getName()
-                : "-";
+                : null;
+
+        String categoryPart = buildCategoryString(firstCategoryName, secondCategoryName);
 
         String ticketTypeName = (ticket.getTicketType() != null)
                 ? ticket.getTicketType().getName()
-                : "-";
+                : "";
 
-        return String.format("%s %d %s %s created", date, ticket.getId(), secondCategoryName, ticketTypeName);
+        if (categoryPart.isEmpty()) {
+            return String.format("%s-%d-%s created", date, ticket.getId(), ticketTypeName);
+        } else {
+            return String.format("%s-%d-%s-%s created", date, ticket.getId(), categoryPart, ticketTypeName);
+        }
+    }
+
+    private String buildCategoryString(String firstCategory, String secondCategory) {
+        if (firstCategory == null && secondCategory == null) {
+            return "";
+        }
+
+        if (firstCategory != null && secondCategory != null) {
+            return firstCategory + "/" + secondCategory;
+        }
+
+        if (firstCategory != null) {
+            return firstCategory;
+        }
+        return secondCategory;
     }
 }
