@@ -64,6 +64,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         }
 
         Map<String, Object> responseData = new HashMap<>();
+        responseData.put("id", userId);
+        responseData.put("role", role);
         responseData.put("passwordChangeNeeded", passwordChangeNeeded);
 
         ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>("로그인에 성공했습니다.", responseData);
