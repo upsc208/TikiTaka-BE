@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -74,13 +75,14 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Cookie createCookie(String key, String value) {
-        Cookie cookie = new Cookie(key, value);
-//        cookie.setPath("/");
-//        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(60 * 60 * 10);
-        return cookie;
+    public ResponseCookie createCookie(String key, String value) {
+        return ResponseCookie.from(key, value)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("None")
+                .maxAge(60 * 60 * 10)
+                .path("/")
+                .build();
     }
 
     public void addRefreshToken(String username, String refreshToken, Long expiredMs) {

@@ -51,7 +51,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         jwtUtil.addRefreshToken(username, refreshToken, REFRESH_TOKEN_EXPIRATION);
 
         response.addHeader(TOKEN_HEADER, TOKEN_PREFIX + accessToken);
-        response.addCookie(jwtUtil.createCookie(TOKEN_TYPE_REFRESH, refreshToken));
+        response.addHeader("Set-Cookie", jwtUtil.createCookie(TOKEN_TYPE_REFRESH, refreshToken).toString());
 
         // 비밀번호 변경 필요 여부 확인
         boolean passwordChangeNeeded = false;
