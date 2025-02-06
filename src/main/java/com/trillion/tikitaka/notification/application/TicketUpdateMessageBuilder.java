@@ -12,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
+
 @Component
 public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<TicketUpdateEvent> {
 
@@ -50,6 +52,17 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
             List<Inline> inlineManager = List.of(new Inline("styled", managerText, true));
             blocks.add(new DescriptionBlock(new Content(managerText, inlineManager), "담당자", true));
         }
+
+        String url;
+        if (event.getModifierRole() == Role.USER) {
+            url =  END_POINT + "/user/detail/" + ticket.getId();
+        } else {
+            url = END_POINT + "/manager/detail/" + ticket.getId();
+        }
+
+        ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
+        ButtonBlock buttonBlock = new ButtonBlock("확인하기", "default", action);
+        blocks.add(buttonBlock);
 
         return blocks;
     }
