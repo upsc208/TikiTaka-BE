@@ -34,7 +34,8 @@ public class Notification extends BaseEntity {
     @Column(nullable = false)
     private NotificationStatus status;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String errorMessage;
 
     @Builder
