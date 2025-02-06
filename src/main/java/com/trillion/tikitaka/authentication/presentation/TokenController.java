@@ -24,7 +24,7 @@ public class TokenController {
         TokenResponse newTokens = jwtService.reissueTokens(request);
 
         response.setHeader(TOKEN_HEADER, TOKEN_PREFIX + newTokens.getAccessToken());
-        response.addCookie(jwtUtil.createCookie(TOKEN_TYPE_REFRESH, newTokens.getRefreshToken()));
+        response.addHeader("Set-Cookie", jwtUtil.createCookie(TOKEN_TYPE_REFRESH, newTokens.getRefreshToken()).toString());
         return new ApiResponse<>("토큰이 재발급 되었습니다.", null);
     }
 }
