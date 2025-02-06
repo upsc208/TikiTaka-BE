@@ -26,7 +26,7 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
         blocks.add(new HeaderBlock("티켓 수정 알림", "yellow"));
 
         // 2. Text Block (inlines 리스트로 변경)
-        String textValue = String.format("[%s] %s", ticket.getId(), ticket.getTitle());
+        String textValue = String.format("[#%s] %s", ticket.getId(), ticket.getTitle());
         List<Inline> inlineTexts = List.of(new Inline("styled", textValue, true, "default"));
         blocks.add(new TextBlock(textValue, inlineTexts));
 
@@ -75,6 +75,29 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
     @Override
     public String buildPreviewText(TicketUpdateEvent event) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        return String.format("%s %d %s has updated %s", date, event.getTicket().getId(), event.getModifier(), event.getModification());
+
+        Ticket ticket = event.getTicket();
+
+        String firstCategoryName = (ticket.getFirstCategory() != null)
+                ? ticket.getFirstCategory().getName()
+                : null;
+        String secondCategoryName = (ticket.getSecondCategory() != null)
+                ? ticket.getSecondCategory().getName()
+                : null;
+
+        String ticketTypeName = (ticket.getTicketType() != null)
+                ? ticket.getTicketType().getName()
+                : "";
+
+        if (firstCategoryName == null) {
+            return String.format("%s-%s-#%d 티켓 수정",
+                    date, ticketTypeName, ticket.getId());
+        } else {
+            String secondPart = (secondCategoryName != null)
+                    ? secondCategoryName
+                    : "-";
+            return String.format("%s/%s/%s/%s-#%d 티켓 수정",
+                    date, firstCategoryName, secondPart, ticketTypeName, ticket.getId());
+        }
     }
 }
