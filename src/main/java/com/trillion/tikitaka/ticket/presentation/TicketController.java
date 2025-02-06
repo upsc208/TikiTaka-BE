@@ -7,6 +7,8 @@ import com.trillion.tikitaka.ticket.application.ReviewService;
 import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
+import com.trillion.tikitaka.ticket.application.PendingTicketService;
+import com.trillion.tikitaka.ticket.dto.response.PendingTicketResponse;
 import com.trillion.tikitaka.ticket.dto.request.EditCategory;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
@@ -35,6 +37,7 @@ public class TicketController {
     private final TicketService ticketService;
     private final SubtaskService subtaskService;
     private final ReviewService reviewService;
+    private final PendingTicketService pendingTicketService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
@@ -169,5 +172,12 @@ public class TicketController {
     public ApiResponse<List<ReviewListResponse>> getReviews(@PathVariable("ticketId") Long ticketId) {
         List<ReviewListResponse> responses = reviewService.getReviews(ticketId);
         return new ApiResponse<>("검토 목록이 조회되었습니다.", responses);
+    }
+
+    @PreAuthorize("hasAuthority('MANAGER')")
+    @GetMapping("/list/pending")
+    public ApiResponse<PendingTicketResponse> getPendingTickets(@RequestParam Long manager) {
+        PendingTicketResponse response = pendingTicketService.getPendingTickets(manager);
+        return ApiResponse.success(response);
     }
 }
