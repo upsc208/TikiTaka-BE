@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
+
 @Component
 public class TicketCreateMessageBuilder implements KakaoWorkMessageBuilder<TicketCreationEvent> {
 
@@ -46,7 +48,7 @@ public class TicketCreateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
         blocks.add(new DescriptionBlock(new Content(requesterText, inlineRequester), "요청자", true));
 
         // 7. Button Block for "확인하기"
-        String url = "https://tikitaka.kr/manager/detail/" + ticket.getId();
+        String url = END_POINT + "/manager/detail/" + ticket.getId();
         ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
         ButtonBlock buttons = new ButtonBlock("확인하기", "default", action);
         blocks.add(buttons);

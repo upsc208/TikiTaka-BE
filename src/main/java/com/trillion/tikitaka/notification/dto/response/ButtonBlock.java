@@ -12,6 +12,8 @@ import lombok.Setter;
 public class ButtonBlock implements Block {
     private final String type = "button";
 
+    public static final String END_POINT = "https://tikitaka.kr";
+
     private String text;
     private String style;
     private ButtonAction action;
