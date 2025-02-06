@@ -129,16 +129,20 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.description,
                         ticket.priority,
                         ticket.status,
+                        ticket.ticketType.id.as("typeId"),
                         ticket.ticketType.name.as("typeName"),
+                        ticket.firstCategory.id.as("firstCategoryId"),
                         ticket.firstCategory.name.as("firstCategoryName"),
+                        ticket.secondCategory.id.as("secondCategoryId"),
                         ticket.secondCategory.name.as("secondCategoryName"),
+                        ticket.manager.id.as("managerId"),
                         ticket.manager.username.as("managerName"),
+                        ticket.requester.id.as("requesterId"),
                         ticket.requester.username.as("requesterName"),
                         ticket.urgent,
                         ticket.deadline,
                         ticket.createdAt,
-                        ticket.updatedAt,
-                        ticket.progress
+                        ticket.updatedAt
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
