@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
+
 @Component
 public class CommentCreateMessageBuilder implements KakaoWorkMessageBuilder<CommentCreateEvent> {
 
@@ -37,6 +39,18 @@ public class CommentCreateMessageBuilder implements KakaoWorkMessageBuilder<Comm
         String modifiedAtText = event.getCreatedAt().format(formatter);
         List<Inline> inlineManager = List.of(new Inline("styled", modifiedAtText, true));
         blocks.add(new DescriptionBlock(new Content(modifiedAtText, inlineManager), "작성일시", true));
+
+        // 5. Description Block for "내용"
+        String url;
+        if (event.getAuthor().equals(ticket.getRequester().getUsername())) {
+            url = END_POINT + "/manager/detail/" + ticket.getId();
+        } else {
+            url = END_POINT + "/user/detail/" + ticket.getId();
+        }
+
+        ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
+        ButtonBlock block = new ButtonBlock("확인하기", "default", action);
+        blocks.add(block);
 
         return blocks;
     }
