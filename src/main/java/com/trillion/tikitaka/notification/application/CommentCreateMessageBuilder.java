@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
+
 @Component
 public class CommentCreateMessageBuilder implements KakaoWorkMessageBuilder<CommentCreateEvent> {
 
@@ -23,7 +25,7 @@ public class CommentCreateMessageBuilder implements KakaoWorkMessageBuilder<Comm
         blocks.add(new HeaderBlock("댓글 작성 알림", "yellow"));
 
         // 2. Text Block (inlines 리스트로 변경)
-        String textValue = String.format("[%s] %s", ticket.getId(), ticket.getTitle());
+        String textValue = String.format("[#%s] %s", ticket.getId(), ticket.getTitle());
         List<Inline> inlineTexts = List.of(new Inline("styled", textValue, true, "default"));
         blocks.add(new TextBlock(textValue, inlineTexts));
 
@@ -38,6 +40,18 @@ public class CommentCreateMessageBuilder implements KakaoWorkMessageBuilder<Comm
         List<Inline> inlineManager = List.of(new Inline("styled", modifiedAtText, true));
         blocks.add(new DescriptionBlock(new Content(modifiedAtText, inlineManager), "작성일시", true));
 
+        // 5. Description Block for "내용"
+        String url;
+        if (event.getAuthor().equals(ticket.getRequester().getUsername())) {
+            url = END_POINT + "/manager/detail/" + ticket.getId();
+        } else {
+            url = END_POINT + "/user/detail/" + ticket.getId();
+        }
+
+        ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
+        ButtonBlock block = new ButtonBlock("확인하기", "default", action);
+        blocks.add(block);
+
         return blocks;
     }
 
@@ -50,10 +64,27 @@ public class CommentCreateMessageBuilder implements KakaoWorkMessageBuilder<Comm
     public String buildPreviewText(CommentCreateEvent event) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
 
-        String username = event.getAuthor();
-        Long ticketId = event.getTicket().getId();
+        Ticket ticket = event.getTicket();
 
-        return String.format("%s %s has commented on %d", date, username, ticketId);
+        String firstCategoryName = (ticket.getFirstCategory() != null)
+                ? ticket.getFirstCategory().getName()
+                : null;
+        String secondCategoryName = (ticket.getSecondCategory() != null)
+                ? ticket.getSecondCategory().getName()
+                : null;
 
+        String ticketTypeName = (ticket.getTicketType() != null)
+                ? ticket.getTicketType().getName()
+                : "";
+
+        Long ticketId = ticket.getId();
+
+        if (firstCategoryName == null) {
+            return String.format("%s-%s-%d 댓글 작성", date, ticketTypeName, ticketId);
+        } else {
+            String secondPart = (secondCategoryName != null) ? secondCategoryName : "-";
+            return String.format("%s/%s/%s/%s-#%d 댓글 작성",
+                    date, firstCategoryName, secondPart, ticketTypeName, ticketId);
+        }
     }
 }

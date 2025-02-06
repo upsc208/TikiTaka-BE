@@ -9,8 +9,10 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
+
 @Component
-public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<TicketCreationEvent> {
+public class TicketCreateMessageBuilder implements KakaoWorkMessageBuilder<TicketCreationEvent> {
 
     @Override
     public List<Block> buildMessage(TicketCreationEvent event) {
@@ -21,7 +23,7 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
         blocks.add(new HeaderBlock("티켓 생성 알림", "blue"));
 
         // 2. Text Block (inlines 리스트로 변경)
-        String textValue = String.format("[%s] %s", ticket.getId(), ticket.getTitle());
+        String textValue = String.format("[#%s] %s", ticket.getId(), ticket.getTitle());
         List<Inline> inlineTexts = List.of(new Inline("styled", textValue, true, "blue")); // 🔹 리스트로 변경
         blocks.add(new TextBlock(textValue, inlineTexts));
 
@@ -44,6 +46,12 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
         String requesterText = (ticket.getRequester() != null) ? ticket.getRequester().getUsername() : "-";
         List<Inline> inlineRequester = List.of(new Inline("styled", requesterText, true));
         blocks.add(new DescriptionBlock(new Content(requesterText, inlineRequester), "요청자", true));
+
+        // 7. Button Block for "확인하기"
+        String url = END_POINT + "/manager/detail/" + ticket.getId();
+        ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
+        ButtonBlock buttons = new ButtonBlock("확인하기", "default", action);
+        blocks.add(buttons);
 
         return blocks;
     }
@@ -69,14 +77,32 @@ public class TicketCreationMessageBuilder implements KakaoWorkMessageBuilder<Tic
 
         Ticket ticket = event.getTicket();
 
+        String firstCategoryName = (ticket.getFirstCategory() != null)
+                ? ticket.getFirstCategory().getName()
+                : null;
         String secondCategoryName = (ticket.getSecondCategory() != null)
                 ? ticket.getSecondCategory().getName()
-                : "-";
+                : null;
 
         String ticketTypeName = (ticket.getTicketType() != null)
                 ? ticket.getTicketType().getName()
-                : "-";
+                : "";
 
-        return String.format("%s %d %s %s created", date, ticket.getId(), secondCategoryName, ticketTypeName);
+        if (firstCategoryName == null) {
+            return String.format("%s-%s-%d 티켓 생성", date, ticketTypeName, ticket.getId());
+        } else {
+            String secondPart = (secondCategoryName != null)
+                    ? secondCategoryName
+                    : "-";
+
+            return String.format(
+                    "%s/%s/%s/%s-#%d 티켓 생성",
+                    date,
+                    firstCategoryName,
+                    secondPart,
+                    ticketTypeName,
+                    ticket.getId()
+            );
+        }
     }
 }
