@@ -30,6 +30,11 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String accessToken = request.getHeader(TOKEN_HEADER);
             if (accessToken == null || !accessToken.startsWith(TOKEN_PREFIX)) {
@@ -41,10 +46,6 @@ public class JwtFilter extends OncePerRequestFilter {
             validateToken(accessToken);
 
             setAuthentication(accessToken);
-            response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
             filterChain.doFilter(request, response);
         } catch (MalformedJwtException e) {
