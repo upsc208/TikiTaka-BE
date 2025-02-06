@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.user.application;
 
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
@@ -63,6 +64,12 @@ public class UserService {
 
     public UserResponse getUserResponse(Long userId) {
         UserResponse userResponse = userRepository.getUserResponse(userId);
+        if (userResponse == null) throw new UserNotFoundException();
+        return userResponse;
+    }
+
+    public UserResponse getMyUserResponse(CustomUserDetails userDetails) {
+        UserResponse userResponse = userRepository.getUserResponse(userDetails.getId());
         if (userResponse == null) throw new UserNotFoundException();
         return userResponse;
     }

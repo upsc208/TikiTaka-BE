@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.user.presentation;
 
 import com.trillion.tikitaka.attachment.application.FileService;
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.dto.request.PasswordChangeRequest;
@@ -10,6 +11,7 @@ import com.trillion.tikitaka.user.dto.response.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.trillion.tikitaka.user.dto.request.RoleChangeRequest;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +43,13 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER','USER')")
     public ApiResponse<UserResponse> getUserResponse(@PathVariable("userId") Long userId) {
         UserResponse response = userService.getUserResponse(userId);
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    public ApiResponse<UserResponse> getMyUserResponse(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserResponse response = userService.getMyUserResponse(userDetails);
         return ApiResponse.success(response);
     }
 
