@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.user.presentation;
 
+import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.dto.request.PasswordChangeRequest;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.trillion.tikitaka.user.dto.request.RoleChangeRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -19,6 +21,7 @@ import com.trillion.tikitaka.user.dto.request.RoleChangeRequest;
 public class UserController {
 
     private final UserService userService;
+    private final FileService fileService;
 
     @GetMapping("/count")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -55,6 +58,7 @@ public class UserController {
         userService.deleteUser(userId);
         return new ApiResponse<>(null);
     }
+
     @PatchMapping("/{userId}/role")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Void> changeUserRole(@PathVariable("userId") Long userId,
@@ -63,4 +67,11 @@ public class UserController {
         return new ApiResponse<>(null);
     }
 
+    @PutMapping("/{userId}/profile")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER') and #userId == authentication.principal.id")
+    public ApiResponse<Void> updateProfileImage(@PathVariable("userId") Long userId,
+                                                @RequestParam("image") MultipartFile profileImage) {
+        fileService.uploadUserProfile(profileImage, userId);
+        return new ApiResponse<>(null);
+    }
 }

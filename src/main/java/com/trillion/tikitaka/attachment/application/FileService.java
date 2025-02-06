@@ -53,9 +53,66 @@ public class FileService {
 
     private final S3Client s3Client;
     private final AttachmentRepository attachmentRepository;
-    private final TicketRepository ticketRepository;
-    private final TicketCommentRepository ticketCommentRepository;
     private final UserRepository userRepository;
+
+    @Transactional
+    public void uploadUserProfile(MultipartFile file, Long userId) {
+        if (file.getSize() > MAX_FILE_SIZE) throw new CustomException(ErrorCode.FILE_SIZE_EXCEEDED);
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.lastIndexOf('.') == -1) {
+            throw new CustomException(ErrorCode.INVALID_FILE_NAME);
+        }
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new CustomException(ErrorCode.INVALID_FILE_EXTENSION);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (user.getProfileImageUrl() != null) {
+            String existingFileUrl = user.getProfileImageUrl();
+            String prefix = endpoint + "/v1/" + projectId + "/" + bucketName + "/";
+            if (existingFileUrl.startsWith(prefix)) {
+                String existingS3Key = existingFileUrl.substring(prefix.length());
+                try {
+                    DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(existingS3Key)
+                            .build();
+                    s3Client.deleteObject(deleteRequest);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.FILE_DELETE_FAILED);
+                }
+            }
+        }
+
+        try {
+            Path tempFilePath = Files.createTempFile(null, null);
+            Files.copy(file.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String uuid = UUID.randomUUID().toString();
+            String s3Key = "users/" + user.getId() + "/" + uuid + "." + extension;
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build();
+
+            s3Client.putObject(putObjectRequest, tempFilePath);
+
+            String fileUrl = endpoint + "/v1/" + projectId + "/" + bucketName + "/" + s3Key;
+
+            Files.delete(tempFilePath);
+
+            user.updateProfileImageUrl(fileUrl);
+            userRepository.save(user);
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+    }
 
     @Transactional
     public void uploadFilesForTicket(List<MultipartFile> files, Ticket ticket) {
