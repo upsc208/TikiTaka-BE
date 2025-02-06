@@ -22,7 +22,7 @@ public class TicketAutoAssignmentScheduler {
     private final UserRepository userRepository;
 
     @Transactional
-    @Scheduled(fixedDelay = 3600000) // 1시간 마다 실행 60 * 10000 * 6
+    @Scheduled(cron = "0 0 9-18 * * *")
     public void autoAssignTickets() {
         // 1. 미배정 티켓 조회
         LocalDateTime createdBeforeMinutes = LocalDateTime.now().minusMinutes(60);
