@@ -78,7 +78,7 @@ public class JwtUtil {
     public ResponseCookie createCookie(String key, String value) {
         return ResponseCookie.from(key, value)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .sameSite("None")
                 .maxAge(60 * 60 * 10)
                 .path("/")
