@@ -8,14 +8,10 @@ import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
 import com.trillion.tikitaka.ticket.application.PendingTicketService;
-import com.trillion.tikitaka.ticket.dto.response.PendingTicketResponse;
+import com.trillion.tikitaka.ticket.dto.response.*;
 import com.trillion.tikitaka.ticket.dto.request.EditCategory;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
-import com.trillion.tikitaka.ticket.dto.response.ReviewListResponse;
-import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
-import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
-import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,11 +37,12 @@ public class TicketController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-    public ApiResponse<Void> createTicket(@RequestPart("request") @Valid CreateTicketRequest request,
-                                          @RequestPart(value = "files", required = false) List<@Valid MultipartFile> files,
-                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
-        ticketService.createTicket(request, files, userDetails);
-        return new ApiResponse<>("티켓이 생성되었습니다", null);
+    public ApiResponse<TicketIdResponse> createTicket(@RequestPart("request") @Valid CreateTicketRequest request,
+                                                      @RequestPart(value = "files", required = false) List<@Valid MultipartFile> files,
+                                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long ticketId = ticketService.createTicket(request, files, userDetails);
+        TicketIdResponse response = new TicketIdResponse(ticketId);
+        return new ApiResponse<>("티켓이 생성되었습니다", response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
