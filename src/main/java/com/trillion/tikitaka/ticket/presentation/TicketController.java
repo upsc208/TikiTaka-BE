@@ -41,11 +41,11 @@ public class TicketController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-    public ApiResponse<Void> createTicket(@RequestPart("request") @Valid CreateTicketRequest request,
+    public ApiResponse<Long> createTicket(@RequestPart("request") @Valid CreateTicketRequest request,
                                           @RequestPart(value = "files", required = false) List<@Valid MultipartFile> files,
                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
-        ticketService.createTicket(request, files, userDetails);
-        return new ApiResponse<>("티켓이 생성되었습니다", null);
+        Long ticketId = ticketService.createTicket(request, files, userDetails);
+        return new ApiResponse<>("티켓이 생성되었습니다", ticketId);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
