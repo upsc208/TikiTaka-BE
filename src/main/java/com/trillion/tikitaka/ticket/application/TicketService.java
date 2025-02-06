@@ -97,7 +97,7 @@ public class TicketService {
 
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
                                                   Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId,
-                                                  CustomUserDetails userDetails) {
+                                                  String dateOption, CustomUserDetails userDetails) {
         String role = userDetails.getUser().getRole().toString();
 
         if ("USER".equals(role)) {
@@ -112,7 +112,9 @@ public class TicketService {
         validateUserExistence(requesterId);
         validateUserExistence(managerId);
 
-        return ticketRepository.getTicketList(pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role);
+        return ticketRepository.getTicketList(
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role, dateOption
+        );
     }
 
     public TicketResponse getTicket(Long ticketId, CustomUserDetails userDetails) {

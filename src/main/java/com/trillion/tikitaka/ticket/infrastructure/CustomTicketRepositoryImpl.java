@@ -13,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.trillion.tikitaka.ticket.domain.QTicket.ticket;
@@ -63,7 +65,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
 
     @Override
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role) {
+                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption) {
 
         List<TicketListResponse> content = queryFactory
                 .select(new QTicketListResponse(
@@ -90,7 +92,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
                         statusEq(status),
-                        deletedAtEqNull()
+                        deletedAtEqNull(),
+                        createdAtBetween(dateOption)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -110,7 +113,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
                         statusEq(status),
-                        deletedAtEqNull()
+                        deletedAtEqNull(),
+                        createdAtBetween(dateOption)
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
@@ -182,7 +186,28 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
         return status != null ? ticket.status.eq(status) : null;
     }
 
-    private static BooleanExpression deletedAtEqNull() {
+    private BooleanExpression deletedAtEqNull() {
         return ticket.deletedAt.isNull();
+    }
+
+    private BooleanExpression createdAtBetween(String dateOption) {
+        if (dateOption == null) return null;
+        LocalDateTime startDateTime;
+        LocalDateTime now = LocalDateTime.now();
+
+        switch (dateOption.toLowerCase()) {
+            case "today":
+                startDateTime = LocalDate.now().atStartOfDay();
+                break;
+            case "week":
+                startDateTime = LocalDate.now().minusWeeks(1).atStartOfDay();
+                break;
+            case "month":
+                startDateTime = LocalDate.now().minusMonths(1).atStartOfDay();
+                break;
+            default:
+                return null;
+        }
+        return ticket.createdAt.between(startDateTime, now);
     }
 }
