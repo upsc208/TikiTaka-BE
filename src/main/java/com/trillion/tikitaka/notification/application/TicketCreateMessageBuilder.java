@@ -23,7 +23,7 @@ public class TicketCreateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
         blocks.add(new HeaderBlock("티켓 생성 알림", "blue"));
 
         // 2. Text Block (inlines 리스트로 변경)
-        String textValue = String.format("[%s] %s", ticket.getId(), ticket.getTitle());
+        String textValue = String.format("[#%s] %s", ticket.getId(), ticket.getTitle());
         List<Inline> inlineTexts = List.of(new Inline("styled", textValue, true, "blue")); // 🔹 리스트로 변경
         blocks.add(new TextBlock(textValue, inlineTexts));
 
@@ -80,36 +80,29 @@ public class TicketCreateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
         String firstCategoryName = (ticket.getFirstCategory() != null)
                 ? ticket.getFirstCategory().getName()
                 : null;
-
         String secondCategoryName = (ticket.getSecondCategory() != null)
                 ? ticket.getSecondCategory().getName()
                 : null;
-
-        String categoryPart = buildCategoryString(firstCategoryName, secondCategoryName);
 
         String ticketTypeName = (ticket.getTicketType() != null)
                 ? ticket.getTicketType().getName()
                 : "";
 
-        if (categoryPart.isEmpty()) {
-            return String.format("%s-%d-%s created", date, ticket.getId(), ticketTypeName);
+        if (firstCategoryName == null) {
+            return String.format("%s-%s-%d 티켓 생성", date, ticketTypeName, ticket.getId());
         } else {
-            return String.format("%s-%d-%s-%s created", date, ticket.getId(), categoryPart, ticketTypeName);
-        }
-    }
+            String secondPart = (secondCategoryName != null)
+                    ? secondCategoryName
+                    : "-";
 
-    private String buildCategoryString(String firstCategory, String secondCategory) {
-        if (firstCategory == null && secondCategory == null) {
-            return "";
+            return String.format(
+                    "%s/%s/%s/%s-#%d 티켓 생성",
+                    date,
+                    firstCategoryName,
+                    secondPart,
+                    ticketTypeName,
+                    ticket.getId()
+            );
         }
-
-        if (firstCategory != null && secondCategory != null) {
-            return firstCategory + "/" + secondCategory;
-        }
-
-        if (firstCategory != null) {
-            return firstCategory;
-        }
-        return secondCategory;
     }
 }
