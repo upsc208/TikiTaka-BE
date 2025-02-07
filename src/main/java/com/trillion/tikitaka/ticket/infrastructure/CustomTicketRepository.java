@@ -16,7 +16,7 @@ public interface CustomTicketRepository {
     TicketCountByStatusResponse countTicketsByStatus(Long requesterId, String role);
 
     Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption);
+                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort);
 
     TicketResponse getTicket(Long ticketId, Long userId, String role);
 
