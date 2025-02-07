@@ -6,20 +6,15 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class TicketTemplateListResponse {
-
-    private Long id;
+    private Long templateId;
     private String templateTitle;
     private String title;
-
     private Long typeId;
     private String typeName;
-
     private Long firstCategoryId;
     private String firstCategoryName;
-
     private Long secondCategoryId;
     private String secondCategoryName;
-
     private String createdAt;
     private String updatedAt;
 }
