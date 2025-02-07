@@ -54,6 +54,13 @@ public class TicketCommentService {
             fileService.uploadFilesForComment(files, comment);
         }
 
+        // 댓글 작성 메시지 작성 시 비동기 처리를 위한 연관 객체 강제 초기화 (프록시 초기화)
+        if(ticket.getFirstCategory() != null) ticket.getFirstCategory().getName();
+        if(ticket.getSecondCategory() != null) ticket.getSecondCategory().getName();
+        if(ticket.getTicketType() != null) ticket.getTicketType().getName();
+        ticket.getManager().getUsername();
+        ticket.getRequester().getUsername();
+
         if (author.getRole() == Role.USER) {
             eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getManager().getEmail(), ticket, author.getUsername()));
         } else {

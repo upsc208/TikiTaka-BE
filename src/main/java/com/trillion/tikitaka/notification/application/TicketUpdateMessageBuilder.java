@@ -12,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
+
 @Component
 public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<TicketUpdateEvent> {
 
@@ -24,7 +26,7 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
         blocks.add(new HeaderBlock("티켓 수정 알림", "yellow"));
 
         // 2. Text Block (inlines 리스트로 변경)
-        String textValue = String.format("[%s] %s", ticket.getId(), ticket.getTitle());
+        String textValue = String.format("[#%s] %s", ticket.getId(), ticket.getTitle());
         List<Inline> inlineTexts = List.of(new Inline("styled", textValue, true, "default"));
         blocks.add(new TextBlock(textValue, inlineTexts));
 
@@ -51,6 +53,17 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
             blocks.add(new DescriptionBlock(new Content(managerText, inlineManager), "담당자", true));
         }
 
+        String url;
+        if (event.getModifierRole() == Role.USER) {
+            url =  END_POINT + "/user/detail/" + ticket.getId();
+        } else {
+            url = END_POINT + "/manager/detail/" + ticket.getId();
+        }
+
+        ButtonAction action = new ButtonAction("open_system_browser", "확인하기", url);
+        ButtonBlock buttonBlock = new ButtonBlock("확인하기", "default", action);
+        blocks.add(buttonBlock);
+
         return blocks;
     }
 
@@ -62,6 +75,29 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
     @Override
     public String buildPreviewText(TicketUpdateEvent event) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        return String.format("%s %d %s has updated %s", date, event.getTicket().getId(), event.getModifier(), event.getModification());
+
+        Ticket ticket = event.getTicket();
+
+        String firstCategoryName = (ticket.getFirstCategory() != null)
+                ? ticket.getFirstCategory().getName()
+                : null;
+        String secondCategoryName = (ticket.getSecondCategory() != null)
+                ? ticket.getSecondCategory().getName()
+                : null;
+
+        String ticketTypeName = (ticket.getTicketType() != null)
+                ? ticket.getTicketType().getName()
+                : "";
+
+        if (firstCategoryName == null) {
+            return String.format("%s-%s-#%d 티켓 수정",
+                    date, ticketTypeName, ticket.getId());
+        } else {
+            String secondPart = (secondCategoryName != null)
+                    ? secondCategoryName
+                    : "-";
+            return String.format("%s/%s/%s/%s-#%d 티켓 수정",
+                    date, firstCategoryName, secondPart, ticketTypeName, ticket.getId());
+        }
     }
 }

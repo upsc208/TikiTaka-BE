@@ -58,7 +58,7 @@ public class TicketService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public void createTicket(CreateTicketRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
+    public Long createTicket(CreateTicketRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
         TicketType ticketType = getTicketTypeOrThrow(request.getTypeId());
         Category firstCategory = getCategoryOrNull(request.getFirstCategoryId());
         Category secondCategory = getCategoryOrNull(request.getSecondCategoryId());
@@ -87,6 +87,8 @@ public class TicketService {
                 );
             }
         }
+
+        return ticket.getId();
     }
 
     public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
