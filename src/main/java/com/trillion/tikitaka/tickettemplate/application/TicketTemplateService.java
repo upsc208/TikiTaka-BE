@@ -133,6 +133,7 @@ public class TicketTemplateService {
         }
 
         return new TicketTemplateResponse(
+                template.getId(),
                 template.getTemplateTitle(),
                 template.getTitle(),
                 template.getDescription(),
