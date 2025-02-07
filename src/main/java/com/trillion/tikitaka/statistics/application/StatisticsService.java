@@ -22,6 +22,7 @@ import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,12 +42,7 @@ public class StatisticsService {
     private final TicketTypeService ticketTypeService;
     private final UserService userService;
 
-    /*@Scheduled(cron = "0 0 0 * * *")
-    public void runScheduledStatisticsUpdate() {
-        int year = java.time.LocalDate.now().getYear();
-        int month = java.time.LocalDate.now().getMonthValue();
-        updateMonthlyStatistics(year, month);
-    }*/
+
     public List<AllCategory> getAllCategoryTicket(int year, int month) {
         // 모든 카테고리 조회
         List<Category> categories = categoryRepository.findAll();
