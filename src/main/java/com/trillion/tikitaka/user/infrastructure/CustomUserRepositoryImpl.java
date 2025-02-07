@@ -19,19 +19,32 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public UserListResponse findAllUser() {
+    public UserListResponse getAllUsersByRole(Role targetRole, Role currentUserRole) {
         List<UserResponse> users = queryFactory
                 .select(new QUserResponse(
                         user.id.as("userId"),
                         user.username,
                         user.email,
                         user.role,
-                        Expressions.nullExpression(String.class)
+                        user.profileImageUrl
                 ))
                 .from(user)
+                .where(userRoleEq(targetRole))
                 .fetch();
 
-        return new UserListResponse(users, countAdmin(), countManager(), countUser());
+        UserListResponse response = new UserListResponse();
+        response.setUsers(users);
+
+        Long adminCount = currentUserRole == Role.ADMIN ? countAdmin() : null;
+        response.setAdminCount(adminCount);
+
+        Long managerCount = currentUserRole == Role.ADMIN ? countManager() : null;
+        response.setManagerCount(managerCount);
+
+        Long userCount = currentUserRole == Role.ADMIN ? countUser() : null;
+        response.setUserCount(userCount);
+
+        return response;
     }
 
     @Override
@@ -53,11 +66,15 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
         return user.id.eq(userId);
     }
 
+    private static BooleanExpression userRoleEq(Role role) {
+        return user.role.eq(role);
+    }
+
     public Long countAdmin() {
         return queryFactory
                 .select(user.count())
                 .from(user)
-                .where(user.role.eq(Role.ADMIN))
+                .where(userRoleEq(Role.ADMIN))
                 .fetchOne();
     }
 
@@ -65,7 +82,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
         return queryFactory
                 .select(user.count())
                 .from(user)
-                .where(user.role.eq(Role.MANAGER))
+                .where(userRoleEq(Role.MANAGER))
                 .fetchOne();
     }
 
@@ -73,7 +90,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
         return queryFactory
                 .select(user.count())
                 .from(user)
-                .where(user.role.eq(Role.USER))
+                .where(userRoleEq(Role.USER))
                 .fetchOne();
     }
 }
