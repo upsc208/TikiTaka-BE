@@ -1,15 +1,19 @@
 package com.trillion.tikitaka.ticket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.querydsl.core.annotations.QueryProjection;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TicketListResponse {
     private Long ticketId;
     private String title;
@@ -20,6 +24,7 @@ public class TicketListResponse {
     private String managerName;
     private Ticket.Status status;
     private Boolean urgent;
+    private Ticket.Priority priority;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
@@ -30,7 +35,7 @@ public class TicketListResponse {
     @QueryProjection
     public TicketListResponse(Long ticketId, String title, String description, String typeName, String firstCategoryName,
                               String secondCategoryName, String managerName, Ticket.Status status, Boolean urgent,
-                              LocalDateTime deadline, LocalDateTime createdAt) {
+                              Ticket.Priority priority, LocalDateTime deadline, LocalDateTime createdAt) {
         this.ticketId = ticketId;
         this.title = title;
         this.description = description;
@@ -40,6 +45,7 @@ public class TicketListResponse {
         this.managerName = managerName;
         this.status = status;
         this.urgent = urgent;
+        this.priority = priority;
         this.deadline = deadline;
         this.createdAt = createdAt;
     }

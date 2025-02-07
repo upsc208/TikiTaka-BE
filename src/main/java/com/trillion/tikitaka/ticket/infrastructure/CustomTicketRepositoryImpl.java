@@ -95,6 +95,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.manager.username.as("managerName"),
                         ticket.status,
                         ticket.urgent,
+                        ticket.priority,
                         ticket.deadline,
                         ticket.createdAt
                 ))
