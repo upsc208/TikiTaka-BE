@@ -28,6 +28,7 @@ public class ReviewService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public void doReview(Long ticketId, Long userId) {
         log.info("[티켓 검토] 티켓 ID: {}, 검토자 ID: {}", ticketId, userId);
         Ticket ticket = ticketRepository.findById(ticketId)
