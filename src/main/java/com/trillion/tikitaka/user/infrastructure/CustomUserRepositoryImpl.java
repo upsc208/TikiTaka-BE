@@ -62,6 +62,20 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .fetchOne();
     }
 
+    @Override
+    public List<UserResponse> getAllUsers() {
+        return queryFactory
+                .select(new QUserResponse(
+                        user.id.as("userId"),
+                        user.username,
+                        user.email,
+                        user.role,
+                        user.profileImageUrl
+                ))
+                .from(user)
+                .fetch();
+    }
+
     private static BooleanExpression userIdEq(Long userId) {
         return user.id.eq(userId);
     }

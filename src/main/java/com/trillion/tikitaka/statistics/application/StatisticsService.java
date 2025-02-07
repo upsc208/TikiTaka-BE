@@ -127,34 +127,32 @@ public class StatisticsService {
 
     public List<AllUser> getAllUserTicket(int year, int month) {
         // 모든 유저 조회
-//        UserListResponse userListResponse = userService.findAllUsers();
-//        List<UserResponse> users = userListResponse.getUsers();
+        List<UserResponse> users = userRepository.getAllUsers();
 
-//        // 결과 리스트 생성
-//        List<AllUser> allUsers = new ArrayList<>();
-//
-//        // 각 유저별로 티켓 개수 조회 (담당자인 경우만)
-//        for (UserResponse userResponse : users) {
-//            if (userResponse.getRole() == Role.MANAGER) {
-//                int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
-//                        year, month, null, userRepository.findById(userResponse.getUserId()).orElse(null), null);
-//
-//                // AllUser DTO 생성 및 값 설정
-//                AllUser allUser = new AllUser();
-//                allUser.updateAllUser(
-//                        userResponse.getUsername(),
-//                        userResponse.getEmail(),
-//                        userResponse.getUserId(),
-//                        userResponse.getProfileImageUrl(),
-//                        totalCreated
-//                );
-//
-//                allUsers.add(allUser);
-//            }
-//        }
+        // 결과 리스트 생성
+        List<AllUser> allUsers = new ArrayList<>();
 
-//        return allUsers;
-        return null;
+        // 각 유저별로 티켓 개수 조회 (담당자인 경우만)
+        for (UserResponse userResponse : users) {
+            if (userResponse.getRole() == Role.MANAGER) {
+                int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
+                        year, month, null, userRepository.findById(userResponse.getUserId()).orElse(null), null);
+
+                // AllUser DTO 생성 및 값 설정
+                AllUser allUser = new AllUser();
+                allUser.updateAllUser(
+                        userResponse.getUsername(),
+                        userResponse.getEmail(),
+                        userResponse.getUserId(),
+                        userResponse.getProfileImageUrl(),
+                        totalCreated
+                );
+
+                allUsers.add(allUser);
+            }
+        }
+
+        return allUsers;
     }
 
 
