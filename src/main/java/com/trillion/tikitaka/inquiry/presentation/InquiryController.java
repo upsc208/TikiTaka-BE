@@ -33,15 +33,17 @@ public class InquiryController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
     public ApiResponse<Page<InquiryResponse>> getAllInquiries(
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size) {
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<InquiryResponse> responses = inquiryService.getAllInquiries(pageable);
+        Page<InquiryResponse> responses = inquiryService.getAllInquiries(pageable, userDetails);
         return ApiResponse.success(responses);
     }
+
     @PatchMapping("/{inquiryId}/answer")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResponse<Void> answerInquiry(
