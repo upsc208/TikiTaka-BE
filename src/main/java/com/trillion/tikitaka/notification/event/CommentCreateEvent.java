@@ -16,13 +16,13 @@ public class CommentCreateEvent extends ApplicationEvent implements Notification
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private final LocalDateTime createdAt = LocalDateTime.now();
-    private final NotificationType notificationType;
+    private final NotificationType type;
 
     public CommentCreateEvent(Object source, String email, Ticket ticket, String author) {
         super(source);
         this.email = email;
         this.ticket = ticket;
         this.author = author;
-        this.notificationType = NotificationType.COMMENT_CREATE;
+        this.type = NotificationType.COMMENT_CREATE;
     }
 }

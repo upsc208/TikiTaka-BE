@@ -19,7 +19,7 @@ public class TicketUpdateEvent extends ApplicationEvent implements NotificationE
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private final LocalDateTime modifiedAt = LocalDateTime.now();
-    private final NotificationType notificationType;
+    private final NotificationType type;
 
     public TicketUpdateEvent(Object source, String email, Ticket ticket, String modifier, String modification, Role modifierRole) {
         super(source);
@@ -28,6 +28,6 @@ public class TicketUpdateEvent extends ApplicationEvent implements NotificationE
         this.modifier = modifier;
         this.modification = modification;
         this.modifierRole = modifierRole;
-        this.notificationType = NotificationType.TICKET_UPDATE;
+        this.type = NotificationType.TICKET_UPDATE;
     }
 }
