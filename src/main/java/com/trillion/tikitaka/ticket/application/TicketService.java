@@ -19,6 +19,7 @@ import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditCategory;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
+import com.trillion.tikitaka.ticket.dto.response.PendingTicketResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
@@ -34,6 +35,7 @@ import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -59,6 +62,8 @@ public class TicketService {
 
     @Transactional
     public Long createTicket(CreateTicketRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
+        log.info("[티켓 생성 요청] 요청자: {}, 티켓 유형: {}, 1차/2차 카테고리: {}/{}",
+                userDetails.getUsername(), request.getTypeId(), request.getFirstCategoryId(), request.getSecondCategoryId());
         TicketType ticketType = getTicketTypeOrThrow(request.getTypeId());
         Category firstCategory = getCategoryOrNull(request.getFirstCategoryId());
         Category secondCategory = getCategoryOrNull(request.getSecondCategoryId());
@@ -72,6 +77,7 @@ public class TicketService {
         ticketRepository.flush();
 
         if (files != null && !files.isEmpty()) {
+            log.info("[티켓 생성] 첨부 파일 업로드 시작");
             fileService.uploadFilesForTicket(files, ticket);
         }
 
@@ -92,6 +98,7 @@ public class TicketService {
     }
 
     public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
+        log.info("[상태별 티켓 수 조회] 요청자: {}", userDetails.getUsername());
         String role = userDetails.getUser().getRole().toString();
         Long requesterId = "USER".equals(role) ? userDetails.getUser().getId() : null;
 
@@ -101,11 +108,14 @@ public class TicketService {
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
                                                   Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId,
                                                   String dateOption, String sort, CustomUserDetails userDetails) {
+        log.info("[티켓 목록 조회] 요청자: {}, 상태: {}, 1차/2차 카테고리: {}/{}, 티켓 유형: {}, 담당자: {}, 요청자: {}, 정렬: {}, 날짜 옵션: {}",
+                userDetails.getUsername(), status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, sort, dateOption);
         String role = userDetails.getUser().getRole().toString();
 
         if ("USER".equals(role)) {
             requesterId = userDetails.getUser().getId();
             if (managerId != null) {
+                log.error("[티켓 목록 조회] 사용자 권한으로 담당자 조회 불가");
                 throw new UnauthorizedTicketAccessException();
             }
         }
@@ -121,16 +131,21 @@ public class TicketService {
     }
 
     public TicketResponse getTicket(Long ticketId, CustomUserDetails userDetails) {
+        log.info("[티켓 조회] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
         String role = userDetails.getUser().getRole().toString();
         Long userId = userDetails.getUser().getId();
 
         TicketResponse response = ticketRepository.getTicket(ticketId, userId, role);
-        if (response == null) throw new TicketNotFoundException();
+        if (response == null) {
+            log.error("[티켓 조회] 티켓 ID: {} 조회 실패", ticketId);
+            throw new TicketNotFoundException();
+        }
 
         List<AttachmentResponse> attachmentResponse = attachmentRepository.getTicketAttachments(ticketId);
         response.setAttachments(attachmentResponse);
 
         if ("USER".equals(role)) {
+            log.info("[티켓 조회] 사용자 권한으로 티켓 조회 - 우선순위 정보 제거");
             response.setPriority(null);
         }
 
@@ -139,6 +154,7 @@ public class TicketService {
 
     @Transactional
     public void editTicket(EditTicketRequest request, Long ticketId, CustomUserDetails userDetails) {
+        log.info("[사용자 티켓 수정] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -169,6 +185,7 @@ public class TicketService {
     // 담당자 개별 수정 - 티켓 유형, 우선순위, 상태, 담당자, 마감기한, 카테고리
     @Transactional
     public void editTypeForManager(Long ticketId, Long typeId, CustomUserDetails userDetails){
+        log.info("[담당자 티켓 유형 수정] 요청자: {}, 티켓 ID: {}, 티켓 유형 ID: {}", userDetails.getUsername(), ticketId, typeId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -188,6 +205,7 @@ public class TicketService {
 
     @Transactional
     public void editManager(Long ticketId, Long managerId, CustomUserDetails userDetails){
+        log.info("[담당자 티켓 담당자 수정] 요청자: {}, 티켓 ID: {}, 담당자 ID: {}", userDetails.getUsername(), ticketId, managerId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -205,7 +223,9 @@ public class TicketService {
     }
 
     @Transactional
-    public void editCategoryForManager(EditCategory editCategory, Long ticketId, CustomUserDetails userDetails){
+    public void editCategoryForManager(EditCategory editCategory, Long ticketId, CustomUserDetails userDetails) {
+        log.info("[담당자 티켓 카테고리 수정] 요청자: {}, 티켓 ID: {}, 1차/2차 카테고리 ID: {}/{}",
+                userDetails.getUsername(), ticketId, editCategory.getFirstCategoryId(), editCategory.getSecondCategoryId());
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         EditCategory category = editCategory;
@@ -222,7 +242,7 @@ public class TicketService {
         Category secondCategory = secondCategoryId != null
                 ? categoryRepository.findById(secondCategoryId).orElseThrow(CategoryNotFoundException::new)
                 : null;
-        ticket.updateCategory(firstCategory,secondCategory);
+        ticket.updateCategory(firstCategory, secondCategory);
 
         User user = userDetails.getUser();
 
@@ -233,7 +253,8 @@ public class TicketService {
     }
 
     @Transactional
-    public void editDeadlineForManager(Long ticketId, EditSettingRequest editSettingRequest, CustomUserDetails userDetails){
+    public void editDeadlineForManager(Long ticketId, EditSettingRequest editSettingRequest, CustomUserDetails userDetails) {
+        log.info("[담당자 티켓 마감기한 수정] 요청자: {}, 티켓 ID: {}, 마감기한: {}", userDetails.getUsername(), ticketId, editSettingRequest.getDeadline());
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -248,7 +269,8 @@ public class TicketService {
     }
 
     @Transactional
-    public void editPriority(Long ticketId, Ticket.Priority priority, CustomUserDetails userDetails){
+    public void editPriority(Long ticketId, Ticket.Priority priority, CustomUserDetails userDetails) {
+        log.info("[담당자 티켓 우선순위 수정] 요청자: {}, 티켓 ID: {}, 우선순위: {}", userDetails.getUsername(), ticketId, priority);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -263,7 +285,8 @@ public class TicketService {
     }
 
     @Transactional
-    public void editStatus(Long ticketId, Ticket.Status status, CustomUserDetails userDetails){
+    public void editStatus(Long ticketId, Ticket.Status status, CustomUserDetails userDetails) {
+        log.info("[담당자 티켓 상태 수정] 요청자: {}, 티켓 ID: {}, 상태: {}", userDetails.getUsername(), ticketId, status);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
 
@@ -278,7 +301,8 @@ public class TicketService {
     }
 
     @Transactional
-    public void approveTicket(Long ticketId, CustomUserDetails userDetails){
+    public void approveTicket(Long ticketId, CustomUserDetails userDetails) {
+        log.info("[담당자 티켓 승인] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         User manager = userRepository.findById(userDetails.getId())
@@ -286,7 +310,8 @@ public class TicketService {
 
         ticket.updateStatus(Ticket.Status.IN_PROGRESS);
 
-        if(ticket.getManager() == null){
+        if (ticket.getManager() == null) {
+            log.info("[담당자 티켓 승인] 담당자 지정되지 않은 티켓 - 담당자 자동 지정");
             ticket.updateManager(manager);
         }
 
@@ -298,6 +323,7 @@ public class TicketService {
 
     @Transactional
     public void rejectTicket(Long ticketId, CustomUserDetails userDetails){
+        log.info("[담당자 티켓 거절] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         ticket.updateStatus(Ticket.Status.REJECTED);
@@ -310,6 +336,7 @@ public class TicketService {
 
     @Transactional
     public void deleteTicket(Long ticketId, CustomUserDetails userDetails) {
+        log.info("[티켓 삭제] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         User user = userDetails.getUser();
@@ -318,12 +345,31 @@ public class TicketService {
         if(user.getUsername().equals(requester.getUsername()) && ticket.getStatus().equals(Ticket.Status.PENDING)) {
             ticketRepository.delete(ticket);
             historyService.recordHistory(ticket, user, TicketHistory.UpdateType.TICKET_DELETE);
-        }else{ throw new UnauthorizedTicketAccessException();}
+        }else {
+            log.error("[티켓 삭제] 티켓 삭제 권한 없음");
+            throw new UnauthorizedTicketAccessException();
+        }
+    }
 
+    public PendingTicketResponse getPendingTickets(Long managerId) {
+        // 담당자가 본인이고 PENDING 상태인 티켓 수
+        int myPendingTicket = ticketRepository.countByManagerAndStatus(managerId, Ticket.Status.PENDING);
+
+        // 담당자가 지정되지 않고 PENDING 상태인 티켓 수
+        int unassignedPendingTicket = ticketRepository.countByManagerIsNullAndStatus(Ticket.Status.PENDING);
+
+        // 총 대기 티켓 수 (내 요청 + 그룹 요청)
+        int totalPendingTicket = myPendingTicket + unassignedPendingTicket;
+
+        // 긴급 대기 티켓 수 (담당자가 본인 or 지정되지 않고 PENDING & URGENT)
+        int urgentPendingTicket = ticketRepository.countUrgentPendingTickets(managerId, Ticket.Status.PENDING);
+
+        return new PendingTicketResponse(myPendingTicket, unassignedPendingTicket, totalPendingTicket, urgentPendingTicket);
     }
 
     private void validateTicketType(Long ticketTypeId) {
         if (ticketTypeId != null && !ticketTypeRepository.existsById(ticketTypeId)) {
+            log.info("[티켓 유형 검증] 존재하지 않는 티켓 유형: {}", ticketTypeId);
             throw new TicketTypeNotFoundException();
         }
     }
@@ -342,6 +388,7 @@ public class TicketService {
                     .orElseThrow(CategoryNotFoundException::new);
 
             if (!secondCategory.isChildOf(firstCategory)) {
+                log.error("[카테고리 관계 검증] 2차 카테고리가 1차 카테고리의 하위 카테고리가 아님");
                 throw new InvalidCategoryLevelException();
             }
         }
@@ -349,6 +396,7 @@ public class TicketService {
 
     private void validateUserExistence(Long userId) {
         if (userId != null && !userRepository.existsById(userId)) {
+            log.error("[사용자 검증] 존재하지 않는 사용자: {}", userId);
             throw new UserNotFoundException();
         }
     }
@@ -378,6 +426,7 @@ public class TicketService {
         try {
             return getUserOrThrow(userId);
         } catch (UserNotFoundException e) {
+            log.error("[담당자 검증] 존재하지 않는 담당자: {}", userId);
             throw new InvalidTicketManagerException();
         }
     }
@@ -396,6 +445,7 @@ public class TicketService {
 
     private void validateCategoryRelation(Category firstCategory, Category secondCategory) {
         if (secondCategory != null && (firstCategory == null || !secondCategory.isChildOf(firstCategory))) {
+            log.error("[카테고리 관계 검증] 2차 카테고리가 1차 카테고리의 하위 카테고리가 아님");
             throw new InvalidCategoryLevelException();
         }
     }
