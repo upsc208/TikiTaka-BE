@@ -1,7 +1,10 @@
 package com.trillion.tikitaka.tickettemplate.application;
 
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
+import com.trillion.tikitaka.global.exception.CustomException;
+import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.tickettemplate.domain.TicketTemplate;
 import com.trillion.tikitaka.tickettemplate.dto.request.TicketTemplateRequest;
 import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateListResponse;
@@ -34,7 +37,7 @@ public class TicketTemplateService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Transactional
-    public Long createTicketTemplate(TicketTemplateRequest req) {
+    public Long createTicketTemplate(TicketTemplateRequest req, CustomUserDetails userDetails) {
         TicketType type = typeRepository.findById(req.getTypeId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
         Category firstCat = categoryRepository.findById(req.getFirstCategoryId())
@@ -42,7 +45,7 @@ public class TicketTemplateService {
         Category secondCat = categoryRepository.findById(req.getSecondCategoryId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
 
-        User requester = userRepository.findById(req.getRequesterId())
+        User requester = userRepository.findById(userDetails.getId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
         User manager = null;
         if (req.getManagerId() != null) {
@@ -65,9 +68,13 @@ public class TicketTemplateService {
     }
 
     @Transactional
-    public void updateTicketTemplate(Long id, TicketTemplateRequest req) {
+    public Long updateTicketTemplate(Long id, TicketTemplateRequest req, CustomUserDetails userDetails) {
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
+
+        if (!template.getRequester().getId().equals(userDetails.getId())) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
 
         TicketType type = typeRepository.findById(req.getTypeId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
@@ -76,7 +83,7 @@ public class TicketTemplateService {
         Category secondCat = categoryRepository.findById(req.getSecondCategoryId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
 
-        User requester = userRepository.findById(req.getRequesterId())
+        User requester = userRepository.findById(userDetails.getId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
         User manager = null;
         if (req.getManagerId() != null) {
@@ -94,12 +101,18 @@ public class TicketTemplateService {
                 requester,
                 manager
         );
+
+        return template.getId();
     }
 
     @Transactional
-    public void deleteTicketTemplate(Long id) {
+    public void deleteTicketTemplate(Long id, CustomUserDetails userDetails) {
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
+
+        if (!template.getRequester().getId().equals(userDetails.getId())) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
 
         templateRepository.delete(template);
     }

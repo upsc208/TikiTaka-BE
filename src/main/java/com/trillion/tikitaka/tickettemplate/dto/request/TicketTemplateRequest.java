@@ -21,16 +21,9 @@ public class TicketTemplateRequest {
     @NotNull
     private Long typeId;
 
-    @NotNull
     private Long firstCategoryId;
 
-    @NotNull
     private Long secondCategoryId;
 
-    @NotNull
-    private Long requesterId;
-
     private Long managerId;
-
-
 }
