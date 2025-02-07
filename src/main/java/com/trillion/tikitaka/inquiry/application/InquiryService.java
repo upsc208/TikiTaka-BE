@@ -1,11 +1,13 @@
 package com.trillion.tikitaka.inquiry.application;
 
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.inquiry.domain.Inquiry;
 import com.trillion.tikitaka.inquiry.dto.request.InquiryRequest;
 import com.trillion.tikitaka.inquiry.dto.response.InquiryResponse;
 import com.trillion.tikitaka.inquiry.infrastructure.InquiryRepository;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import com.trillion.tikitaka.user.exception.UserNotFoundException;
@@ -36,10 +38,17 @@ public class InquiryService {
         return new InquiryResponse(savedInquiry);
     }
 
-    public Page<InquiryResponse> getAllInquiries(Pageable pageable) {
-        log.info("[문의사항 전체 조회]");
-        return inquiryRepository.findAll(pageable).map(InquiryResponse::new);
+    public Page<InquiryResponse> getAllInquiries(Pageable pageable, CustomUserDetails userDetails) {
+        log.info("[문의사항 전체 조회] 요청자: {}, 역할: {}", userDetails.getUser().getUsername(), userDetails.getUser().getRole());
+
+        if (userDetails.getUser().getRole() == Role.ADMIN) {
+            return inquiryRepository.findAll(pageable).map(InquiryResponse::new);
+        } else {
+            return inquiryRepository.findByRequester_Id(userDetails.getId(), pageable).map(InquiryResponse::new);
+        }
+
     }
+
     @Transactional
     public void answerInquiry(Long inquiryId, String answer) {
         log.info("[문의사항 답변 작성]");
