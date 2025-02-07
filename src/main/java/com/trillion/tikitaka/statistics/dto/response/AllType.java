@@ -1,5 +1,4 @@
 package com.trillion.tikitaka.statistics.dto.response;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

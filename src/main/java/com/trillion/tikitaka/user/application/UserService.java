@@ -61,7 +61,7 @@ public class UserService {
     public UserListResponse getUserListResponse(Role role, CustomUserDetails userDetails) {
         Role currentUserRole = userDetails.getUser().getRole();
         if ((currentUserRole == Role.USER || currentUserRole == Role.MANAGER) && role == Role.ADMIN) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
         return userRepository.getAllUsersByRole(role, currentUserRole);

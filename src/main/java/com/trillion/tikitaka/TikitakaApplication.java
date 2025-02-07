@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableAsync
 @EnableScheduling
+@EnableAsync
 public class TikitakaApplication {
 
 	public static void main(String[] args) {

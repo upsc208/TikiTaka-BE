@@ -32,6 +32,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -93,8 +96,8 @@ public class FileService {
             Path tempFilePath = Files.createTempFile(null, null);
             Files.copy(file.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
 
-            String uuid = UUID.randomUUID().toString();
-            String s3Key = "users/" + user.getId() + "/" + uuid + "." + extension;
+            String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String s3Key = "users/" + user.getId() + "/" + today + "profile" + user.getId() + "." + extension;
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -138,23 +141,25 @@ public class FileService {
                     Path path = Files.createTempFile(null, null);
                     Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
+                    String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
                     String uuid = UUID.randomUUID().toString();
-                    String fileName = "tickets/" + ticket.getId() + "/" + uuid + "." + extension;
+                    String fileName = today + "ticket" + ticket.getId() + "-" + uuid + "." + extension;
+                    String s3Key = "tickets/" + ticket.getId() + "/" + fileName;
 
                     PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                             .bucket(bucketName)
-                            .key(fileName)
+                            .key(s3Key)
                             .build();
 
                     s3Client.putObject(putObjectRequest, path);
 
-                    String fileUrl = endpoint + "/v1/" + projectId + "/" + bucketName + "/" + fileName;
+                    String fileUrl = endpoint + "/v1/" + projectId + "/" + bucketName + "/" + s3Key;
 
                     Files.delete(path);
 
                     Attachment attachment = Attachment.builder()
                             .ticket(ticket)
-                            .fileName(uuid + "." + extension)
+                            .fileName(fileName)
                             .filePath(fileUrl)
                             .fileSize(file.getSize())
                             .build();
@@ -193,12 +198,14 @@ public class FileService {
                     Path path = Files.createTempFile(null, null);
                     Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
+                    String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
                     String uuid = UUID.randomUUID().toString();
-                    String fileName = "tickets/" + comment.getTicket().getId() + "/comments/" + comment.getId() + "/" + uuid + "." + extension;
+                    String fileName = today + "comment" + comment.getId() + "-" + uuid + "." + extension;
+                    String s3Key = "tickets/" + comment.getTicket().getId() + "/comments/" + comment.getId() + "/" + fileName;
 
                     PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                             .bucket(bucketName)
-                            .key(fileName)
+                            .key(s3Key)
                             .build();
 
                     s3Client.putObject(putObjectRequest, path);
@@ -209,7 +216,7 @@ public class FileService {
 
                     Attachment attachment = Attachment.builder()
                             .comment(comment)
-                            .fileName(uuid + "." + extension)
+                            .fileName(fileName)
                             .filePath(fileUrl)
                             .fileSize(file.getSize())
                             .build();

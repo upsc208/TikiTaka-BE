@@ -87,20 +87,21 @@ public class TicketController {
             @RequestParam(value = "managerId", required = false) Long managerId,
             @RequestParam(value = "requesterId", required = false) Long requesterId,
             @RequestParam(value = "date", required = false) String dateOption,  // "today", "week", "month"
+            @RequestParam(value = "sort", defaultValue = "newest") String sort,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Pageable pageable = PageRequest.of(page, size);
         Page<TicketListResponse> ticketList = ticketService.getTicketList(
-                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, dateOption, userDetails
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, dateOption, sort, userDetails
         );
         return new ApiResponse<>(ticketList);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PatchMapping("/{ticketId}")
-    public ApiResponse<Void> editTicket(@PathVariable Long ticketId, @RequestBody @Valid EditTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ApiResponse<Long> editTicket(@PathVariable Long ticketId, @RequestBody @Valid EditTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails){
         ticketService.editTicket(request,ticketId,userDetails);
-        return new ApiResponse<>("티켓이 수정되었습니다.",null);
+        return new ApiResponse<>("티켓이 수정되었습니다.",ticketId);
     }
 
 
@@ -173,8 +174,8 @@ public class TicketController {
 
     @PreAuthorize("hasAuthority('MANAGER')")
     @GetMapping("/list/pending")
-    public ApiResponse<PendingTicketResponse> getPendingTickets(@RequestParam Long manager) {
-        PendingTicketResponse response = pendingTicketService.getPendingTickets(manager);
+    public ApiResponse<PendingTicketResponse> getPendingTickets(@RequestParam("managerId") Long managerId) {
+        PendingTicketResponse response = pendingTicketService.getPendingTickets(managerId);
         return ApiResponse.success(response);
     }
 }

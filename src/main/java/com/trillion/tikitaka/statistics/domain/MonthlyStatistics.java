@@ -1,5 +1,4 @@
 package com.trillion.tikitaka.statistics.domain;
-
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
