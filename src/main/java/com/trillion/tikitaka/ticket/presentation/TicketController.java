@@ -99,9 +99,9 @@ public class TicketController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PatchMapping("/{ticketId}")
-    public ApiResponse<Void> editTicket(@PathVariable Long ticketId, @RequestBody @Valid EditTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ApiResponse<Long> editTicket(@PathVariable Long ticketId, @RequestBody @Valid EditTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails){
         ticketService.editTicket(request,ticketId,userDetails);
-        return new ApiResponse<>("티켓이 수정되었습니다.",null);
+        return new ApiResponse<>("티켓이 수정되었습니다.",ticketId);
     }
 
 
