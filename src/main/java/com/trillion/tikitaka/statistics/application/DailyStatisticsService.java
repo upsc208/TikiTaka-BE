@@ -35,6 +35,7 @@ public class DailyStatisticsService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
+    private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
     /**
