@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.statistics.application;
 
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.statistics.dto.response.WeeklyStatisticsResponse;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
@@ -23,7 +24,9 @@ public class WeeklyStatisticsService {
      * 요약 통계 조회
      * 매개변수로 현재 로그인 사용자의 managerId (User ID) 받아서 처리 (예시)
      */
-    public WeeklyStatisticsResponse getWeeklySummary(Long managerId) {
+    public WeeklyStatisticsResponse getWeeklySummary(CustomUserDetails userDetails) {
+        Long managerId = userDetails.getId();
+
         // 1) today 0시, tomorrow 0시
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         LocalDateTime endOfToday = startOfToday.plusDays(1);
