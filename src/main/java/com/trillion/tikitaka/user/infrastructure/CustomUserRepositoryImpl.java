@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.user.infrastructure;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -20,6 +21,19 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     @Override
     public UserListResponse getAllUsersByRole(Role targetRole, Role currentUserRole) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (targetRole != null) {
+            builder.and(user.role.eq(targetRole));
+        } else {
+            if (currentUserRole == Role.ADMIN) {
+                // 관리자일 경우 모든 유저 조회
+            } else {
+                builder.and(user.role.in(Role.MANAGER, Role.USER));
+            }
+        }
+
         List<UserResponse> users = queryFactory
                 .select(new QUserResponse(
                         user.id.as("userId"),
@@ -29,20 +43,21 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         user.profileImageUrl
                 ))
                 .from(user)
-                .where(userRoleEq(targetRole))
+                .where(builder)
                 .fetch();
 
         UserListResponse response = new UserListResponse();
         response.setUsers(users);
 
-        Long adminCount = currentUserRole == Role.ADMIN ? countAdmin() : null;
-        response.setAdminCount(adminCount);
-
-        Long managerCount = currentUserRole == Role.ADMIN ? countManager() : null;
-        response.setManagerCount(managerCount);
-
-        Long userCount = currentUserRole == Role.ADMIN ? countUser() : null;
-        response.setUserCount(userCount);
+        if (currentUserRole == Role.ADMIN) {
+            response.setAdminCount(countAdmin());
+            response.setManagerCount(countManager());
+            response.setUserCount(countUser());
+        } else {
+            response.setAdminCount(null);
+            response.setManagerCount(null);
+            response.setUserCount(null);
+        }
 
         return response;
     }
@@ -62,12 +77,26 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .fetchOne();
     }
 
+    @Override
+    public List<UserResponse> getAllUsers() {
+        return queryFactory
+                .select(new QUserResponse(
+                        user.id.as("userId"),
+                        user.username,
+                        user.email,
+                        user.role,
+                        user.profileImageUrl
+                ))
+                .from(user)
+                .fetch();
+    }
+
     private static BooleanExpression userIdEq(Long userId) {
         return user.id.eq(userId);
     }
 
     private static BooleanExpression userRoleEq(Role role) {
-        return user.role.eq(role);
+        return role != null ? user.role.eq(role) : null;
     }
 
     public Long countAdmin() {

@@ -35,7 +35,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-    public ApiResponse<UserListResponse> getUsersByRole(@RequestParam("role") Role role,
+    public ApiResponse<UserListResponse> getAllUsersByRole(@RequestParam(value = "role", required = false) Role role,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         UserListResponse response = userService.getUserListResponse(role, userDetails);
         return ApiResponse.success(response);
