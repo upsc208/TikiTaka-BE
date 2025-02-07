@@ -1,5 +1,7 @@
 package com.trillion.tikitaka.ticket.dto.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.trillion.tikitaka.global.jackson.CustomLocalDateTimeDeserializer;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -27,7 +29,7 @@ public class CreateTicketRequest {
     private Long secondCategoryId;
 
     @NotNull(message = "마감일을 입력해주세요.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
+    @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     private LocalDateTime deadline;
 
     private Long managerId;
