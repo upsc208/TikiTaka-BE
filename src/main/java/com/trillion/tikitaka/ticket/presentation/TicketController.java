@@ -7,7 +7,6 @@ import com.trillion.tikitaka.ticket.application.ReviewService;
 import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
-import com.trillion.tikitaka.ticket.application.PendingTicketService;
 import com.trillion.tikitaka.ticket.dto.response.*;
 import com.trillion.tikitaka.ticket.dto.request.EditCategory;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
@@ -33,7 +32,6 @@ public class TicketController {
     private final TicketService ticketService;
     private final SubtaskService subtaskService;
     private final ReviewService reviewService;
-    private final PendingTicketService pendingTicketService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
@@ -175,7 +173,7 @@ public class TicketController {
     @PreAuthorize("hasAuthority('MANAGER')")
     @GetMapping("/list/pending")
     public ApiResponse<PendingTicketResponse> getPendingTickets(@RequestParam("managerId") Long managerId) {
-        PendingTicketResponse response = pendingTicketService.getPendingTickets(managerId);
+        PendingTicketResponse response = ticketService.getPendingTickets(managerId);
         return ApiResponse.success(response);
     }
 }

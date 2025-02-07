@@ -1,6 +1,5 @@
 package com.trillion.tikitaka.subtask.application;
 
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.subtask.domain.Subtask;
 import com.trillion.tikitaka.subtask.dto.response.SubtaskResponse;
 import com.trillion.tikitaka.subtask.exception.SubtaskNotFoundExeption;
@@ -10,14 +9,15 @@ import com.trillion.tikitaka.subtask.dto.request.SubtaskRequest;
 import com.trillion.tikitaka.subtask.infrastructure.SubtaskRepository;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
-import com.trillion.tikitaka.user.domain.Role;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubtaskService {
@@ -27,8 +27,9 @@ public class SubtaskService {
 
     @Transactional
     public Subtask createSubtask(SubtaskRequest request) {
+        log.info("[하위 태스트 생성]");
         Ticket parentTicket = ticketRepository.findById(request.getTicketId())
-                .orElseThrow(() -> new TicketNotFoundException());
+                .orElseThrow(TicketNotFoundException::new);
 
         Subtask subtask = Subtask.builder()
                 .description(request.getDescription())
@@ -42,8 +43,9 @@ public class SubtaskService {
 
     @Transactional(readOnly = true)
     public List<SubtaskResponse> getSubtasksByTicketId(Long ticketId) {
+        log.info("[하위 태스크 조회]");
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException());
+                .orElseThrow(TicketNotFoundException::new);
 
         List<Subtask> subtasks = subtaskRepository.findByParentTicket(ticket);
 
@@ -54,6 +56,7 @@ public class SubtaskService {
 
     @Transactional
     public void editSubtask(Long taskId, SubtaskRequest request) {
+        log.info("[하위 태스크 수정]");
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(UnauthrizedSubtaskAcessExeception::new);
 
@@ -62,6 +65,7 @@ public class SubtaskService {
 
     @Transactional
     public void deleteSubtask(Long taskId,Long ticketId) {
+        log.info("[하위 태스크 삭제]");
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
 
@@ -70,8 +74,9 @@ public class SubtaskService {
     }
     @Transactional
     public void deleteAllSubtask(Long ticketId) {
+        log.info("[하위 태스크 전체 삭제]");
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException());
+                .orElseThrow(TicketNotFoundException::new);
 
         List<Subtask> subtasks = subtaskRepository.findAllByParentTicket(ticket);
 
@@ -82,6 +87,7 @@ public class SubtaskService {
 
     @Transactional
     public void updateSubtaskIsDone(Long taskId,Boolean checkIsDone,Long ticketId){
+        log.info("[하위 태스크 완료]");
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
         subtask.updateIsDone(checkIsDone);
@@ -89,18 +95,21 @@ public class SubtaskService {
     }
     @Transactional
     public Double calculateProgress(Long ticketId) {
+        log.info("[티켓 진행률 계산]");
         Double subtaskCount = subtaskRepository.countAllByParentTicketId(ticketId);
         Double isDoneChecked = subtaskRepository.countAllByDoneIsTrueAndParentTicketId(ticketId);
 
         if (subtaskCount == 0) {
+            log.info("[티켓 진행률 계산] 하위 태스크가 존재하지 않음");
             return null;
         }
 
         Double progress = (isDoneChecked / subtaskCount) * 100;
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException());
+                .orElseThrow(TicketNotFoundException::new);
         ticket.updateProgress(progress);
 
+        log.info("[티켓 진행률 계산] 진행률: {}", progress);
         return Math.round(progress * 10.0) / 10.0;
     }
 

@@ -18,6 +18,7 @@ import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -37,6 +39,7 @@ public class RegistrationService {
 
     @Transactional
     public void createRegistration(RegistrationRequest registrationRequest) {
+        log.info("[계정 등록 요청] 아이디: {}, 이메일: {}", registrationRequest.getUsername(), registrationRequest.getEmail());
         validateDuplicateRegistration(registrationRequest.getUsername(), registrationRequest.getEmail());
 
         Registration registration = Registration.builder()
@@ -49,43 +52,55 @@ public class RegistrationService {
 
     private void validateDuplicateRegistration(String username, String email) {
         if (userRepository.existsByUsername(username)) {
+            log.error("[계정 등록 실패] 중복된 아이디입니다. {}", username);
             throw new DuplicatedUsernameException();
         }
         if (userRepository.existsByEmail(email)) {
+            log.error("[계정 등록 실패] 중복된 이메일입니다. {}", email);
             throw new DuplicatedEmailException();
         }
 
         if (registrationRepository.existsByUsernameAndStatusNot(username, RegistrationStatus.REJECTED)) {
+            log.error("[계정 등록 실패] 중복된 아이디입니다. {}", username);
             throw new DuplicatedUsernameException();
         }
         if (registrationRepository.existsByEmailAndStatusNot(email, RegistrationStatus.REJECTED)) {
+            log.error("[계정 등록 실패] 중복된 이메일입니다. {}", email);
             throw new DuplicatedEmailException();
         }
     }
 
     public Page<RegistrationListResponse> getRegistrations(RegistrationStatus status, Pageable pageable) {
+        log.info("[계정 등록 요청 목록 조회] 조회 상태: {}", status);
         return registrationRepository.getRegistrations(status, pageable);
     }
 
     @Transactional
     public void processRegistration(Long registrationId, RegistrationStatus status, RegistrationProcessRequest request) {
+        log.info("[계정 등록 처리] 요청 아아디: {}, {}", registrationId, status);
         Registration registration = registrationRepository.findById(registrationId)
                 .orElseThrow(RegistrationNotFoundException::new);
 
         if (registration.getStatus() != RegistrationStatus.PENDING) {
+            log.error("[계정 등록 처리 실패] 이미 처리된 계정 등록 요청: {}", registrationId);
             throw new RegistrationAlreadyProcessedException();
         }
 
         String message = switch (status) {
             case APPROVED -> {
+                log.info("[계정 등록 처리] 계정 등록 승인: {}", registrationId);
                 registration.approve(request.getReason());
                 yield createUser(registration.getUsername(), registration.getEmail(), request.getRole());
             }
             case REJECTED -> {
+                log.info("[계정 등록 처리] 계정 등록 거부: {}", registrationId);
                 registration.reject(request.getReason());
                 yield request.getReason();
             }
-            default -> throw new CustomException(ErrorCode.INVALID_REQUEST_VALUE);
+            default -> {
+                log.error("[계정 등록 처리 실패] 유효하지 않은 상태: {}", status);
+                throw new CustomException(ErrorCode.INVALID_REQUEST_VALUE);
+            }
         };
 
         publishRegistrationEvent(registration, message, request.getRole());
@@ -104,6 +119,7 @@ public class RegistrationService {
     }
 
     private String createUser(String username, String email, Role role) {
+        log.info("[계정 생성] 아이디: {}, 이메일: {}", username, email);
         String rawPassword = PasswordGenerator.generateRandomPassword();
 
         User user = User.builder()

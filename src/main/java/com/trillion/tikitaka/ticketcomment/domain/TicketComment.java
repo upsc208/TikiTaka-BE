@@ -7,9 +7,11 @@ import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentEx
 import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+@Slf4j
 @Builder
 @Entity
 @Table(name = "ticket_comments")
@@ -41,12 +43,14 @@ public class TicketComment extends DeletedBaseEntity {
 
     public void validateTicket(Long ticketId) {
         if (!this.ticket.getId().equals(ticketId)) {
+            log.error("[티켓 댓글] 티켓 댓글 ID: {}와 티켓 ID: {} 불일치", this.id, ticketId);
             throw new InvalidTicketCommentException();
         }
     }
 
     public void validateAuthor(User user) {
         if (!this.author.getId().equals(user.getId())) {
+            log.error("[티켓 댓글] 작성자 불일치. 댓글 ID: {}, 작성자 ID: {}", this.id, user.getId());
             throw new UnauthorizedTicketCommentException();
         }
     }

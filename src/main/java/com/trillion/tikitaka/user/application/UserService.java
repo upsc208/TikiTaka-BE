@@ -13,11 +13,13 @@ import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.trillion.tikitaka.user.domain.Role;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -29,13 +31,16 @@ public class UserService {
 
     @Transactional
     public void updatePassword(Long userId, PasswordChangeRequest request) {
+        log.info("[비밀번호 변경] 사용자 ID: {}", userId);
         if(request.getCurrentPassword().equals(request.getNewPassword())) {
+            log.error("[비밀번호 변경] 새 비밀번호가 기존 비밀번호와 동일");
             throw new CustomException(ErrorCode.NEW_PASSWORD_NOT_CHANGED);
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            log.error("[비밀번호 변경] 현재 비밀번호 불일치");
             throw new CustomException(ErrorCode.CURRENT_PASSWORD_NOT_MATCHED);
         }
 
@@ -45,6 +50,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId) {
+        log.info("[사용자 삭제] 사용자 ID: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -52,6 +58,7 @@ public class UserService {
     }
 
     public RegistrationAndUserCountResponse getRegistrationAndUserCount() {
+        log.info("[회원가입 및 사용자 수 조회]");
         return new RegistrationAndUserCountResponse(
                 registrationRepository.countByStatus(RegistrationStatus.PENDING),
                 userRepository.count()
@@ -59,8 +66,10 @@ public class UserService {
     }
 
     public UserListResponse getUserListResponse(Role role, CustomUserDetails userDetails) {
+        log.info("[사용자 목록 조회] 권한: {}", role);
         Role currentUserRole = userDetails.getUser().getRole();
         if ((currentUserRole == Role.USER || currentUserRole == Role.MANAGER) && role == Role.ADMIN) {
+            log.error("[사용자 목록 조회] 권한 없음");
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -68,19 +77,28 @@ public class UserService {
     }
 
     public UserResponse getUserResponse(Long userId) {
+        log.info("[사용자 조회] 사용자 ID: {}", userId);
         UserResponse userResponse = userRepository.getUserResponse(userId);
-        if (userResponse == null) throw new UserNotFoundException();
+        if (userResponse == null) {
+            log.error("[사용자 조회] 사용자 없음");
+            throw new UserNotFoundException();
+        }
         return userResponse;
     }
 
     public UserResponse getMyUserResponse(CustomUserDetails userDetails) {
+        log.info("[내 정보 조회]");
         UserResponse userResponse = userRepository.getUserResponse(userDetails.getId());
-        if (userResponse == null) throw new UserNotFoundException();
+        if (userResponse == null) {
+            log.error("[내 정보 조회] 사용자 없음");
+            throw new UserNotFoundException();
+        }
         return userResponse;
     }
 
     @Transactional
     public void changeUserRole(Long userId, Role newRole) {
+        log.info("[사용자 권한 변경] 사용자 ID: {}, 새 권한: {}", userId, newRole);
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 

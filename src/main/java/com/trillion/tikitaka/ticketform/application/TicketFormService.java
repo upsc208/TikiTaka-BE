@@ -11,9 +11,11 @@ import com.trillion.tikitaka.ticketform.exception.DuplicatedTicketFormException;
 import com.trillion.tikitaka.ticketform.exception.TicketFormNotFoundException;
 import com.trillion.tikitaka.ticketform.infrastructure.TicketFormRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -24,17 +26,20 @@ public class TicketFormService {
 
     @Transactional
     public void createTicketForm(Long firstCategoryId, Long secondCategoryId, String mustDescription, String description) {
+        log.info("[티켓 폼 생성] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         Category firstCategory = categoryRepository.findById(firstCategoryId)
                 .orElseThrow(CategoryNotFoundException::new);
         Category secondCategory = categoryRepository.findById(secondCategoryId)
                 .orElseThrow(CategoryNotFoundException::new);
 
         if (!secondCategory.isChildOf(firstCategory)) {
+            log.error("[티켓 폼 생성] 2차 카테고리가 1차 카테고리의 하위 카테고리가 아님");
             throw new InvalidCategoryLevelException();
         }
 
         TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
         if (ticketFormRepository.existsById(ticketFormId)) {
+            log.error("[티켓 폼 생성] 중복된 티켓 폼");
             throw new DuplicatedTicketFormException();
         }
 
@@ -48,6 +53,7 @@ public class TicketFormService {
     }
 
     public TicketFormResponse getTicketForm(Long firstCategoryId, Long secondCategoryId) {
+        log.info("[티켓 폼 조회] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         validateCategoryRelationship(firstCategoryId, secondCategoryId);
 
         TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
@@ -65,6 +71,7 @@ public class TicketFormService {
 
     @Transactional
     public void updateTicketForm(Long firstCategoryId, Long secondCategoryId, String newMustDescription, String newDescription) {
+        log.info("[티켓 폼 수정] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         validateCategoryRelationship(firstCategoryId, secondCategoryId);
 
         TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
@@ -76,6 +83,7 @@ public class TicketFormService {
 
     @Transactional
     public void deleteTicketForm(Long firstCategoryId, Long secondCategoryId) {
+        log.info("[티켓 폼 삭제] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         validateCategoryRelationship(firstCategoryId, secondCategoryId);
 
         TicketFormId ticketFormId = new TicketFormId(firstCategoryId, secondCategoryId);
@@ -86,10 +94,12 @@ public class TicketFormService {
     }
 
     private void validateCategoryRelationship(Long firstCategoryId, Long secondCategoryId) {
+        log.info("[카테고리 관계 검증] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         Category secondCategory = categoryRepository.findById(secondCategoryId)
                 .orElseThrow(CategoryNotFoundException::new);
 
         if (secondCategory.getParent() == null || !secondCategory.getParent().getId().equals(firstCategoryId)) {
+            log.error("[카테고리 관계 검증] 2차 카테고리가 1차 카테고리의 하위 카테고리가 아님");
             throw new InvalidCategoryLevelException();
         }
     }

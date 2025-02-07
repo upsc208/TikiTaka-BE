@@ -17,6 +17,7 @@ import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,6 +40,7 @@ public class TicketTemplateService {
 
     @Transactional
     public Long createTicketTemplate(TicketTemplateRequest req, CustomUserDetails userDetails) {
+        log.info("[티켓 템플릿 생성] 템플릿 제목: {}, 제목: {}", req.getTemplateTitle(), req.getTitle());
         TicketType type = typeRepository.findById(req.getTypeId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
         Category firstCat = categoryRepository.findById(req.getFirstCategoryId())
@@ -69,10 +72,12 @@ public class TicketTemplateService {
 
     @Transactional
     public Long updateTicketTemplate(Long id, TicketTemplateRequest req, CustomUserDetails userDetails) {
+        log.info("[티켓 템플릿 수정] ID: {}, 템플릿 제목: {}, 제목: {}", id, req.getTemplateTitle(), req.getTitle());
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
 
         if (!template.getRequester().getId().equals(userDetails.getId())) {
+            log.error("[티켓 템플릿 수정] 권한 없음");
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -107,10 +112,12 @@ public class TicketTemplateService {
 
     @Transactional
     public void deleteTicketTemplate(Long id, CustomUserDetails userDetails) {
+        log.info("[티켓 템플릿 삭제] ID: {}", id);
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
 
         if (!template.getRequester().getId().equals(userDetails.getId())) {
+            log.error("[티켓 템플릿 삭제] 권한 없음");
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -118,6 +125,7 @@ public class TicketTemplateService {
     }
 
     public TicketTemplateResponse getOneTicketTemplate(Long id) {
+        log.info("[티켓 템플릿 조회] ID: {}", id);
         TicketTemplate template = templateRepository.findById(id)
                 .orElseThrow(TicketTemplateNotFoundException::new);
 
@@ -164,6 +172,7 @@ public class TicketTemplateService {
     }
 
     public List<TicketTemplateListResponse> getAllTicketTemplates() {
+        log.info("[티켓 템플릿 전체 조회]");
         List<TicketTemplate> templates = templateRepository.findAll();
 
         return templates.stream()

@@ -7,11 +7,13 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.trillion.tikitaka.authentication.application.util.JwtUtil.*;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -22,8 +24,10 @@ public class JwtService {
 
     @Transactional
     public TokenResponse reissueTokens(HttpServletRequest request) {
+        log.info("[토큰 재발급 요청]");
         String refreshToken = extractRefreshToken(request);
         if (refreshToken == null) {
+            log.info("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
             return null;
         }
 
@@ -31,6 +35,7 @@ public class JwtService {
 
         Boolean isRefreshTokenExist = jwtTokenRepository.existsByRefreshToken(refreshToken);
         if (!isRefreshTokenExist) {
+            log.info("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
             return null;
         }
 
@@ -44,6 +49,7 @@ public class JwtService {
         jwtTokenRepository.deleteByRefreshToken(refreshToken);
         jwtUtil.addRefreshToken(username, newRefreshToken, REFRESH_TOKEN_EXPIRATION);
 
+        log.info("[토큰 재발급 요청] 토큰 재발급 완료");
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
 

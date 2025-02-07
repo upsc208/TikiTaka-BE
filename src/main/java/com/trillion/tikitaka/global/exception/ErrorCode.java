@@ -8,9 +8,9 @@ public enum ErrorCode {
 
     // Common
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C001", "서버에서 알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
-    INVALID_ARGUMENT_TYPE(HttpStatus.BAD_REQUEST, "C002", "잘못된 요청값입니다."),
-    MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "C003", "요청값을 입력해주세요."),
-    INVALID_REQUEST_VALUE(HttpStatus.BAD_REQUEST, "C004", "요청값이 잘못되었습니다."),
+    INVALID_ARGUMENT_TYPE(HttpStatus.BAD_REQUEST, "C002", "요청 값 타입이 잘못되었습니다."),
+    MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "C003", "요청 값이 누락되었습니다."),
+    INVALID_REQUEST_VALUE(HttpStatus.BAD_REQUEST, "C004", "요청 값이 잘못되었습니다."),
 
     // Authentication
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증되지 않은 사용자입니다."),
@@ -91,6 +91,7 @@ public enum ErrorCode {
     INVALID_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "O005", "허용되지 않는 파일 확장자입니다."),
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "O006", "파일을 찾을 수 없습니다."),
     FILE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "O007", "파일 삭제 중 오류가 발생했습니다."),
+    UNAUTHORIZED_FILE_ACCESS(HttpStatus.FORBIDDEN, "O008", "파일에 대한 접근 권한이 없습니다."),
     ;
 
     private final HttpStatus httpStatus;
