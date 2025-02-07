@@ -4,6 +4,7 @@ import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.request.PasswordChangeRequest;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
@@ -33,9 +34,10 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<UserListResponse> findAllUsers() {
-        UserListResponse response = userService.findAllUsers();
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
+    public ApiResponse<UserListResponse> getUsersByRole(@RequestParam("role") Role role,
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserListResponse response = userService.getUserListResponse(role, userDetails);
         return ApiResponse.success(response);
     }
 

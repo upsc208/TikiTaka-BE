@@ -1,5 +1,4 @@
 package com.trillion.tikitaka.statistics.domain;
-
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
@@ -68,7 +67,7 @@ public class MonthlyStatistics extends DeletedBaseEntity {
     private LocalDateTime lastUpdatedAt;
 
     // 통계 업데이트 메서드
-    public void updateStatistics(int totalCreated, int totalCompleted,int urgentTickets, int inProgressCount, float averageCompletionTime, float completionRatio) {
+    /*public void updateStatistics(int totalCreated, int totalCompleted,int urgentTickets, int inProgressCount, float averageCompletionTime, float completionRatio) {
         this.totalCreated = totalCreated;
         this.totalCompleted = totalCompleted;
         this.urgentTickets = urgentTickets;
@@ -76,5 +75,13 @@ public class MonthlyStatistics extends DeletedBaseEntity {
         this.averageCompletionTime = averageCompletionTime;
         this.completionRatio = completionRatio;
         this.lastUpdatedAt = LocalDateTime.now();
+    }*/
+    public void updateStatistics(int totalCreated, int totalCompleted, int urgentTickets, int inProgressCount, float completionRatio) {
+        this.totalCreated = totalCreated;
+        this.totalCompleted = totalCompleted;
+        this.urgentTickets = urgentTickets;
+        this.inProgressCount = inProgressCount;
+        this.completionRatio = completionRatio;
     }
+
 }

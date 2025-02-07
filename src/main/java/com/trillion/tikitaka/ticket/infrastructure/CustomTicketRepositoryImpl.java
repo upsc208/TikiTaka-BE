@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.ticket.infrastructure;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -8,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.*;
+import com.trillion.tikitaka.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -65,7 +67,22 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
 
     @Override
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption) {
+                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort) {
+
+        NumberExpression<Integer> urgentPriority = new CaseBuilder()
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
+                .then(0)
+                .otherwise(1);
+
+        OrderSpecifier<?> mainOrder;
+        if ("oldest".equalsIgnoreCase(sort)) {
+            mainOrder = ticket.createdAt.asc();
+        } else if ("deadline".equalsIgnoreCase(sort)) {
+            mainOrder = ticket.deadline.asc().nullsLast();
+        } else {
+            mainOrder = ticket.createdAt.desc();
+        }
 
         List<TicketListResponse> content = queryFactory
                 .select(new QTicketListResponse(
@@ -78,7 +95,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.manager.username.as("managerName"),
                         ticket.status,
                         ticket.urgent,
-                        ticket.deadline
+                        ticket.deadline,
+                        ticket.createdAt
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
@@ -95,6 +113,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         deletedAtEqNull(),
                         createdAtBetween(dateOption)
                 )
+                .orderBy(urgentPriority.asc(), mainOrder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -153,6 +172,44 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .where(
                         buildRoleConditions(userId, role),
                         ticketIdEq(ticketId),
+                        deletedAtEqNull()
+                )
+                .fetchOne();
+    }
+
+    @Override
+    public List<Ticket> findUnassignedTickets(LocalDateTime createdBefore) {
+        return queryFactory
+                .selectFrom(ticket)
+                .where(
+                        ticket.manager.isNull()
+                        .and(ticket.createdAt.before(createdBefore)),
+                        deletedAtEqNull()
+                )
+                .fetch();
+    }
+
+    @Override
+    public Long countTicketsByManagerAndStatusIn(User manager, List<Ticket.Status> statuses) {
+        return queryFactory
+                .select(ticket.count())
+                .from(ticket)
+                .where(
+                        ticket.manager.eq(manager)
+                        .and(ticket.status.in(statuses)),
+                        deletedAtEqNull()
+                )
+                .fetchOne();
+    }
+
+    @Override
+    public Long countByManagerAndTicketStatus(User manager, Ticket.Status status) {
+        return queryFactory
+                .select(ticket.count())
+                .from(ticket)
+                .where(
+                        ticket.manager.eq(manager)
+                        .and(ticket.status.eq(status)),
                         deletedAtEqNull()
                 )
                 .fetchOne();

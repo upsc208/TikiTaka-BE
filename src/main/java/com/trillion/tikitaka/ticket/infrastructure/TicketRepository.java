@@ -67,64 +67,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month AND t.urgent = true AND t.ticketType = :type")
     int countUrgentTicketsByType(@Param("year") int year, @Param("month") int month, @Param("type") TicketType type);
 
-
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
-            "AND t.urgent = true " +
-            "AND (:category IS NULL OR t.firstCategory = :category) " +
-            "AND (:user IS NULL OR t.manager = :user) " +
-            "AND (:type IS NULL OR t.ticketType = :type)")
-    int countUrgentTicketsByCategoryAndUserAndType(@Param("year") int year,
-                                                   @Param("month") int month,
-                                                   @Param("category") Category category,
-                                                   @Param("user") User user,
-                                                   @Param("type") TicketType type);
-
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
-            "AND t.status = :status " +
-            "AND (:category IS NULL OR t.firstCategory = :category) " +
-            "AND (:user IS NULL OR t.manager = :user) " +
-            "AND (:type IS NULL OR t.ticketType = :type)")
-    int countByStatusAndCategoryAndUserAndType(@Param("year") int year,
-                                               @Param("month") int month,
-                                               @Param("category") Category category,
-                                               @Param("user") User user,
-                                               @Param("type") TicketType type,
-                                               @Param("status") Ticket.Status status);
-
-
-
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
-            "AND (:category IS NULL OR t.firstCategory = :category) " +
-            "AND (:user IS NULL OR t.manager = :user) " +
-            "AND (:type IS NULL OR t.ticketType = :type)")
-    int countByCreatedAtBetweenAndCategoryAndUserAndType(@Param("year") int year,
-                                                         @Param("month") int month,
-                                                         @Param("category") Category category,
-                                                         @Param("user") User user,
-                                                         @Param("type") TicketType type);
-
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
-            "AND t.status = 'DONE' " +
-            "AND (:category IS NULL OR t.firstCategory = :category) " +
-            "AND (:user IS NULL OR t.manager = :user) " +
-            "AND (:type IS NULL OR t.ticketType = :type)")
-    int countByCompletedAtBetweenAndCategoryAndUserAndType(@Param("year") int year,
-                                                           @Param("month") int month,
-                                                           @Param("category") Category category,
-                                                           @Param("user") User user,
-                                                           @Param("type") TicketType type);
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
-            "AND t.status = 'DONE' " +
-            "AND (:category IS NULL OR t.firstCategory = :category) " +
-            "AND (:user IS NULL OR t.manager = :user) " +
-            "AND (:type IS NULL OR t.ticketType = :type)")
-    int countByCompletedStatusAndCategoryAndUserAndType(@Param("year") int year,
-                                                        @Param("month") int month,
-                                                        @Param("category") Category category,
-                                                        @Param("user") User user,
-                                                        @Param("type") TicketType type);
-
-
+    //===============================일간+주간========================================//
+    
     // 금일/금주 등 특정 구간에 DONE이고 manager=?
     @Query("""
         SELECT COUNT(t)
@@ -215,7 +159,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     // 담당자가 본인 or 지정되지 않고 상태가 PENDING & URGENT인 티켓 수 조회
     @Query("SELECT COUNT(t) FROM Ticket t WHERE (t.manager.id = :managerId OR t.manager IS NULL) AND t.status = :status AND t.urgent = true")
     int countUrgentPendingTickets(@Param("managerId") Long managerId, @Param("status") Ticket.Status status);
-
+          
     // ✅ 금일 1차 카테고리별 생성된 티켓 개수
     @Query("SELECT t.firstCategory, COUNT(t) FROM Ticket t " +
             "WHERE t.createdAt BETWEEN :startOfDay AND :endOfDay " +
@@ -231,5 +175,65 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     List<Object[]> countBySecondCategoryToday(@Param("startOfDay") LocalDateTime startOfDay,
                                               @Param("endOfDay") LocalDateTime endOfDay,
                                               @Param("firstCategory") Category firstCategory);
+
+    //===============================월간========================================//
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
+            "AND (:category IS NULL OR " +
+            "(t.secondCategory IS NOT NULL AND t.secondCategory = :category) OR " +
+            "(t.secondCategory IS NULL AND t.firstCategory = :category)) " +
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByCreatedAtBetweenAndCategoryAndUserAndType(@Param("year") int year,
+                                                         @Param("month") int month,
+                                                         @Param("category") Category category,
+                                                         @Param("user") User user,
+                                                         @Param("type") TicketType type);
+
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
+            "AND t.status = 'DONE' " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByCompletedAtBetweenAndCategoryAndUserAndType(@Param("year") int year,
+                                                           @Param("month") int month,
+                                                           @Param("category") Category category,
+                                                           @Param("user") User user,
+                                                           @Param("type") TicketType type);
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
+            "AND t.status = 'DONE' " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByCompletedStatusAndCategoryAndUserAndType(@Param("year") int year,
+                                                        @Param("month") int month,
+                                                        @Param("category") Category category,
+                                                        @Param("user") User user,
+                                                        @Param("type") TicketType type);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
+            "AND t.urgent = true " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countUrgentTicketsByCategoryAndUserAndType(@Param("year") int year,
+                                                   @Param("month") int month,
+                                                   @Param("category") Category category,
+                                                   @Param("user") User user,
+                                                   @Param("type") TicketType type);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
+            "AND t.status = :status " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByStatusAndCategoryAndUserAndType(@Param("year") int year,
+                                               @Param("month") int month,
+                                               @Param("category") Category category,
+                                               @Param("user") User user,
+                                               @Param("type") TicketType type,
+                                               @Param("status") Ticket.Status status);
+
 
 }

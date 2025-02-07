@@ -20,6 +20,7 @@ public class JwtService {
     private final JwtUtil jwtUtil;
     private final JwtTokenRepository jwtTokenRepository;
 
+    @Transactional
     public TokenResponse reissueTokens(HttpServletRequest request) {
         String refreshToken = extractRefreshToken(request);
         if (refreshToken == null) {

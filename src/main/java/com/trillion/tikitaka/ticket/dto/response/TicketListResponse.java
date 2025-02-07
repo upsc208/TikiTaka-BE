@@ -24,9 +24,13 @@ public class TicketListResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
+
     @QueryProjection
     public TicketListResponse(Long ticketId, String title, String description, String typeName, String firstCategoryName,
-                              String secondCategoryName, String managerName, Ticket.Status status, Boolean urgent, LocalDateTime deadline) {
+                              String secondCategoryName, String managerName, Ticket.Status status, Boolean urgent,
+                              LocalDateTime deadline, LocalDateTime createdAt) {
         this.ticketId = ticketId;
         this.title = title;
         this.description = description;
@@ -37,5 +41,6 @@ public class TicketListResponse {
         this.status = status;
         this.urgent = urgent;
         this.deadline = deadline;
+        this.createdAt = createdAt;
     }
 }

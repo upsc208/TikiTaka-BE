@@ -9,12 +9,12 @@ import org.springframework.context.ApplicationEvent;
 public class TicketCreationEvent extends ApplicationEvent implements NotificationEvent {
     private final String email;
     private final Ticket ticket;
-    private final NotificationType notificationType;
+    private final NotificationType type;
 
-    public TicketCreationEvent(Object source, String email, Ticket ticket, NotificationType notificationType) {
+    public TicketCreationEvent(Object source, String email, Ticket ticket, NotificationType type) {
         super(source);
         this.email = email;
         this.ticket = ticket;
-        this.notificationType = notificationType;
+        this.type = type;
     }
 }
