@@ -1,6 +1,9 @@
 package com.trillion.tikitaka.statistics.application;
 
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.statistics.dto.AllUser;
+import com.trillion.tikitaka.statistics.dto.response.DailyCategoryStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyManagerStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyTypeStatisticsResponse;
@@ -9,8 +12,6 @@ import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.domain.Role;
-import com.trillion.tikitaka.user.domain.User;
-import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.application.UserService;
@@ -20,11 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalTime;
-
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +32,9 @@ import java.time.LocalTime;
 public class DailyStatisticsService {
 
     private final TicketRepository ticketRepository;
-    private final UserService userService; // ✅ UserService 추가하여 유저 정보 가져옴
+    private final UserService userService;
     private final TicketTypeRepository ticketTypeRepository;
+    private final CategoryRepository categoryRepository;
 
     /**
      * 금일 전체 티켓 생성, 진행중, 완료된 티켓 수 통계
@@ -54,20 +55,19 @@ public class DailyStatisticsService {
     }
 
     /**
-     * ✅ 금일 담당자별 처리 중 & 완료된 티켓 수 조회 (AllUser DTO 사용)
+     * 금일 담당자별 처리 중 & 완료된 티켓 수 조회 (AllUser DTO 사용)
      */
     public List<AllUser> getDailyManagerSummary() {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         LocalDateTime endOfToday = startOfToday.plusDays(1);
 
-        // ✅ 모든 사용자 정보 조회
         UserListResponse userListResponse = userService.findAllUsers();
         List<UserResponse> users = userListResponse.getUsers();
 
         List<AllUser> managerStats = new ArrayList<>();
 
         for (UserResponse userResponse : users) {
-            if (userResponse.getRole() == Role.MANAGER) { // ✅ 담당자인 경우만 조회
+            if (userResponse.getRole() == Role.MANAGER) {
                 int inProgressTickets = ticketRepository.countByManagerAndStatus(
                         userResponse.getUserId(), startOfToday, endOfToday,
                         List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)
@@ -78,7 +78,6 @@ public class DailyStatisticsService {
                         List.of(Ticket.Status.DONE)
                 );
 
-                // ✅ AllUser DTO에 데이터 저장
                 AllUser stats = new AllUser();
                 stats.updateAllUser(
                         userResponse.getUsername(),
@@ -96,13 +95,13 @@ public class DailyStatisticsService {
     }
 
     /**
-     * 📌 일간 유형별 티켓 생성 현황 (기존 서비스 파일에 추가)
+     * 일간 유형별 티켓 생성 현황
      */
     public List<DailyTypeStatisticsResponse> getDailyTypeSummary() {
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay(); // 오늘 00:00:00
-        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX); // 오늘 23:59:59
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
 
-        List<TicketType> ticketTypes = ticketTypeRepository.findAll(); // 모든 티켓 유형 조회
+        List<TicketType> ticketTypes = ticketTypeRepository.findAll();
 
         return ticketTypes.stream()
                 .map(ticketType -> {
@@ -112,5 +111,39 @@ public class DailyStatisticsService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * ✅ 금일 1차, 2차 카테고리별 생성된 티켓 수 통계
+     */
+    public List<DailyCategoryStatisticsResponse> getDailyCategorySummary() {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
 
+        List<Object[]> firstCategoryStats = ticketRepository.countByFirstCategoryToday(startOfDay, endOfDay);
+        List<DailyCategoryStatisticsResponse> responseList = new ArrayList<>();
+
+        for (Object[] row : firstCategoryStats) {
+            Category firstCategory = (Category) row[0];
+            int firstCategoryTicketCount = ((Number) row[1]).intValue();
+
+            List<Object[]> secondCategoryStats = ticketRepository.countBySecondCategoryToday(startOfDay, endOfDay, firstCategory);
+
+            List<DailyCategoryStatisticsResponse.SecondCategoryInfo> secondCategories = secondCategoryStats.stream()
+                    .map(subRow -> new DailyCategoryStatisticsResponse.SecondCategoryInfo(
+                            ((Category) subRow[0]).getId(),
+                            ((Category) subRow[0]).getName(),
+                            ((Number) subRow[1]).intValue()
+                    ))
+                    .collect(Collectors.toList());
+
+            responseList.add(new DailyCategoryStatisticsResponse(
+                    firstCategory.getId(),
+                    firstCategory.getName(),
+                    secondCategories,
+                    firstCategoryTicketCount
+            ));
+        }
+
+        return responseList;
+    }
 }
+

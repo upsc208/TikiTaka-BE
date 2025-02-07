@@ -5,6 +5,7 @@ import com.trillion.tikitaka.statistics.application.DailyStatisticsService;
 import com.trillion.tikitaka.statistics.dto.response.DailyManagerStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyTypeStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyStatisticsResponse;
+import com.trillion.tikitaka.statistics.dto.response.DailyCategoryStatisticsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -51,5 +52,14 @@ public class DailyStatisticsController {
     public ApiResponse<List<DailyTypeStatisticsResponse>> getDailyTypeSummary() {
         List<DailyTypeStatisticsResponse> response = dailyStatisticsService.getDailyTypeSummary();
         return ApiResponse.success(response);
+    }
+
+    /**
+     * 📌 일간 카테고리별 티켓 생성 현황
+     */
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @GetMapping("/catSummary")
+    public ApiResponse<List<DailyCategoryStatisticsResponse>> getDailyCategorySummary() {
+        return ApiResponse.success(dailyStatisticsService.getDailyCategorySummary());
     }
 }

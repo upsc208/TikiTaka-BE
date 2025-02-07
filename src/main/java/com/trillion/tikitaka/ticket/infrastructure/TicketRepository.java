@@ -216,4 +216,20 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     @Query("SELECT COUNT(t) FROM Ticket t WHERE (t.manager.id = :managerId OR t.manager IS NULL) AND t.status = :status AND t.urgent = true")
     int countUrgentPendingTickets(@Param("managerId") Long managerId, @Param("status") Ticket.Status status);
 
+    // ✅ 금일 1차 카테고리별 생성된 티켓 개수
+    @Query("SELECT t.firstCategory, COUNT(t) FROM Ticket t " +
+            "WHERE t.createdAt BETWEEN :startOfDay AND :endOfDay " +
+            "GROUP BY t.firstCategory")
+    List<Object[]> countByFirstCategoryToday(@Param("startOfDay") LocalDateTime startOfDay,
+                                             @Param("endOfDay") LocalDateTime endOfDay);
+
+    // ✅ 금일 특정 1차 카테고리 내 2차 카테고리별 생성된 티켓 개수
+    @Query("SELECT t.secondCategory, COUNT(t) FROM Ticket t " +
+            "WHERE t.createdAt BETWEEN :startOfDay AND :endOfDay " +
+            "AND t.firstCategory = :firstCategory " +
+            "GROUP BY t.secondCategory")
+    List<Object[]> countBySecondCategoryToday(@Param("startOfDay") LocalDateTime startOfDay,
+                                              @Param("endOfDay") LocalDateTime endOfDay,
+                                              @Param("firstCategory") Category firstCategory);
+
 }
