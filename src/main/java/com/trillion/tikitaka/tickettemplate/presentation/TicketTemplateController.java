@@ -3,6 +3,7 @@ package com.trillion.tikitaka.tickettemplate.presentation;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.tickettemplate.application.TicketTemplateService;
 import com.trillion.tikitaka.tickettemplate.dto.request.TicketTemplateRequest;
+import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateIdResponse;
 import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateListResponse;
 import com.trillion.tikitaka.tickettemplate.dto.response.TicketTemplateResponse;
 import jakarta.validation.Valid;
@@ -22,9 +23,9 @@ public class TicketTemplateController {
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @PostMapping
-    public ApiResponse<Long> create(@Valid @RequestBody TicketTemplateRequest request) {
+    public ApiResponse<TicketTemplateIdResponse> create(@Valid @RequestBody TicketTemplateRequest request) {
         Long templateId = templateService.createTicketTemplate(request);
-        return ApiResponse.success(templateId);
+        return ApiResponse.success(new TicketTemplateIdResponse(templateId));
     }
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
