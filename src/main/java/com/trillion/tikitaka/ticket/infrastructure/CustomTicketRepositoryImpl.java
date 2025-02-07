@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.ticket.infrastructure;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -66,7 +67,22 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
 
     @Override
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption) {
+                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort) {
+
+        NumberExpression<Integer> urgentPriority = new CaseBuilder()
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
+                .then(0)
+                .otherwise(1);
+
+        OrderSpecifier<?> mainOrder;
+        if ("oldest".equalsIgnoreCase(sort)) {
+            mainOrder = ticket.createdAt.asc();
+        } else if ("deadline".equalsIgnoreCase(sort)) {
+            mainOrder = ticket.deadline.asc().nullsLast();
+        } else {
+            mainOrder = ticket.createdAt.desc();
+        }
 
         List<TicketListResponse> content = queryFactory
                 .select(new QTicketListResponse(
@@ -79,7 +95,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.manager.username.as("managerName"),
                         ticket.status,
                         ticket.urgent,
-                        ticket.deadline
+                        ticket.deadline,
+                        ticket.createdAt
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
@@ -96,6 +113,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         deletedAtEqNull(),
                         createdAtBetween(dateOption)
                 )
+                .orderBy(urgentPriority.asc(), mainOrder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

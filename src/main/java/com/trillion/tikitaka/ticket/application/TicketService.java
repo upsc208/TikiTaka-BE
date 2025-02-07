@@ -100,7 +100,7 @@ public class TicketService {
 
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
                                                   Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId,
-                                                  String dateOption, CustomUserDetails userDetails) {
+                                                  String dateOption, String sort, CustomUserDetails userDetails) {
         String role = userDetails.getUser().getRole().toString();
 
         if ("USER".equals(role)) {
@@ -116,7 +116,7 @@ public class TicketService {
         validateUserExistence(managerId);
 
         return ticketRepository.getTicketList(
-                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role, dateOption
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role, sort, dateOption
         );
     }
 
