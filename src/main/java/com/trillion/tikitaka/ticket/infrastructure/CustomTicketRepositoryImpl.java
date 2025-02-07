@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.*;
+import com.trillion.tikitaka.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -153,6 +154,44 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .where(
                         buildRoleConditions(userId, role),
                         ticketIdEq(ticketId),
+                        deletedAtEqNull()
+                )
+                .fetchOne();
+    }
+
+    @Override
+    public List<Ticket> findUnassignedTickets(LocalDateTime createdBefore) {
+        return queryFactory
+                .selectFrom(ticket)
+                .where(
+                        ticket.manager.isNull()
+                        .and(ticket.createdAt.before(createdBefore)),
+                        deletedAtEqNull()
+                )
+                .fetch();
+    }
+
+    @Override
+    public Long countTicketsByManagerAndStatusIn(User manager, List<Ticket.Status> statuses) {
+        return queryFactory
+                .select(ticket.count())
+                .from(ticket)
+                .where(
+                        ticket.manager.eq(manager)
+                        .and(ticket.status.in(statuses)),
+                        deletedAtEqNull()
+                )
+                .fetchOne();
+    }
+
+    @Override
+    public Long countByManagerAndTicketStatus(User manager, Ticket.Status status) {
+        return queryFactory
+                .select(ticket.count())
+                .from(ticket)
+                .where(
+                        ticket.manager.eq(manager)
+                        .and(ticket.status.eq(status)),
                         deletedAtEqNull()
                 )
                 .fetchOne();

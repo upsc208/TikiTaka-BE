@@ -42,13 +42,8 @@ public class CredentialScheduler {
         this.webClient = webClient;
     }
 
-    @PostConstruct
-    public void init() {
-        refreshCredentials();
-    }
-
     // 6시간마다 실행되어 최신 API 토큰 및 S3 크리덴셜을 갱신 (6 * 60 * 60 * 1000 밀리초 간격)
-    @Scheduled(fixedDelay = 6 * 60 * 60 * 1000)
+    @Scheduled(initialDelay = 60 * 1000, fixedDelay = 6 * 60 * 60 * 1000)
     public void refreshCredentials() {
         log.info("자격증명 갱신 시작...");
         try {
