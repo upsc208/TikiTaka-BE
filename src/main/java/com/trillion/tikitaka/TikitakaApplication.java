@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaAuditing
 @EnableScheduling
 @EnableAsync
-@EnableScheduling
 public class TikitakaApplication {
 
 	public static void main(String[] args) {
