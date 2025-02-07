@@ -174,8 +174,8 @@ public class TicketController {
 
     @PreAuthorize("hasAuthority('MANAGER')")
     @GetMapping("/list/pending")
-    public ApiResponse<PendingTicketResponse> getPendingTickets(@RequestParam Long manager) {
-        PendingTicketResponse response = pendingTicketService.getPendingTickets(manager);
+    public ApiResponse<PendingTicketResponse> getPendingTickets(@RequestParam("managerId") Long managerId) {
+        PendingTicketResponse response = pendingTicketService.getPendingTickets(managerId);
         return ApiResponse.success(response);
     }
 }

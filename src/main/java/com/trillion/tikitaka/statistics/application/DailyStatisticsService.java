@@ -15,6 +15,7 @@ import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.application.UserService;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 public class DailyStatisticsService {
 
     private final TicketRepository ticketRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final CategoryRepository categoryRepository;
 
@@ -61,8 +62,7 @@ public class DailyStatisticsService {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
         LocalDateTime endOfToday = startOfToday.plusDays(1);
 
-        UserListResponse userListResponse = userService.findAllUsers();
-        List<UserResponse> users = userListResponse.getUsers();
+        List<UserResponse> users = userRepository.getAllUsers();
 
         List<AllUser> managerStats = new ArrayList<>();
 
