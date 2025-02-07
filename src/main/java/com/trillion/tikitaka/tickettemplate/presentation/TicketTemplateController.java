@@ -22,11 +22,9 @@ public class TicketTemplateController {
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @PostMapping
-    public ApiResponse<Map<String, Object>> create(
-            @Valid @RequestBody TicketTemplateRequest request
-    ) {
-        Long id = templateService.createTicketTemplate(request);
-        return ApiResponse.success(Map.of("id", id));
+    public ApiResponse<Long> create(@Valid @RequestBody TicketTemplateRequest request) {
+        Long templateId = templateService.createTicketTemplate(request);
+        return ApiResponse.success(templateId);
     }
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
