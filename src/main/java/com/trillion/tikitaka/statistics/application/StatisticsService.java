@@ -1,5 +1,5 @@
 package com.trillion.tikitaka.statistics.application;
-
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
@@ -21,12 +21,14 @@ import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
+import com.trillion.tikitaka.statistics.dto.response.DailyCompletionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -153,6 +155,15 @@ public class StatisticsService {
         }
 
         return allUsers;
+    }
+    public DailyCompletionResponse getDailyCompletionStatistics(Long userId) {
+        LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime todayEnd = todayStart.plusDays(1).minusNanos(1);
+
+        int createdTickets = ticketRepository.countByCreatedAtAndUserId(todayStart, todayEnd, userId);
+        int doneTickets = ticketRepository.countByCompletedAtAndUserId(todayStart, todayEnd, userId);
+
+        return new DailyCompletionResponse(createdTickets, doneTickets);
     }
 
 
