@@ -58,8 +58,13 @@ public class UserService {
         );
     }
 
-    public UserListResponse findAllUsers() {
-        return userRepository.findAllUser();
+    public UserListResponse getUserListResponse(Role role, CustomUserDetails userDetails) {
+        Role currentUserRole = userDetails.getUser().getRole();
+        if ((currentUserRole == Role.USER || currentUserRole == Role.MANAGER) && role == Role.ADMIN) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return userRepository.getAllUsersByRole(role, currentUserRole);
     }
 
     public UserResponse getUserResponse(Long userId) {
