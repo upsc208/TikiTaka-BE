@@ -3,6 +3,7 @@ package com.trillion.tikitaka.authentication.application.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+@Slf4j
 public class CustomAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_PROCESSES_URL = "/login";
@@ -45,6 +47,7 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
         Map<String, String> loginAttempt = objectMapper.readValue(messageBody, Map.class);
         String username = loginAttempt.get(SPRING_SECURITY_USERNAME_KEY);
         String password = loginAttempt.get(SPRING_SECURITY_PASSWORD_KEY);
+        log.info("[로그인 요청] : {}", username);
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
         return this.getAuthenticationManager().authenticate(authToken);
