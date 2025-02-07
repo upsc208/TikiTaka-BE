@@ -40,7 +40,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.updatedAt BETWEEN :startOfDay AND :endOfDay AND t.status = 'DONE' AND t.manager.id = :userId")
     int countByCompletedAtAndUserId(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay, @Param("userId") Long userId);
-
     //@Query("SELECT COALESCE(AVG(DATEDIFF(t.updatedAt, t.createdAt)), 0) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month AND t.status = 'DONE'")
     //float calculateAverageCompletionTime(@Param("year") int year, @Param("month") int month);
 

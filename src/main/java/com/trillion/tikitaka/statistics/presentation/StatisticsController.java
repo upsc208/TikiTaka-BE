@@ -1,23 +1,23 @@
 package com.trillion.tikitaka.statistics.presentation;
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.statistics.application.StatisticsService;
+import com.trillion.tikitaka.statistics.dto.response.DailyCompletionResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import com.trillion.tikitaka.statistics.dto.response.AllCategory;
 import com.trillion.tikitaka.statistics.dto.response.AllMonth;
 import com.trillion.tikitaka.statistics.dto.response.AllType;
 import com.trillion.tikitaka.statistics.dto.response.AllUser;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/statistic")
 @RequiredArgsConstructor
 public class StatisticsController {
-
    private final StatisticsService statisticsService;
-
    @PostMapping("/record") // 저장 시험
    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
    public ApiResponse<Void> makeStatistics(@RequestParam int year,@RequestParam int month) {
@@ -51,9 +51,13 @@ public class StatisticsController {
       List<AllType> allTypes = statisticsService.getAllTypeTicket(year, month);
       return new ApiResponse<>("성공", allTypes);
    }
-
-
-
+   @GetMapping("/daily/completion")
+   @PreAuthorize("hasAnyAuthority('MANAGER')")
+   public ApiResponse<DailyCompletionResponse> getDailyCompletionStatistics(
+           @AuthenticationPrincipal CustomUserDetails userDetails) {
+      DailyCompletionResponse response = statisticsService.getDailyCompletionStatistics(userDetails.getUser().getId());
+      return new ApiResponse<>("요청이 성공적으로 처리되었습니다", response);
+   }
 
 
 }
