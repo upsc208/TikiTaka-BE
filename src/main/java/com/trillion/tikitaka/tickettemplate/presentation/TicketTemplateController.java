@@ -59,8 +59,8 @@ public class TicketTemplateController {
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @GetMapping
-    public ApiResponse<List<TicketTemplateListResponse>> getAll() {
-        List<TicketTemplateListResponse> list = templateService.getAllTicketTemplates();
+    public ApiResponse<List<TicketTemplateListResponse>> getMyTemplates(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<TicketTemplateListResponse> list = templateService.getMyTemplates(userDetails);
         return ApiResponse.success(list);
     }
 }
