@@ -171,45 +171,8 @@ public class TicketTemplateService {
         );
     }
 
-    public List<TicketTemplateListResponse> getAllTicketTemplates() {
+    public List<TicketTemplateListResponse> getMyTemplates(CustomUserDetails userDetails) {
         log.info("[티켓 템플릿 전체 조회]");
-        List<TicketTemplate> templates = templateRepository.findAll();
-
-        return templates.stream()
-                .map(template -> {
-                    TicketType typeEntity = template.getType();
-                    Long typeId = typeEntity.getId();
-                    String typeName = typeEntity.getName();
-
-                    Category firstCat = template.getFirstCategory();
-                    Long firstCatId = firstCat.getId();
-                    String firstCatName = firstCat.getName();
-
-                    Category secondCat = template.getSecondCategory();
-                    Long secondCatId = secondCat.getId();
-                    String secondCatName = secondCat.getName();
-
-                    String createdAtStr = (template.getCreatedAt() != null)
-                            ? template.getCreatedAt().format(FORMATTER)
-                            : null;
-                    String updatedAtStr = (template.getUpdatedAt() != null)
-                            ? template.getUpdatedAt().format(FORMATTER)
-                            : null;
-
-                    return new TicketTemplateListResponse(
-                            template.getId(),
-                            template.getTemplateTitle(),
-                            template.getTitle(),
-                            typeId,
-                            typeName,
-                            firstCatId,
-                            firstCatName,
-                            secondCatId,
-                            secondCatName,
-                            createdAtStr,
-                            updatedAtStr
-                    );
-                })
-                .collect(Collectors.toList());
+        return templateRepository.getAllTemplates(userDetails.getId());
     }
 }
