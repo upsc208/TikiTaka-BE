@@ -1,10 +1,8 @@
 package com.trillion.tikitaka.statistics.application;
 
 import com.trillion.tikitaka.category.domain.Category;
-import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.statistics.dto.AllUser;
 import com.trillion.tikitaka.statistics.dto.response.DailyCategoryStatisticsResponse;
-import com.trillion.tikitaka.statistics.dto.response.DailyManagerStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyTypeStatisticsResponse;
 import com.trillion.tikitaka.ticket.domain.Ticket;
@@ -12,9 +10,7 @@ import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.domain.Role;
-import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
-import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,8 +31,6 @@ public class DailyStatisticsService {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
-    private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
 
     /**
      * 금일 전체 티켓 생성, 진행중, 완료된 티켓 수 통계
