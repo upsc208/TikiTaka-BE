@@ -38,7 +38,7 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException, IOException {
-        if(request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)  ) {
+        if(request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)) {
             throw new AuthenticationServiceException("로그인 요청을 불러오는 중 오류가 발생했습니다.");
         }
 

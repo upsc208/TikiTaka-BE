@@ -38,7 +38,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        log.info("[인증] 로그인 성공");
         Long userId = ((CustomUserDetails) authentication.getPrincipal()).getId();
         String username = authentication.getName();
 
@@ -47,7 +46,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         String role = iterator.next().getAuthority();
 
         // 토큰 생성
-        log.info("[JWT] 토큰 생성");
+        log.info("[JWT] 토큰 발급");
         String accessToken = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, userId, username, role, ACCESS_TOKEN_EXPIRATION);
         String refreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, userId, username, role, REFRESH_TOKEN_EXPIRATION);
 

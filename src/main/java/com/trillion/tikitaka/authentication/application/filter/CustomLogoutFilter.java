@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -36,15 +38,16 @@ public class CustomLogoutFilter extends GenericFilterBean {
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
 
-        log.info("[로그아웃 요청] 아이디: {}", request.getRemoteUser());
         String requestURI = request.getRequestURI();
         if (!requestURI.matches("^\\/logout$")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        log.info("[로그아웃 요청]");
         String requestMethod = request.getMethod();
         if (!requestMethod.equals(DEFAULT_FILTER_HTTP_METHOD)) {
+            log.error("[로그아웃 요청] 잘못된 요청입니다.");
             filterChain.doFilter(request, response);
             return;
         }
@@ -100,6 +103,6 @@ public class CustomLogoutFilter extends GenericFilterBean {
 
         response.addCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
-        log.info("[로그아웃 요청] 로그아웃 성공");
+        log.info("[로그아웃 요청] 완료: {}", jwtUtil.getUsername(refreshToken));
     }
 }
