@@ -32,23 +32,15 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         try {
-            log.info("[JWT 필터] 토큰 검증");
             String accessToken = request.getHeader(TOKEN_HEADER);
             if (accessToken == null || !accessToken.startsWith(TOKEN_PREFIX)) {
-                log.error("[JWT 필터] 토큰이 존재하지 않거나 잘못된 형식입니다.");
                 filterChain.doFilter(request, response);
                 return;
             }
+
             accessToken = accessToken.substring(7).trim();
-
             validateToken(accessToken);
-
             setAuthentication(accessToken);
 
             filterChain.doFilter(request, response);
@@ -87,8 +79,7 @@ public class JwtFilter extends OncePerRequestFilter {
         Long userId = jwtUtil.getUserId(token);
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
-
-        log.info("[JWT 필터] 인증 정보 설정 - ID: {}, 사용자: {}, 역할: {}", userId, username, role);
+        log.info("[JWT 필터] 토큰 검증 성공 - ID: {}, 사용자: {}, 역할: {}", userId, username, role);
         CustomUserDetails userDetails = new CustomUserDetails(new User(userId, username, role));
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())

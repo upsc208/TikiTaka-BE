@@ -26,7 +26,6 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
     @Transactional
     protected void additionalAuthenticationChecks(UserDetails userDetails,
                                                   UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-        log.error("[인증] 추가 인증 체크");
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
         User user = customUserDetails.getUser();
 
@@ -53,6 +52,5 @@ public class CustomAuthenticationProvider extends DaoAuthenticationProvider {
         user.resetLoginFailCount();
         user.updateLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
-        log.info("[인증] 로그인 성공");
     }
 }
