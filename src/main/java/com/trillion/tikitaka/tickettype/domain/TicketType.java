@@ -48,4 +48,9 @@ public class TicketType extends DeletedBaseEntity {
     public String toString() {
         return this.name;
     }
+
+    public TicketType(Long id, String name) {
+        this.id = id;  // ✅ ID를 직접 설정 가능하도록 수정
+        this.name = name;
+    }
 }
