@@ -3,6 +3,8 @@ package com.trillion.tikitaka.authentication.application;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.authentication.dto.response.TokenResponse;
 import com.trillion.tikitaka.authentication.infrastructure.JwtTokenRepository;
+import com.trillion.tikitaka.global.exception.CustomException;
+import com.trillion.tikitaka.global.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -72,12 +74,14 @@ public class JwtService {
         try {
             jwtUtil.isExpired(refreshToken);
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException();
+            log.error("[토큰 재발급 요청] 리프레시 토큰이 만료되었습니다.");
+            throw new CustomException(ErrorCode.EXPIRED_TOKEN);
         }
 
         String type = jwtUtil.getType(refreshToken);
         if (!type.equals(TOKEN_TYPE_REFRESH)) {
-            throw new RuntimeException();
+            log.error("[토큰 재발급 요청] 잘못된 리프레시 토큰압니다.");
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
     }
 }
