@@ -164,6 +164,8 @@ public class TicketService {
                 ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
                 : null;
 
+        validateCategoryRelation(firstCategory, secondCategory);
+
         User user = userDetails.getUser();
 
         ticket.update(request, ticketType, firstCategory, secondCategory);
