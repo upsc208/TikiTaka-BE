@@ -18,7 +18,6 @@ public class TicketTemplateRequest {
     @NotBlank
     private String description;
 
-    @NotNull
     private Long typeId;
 
     private Long firstCategoryId;

@@ -52,10 +52,14 @@ public class TicketTemplateController {
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @GetMapping("/{templateId}")
-    public ApiResponse<TicketTemplateResponse> getOne(@PathVariable Long templateId) {
-        TicketTemplateResponse data = templateService.getOneTicketTemplate(templateId);
+    public ApiResponse<TicketTemplateResponse> getOne(
+            @PathVariable Long templateId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        TicketTemplateResponse data = templateService.getOneTicketTemplate(templateId, userDetails.getId());
         return ApiResponse.success(data);
     }
+
 
     @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
     @GetMapping
