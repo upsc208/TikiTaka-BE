@@ -6,8 +6,11 @@ import com.trillion.tikitaka.history.domain.TicketHistory;
 import com.trillion.tikitaka.history.dto.response.HistoryResponse;
 import com.trillion.tikitaka.history.infrastructure.HistoryRepository;
 import com.trillion.tikitaka.ticket.domain.Ticket;
+import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
+import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.user.domain.User;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +38,8 @@ class HistoryServiceTest {
 
     @Mock
     private HistoryRepository historyRepository;
-
+    @Mock
+    private TicketRepository ticketRepository;
     private Ticket ticket;
     private User user;
     private TicketHistory history;
@@ -70,19 +75,43 @@ class HistoryServiceTest {
         LocalDateTime timeT = LocalDateTime.now();
         Pageable pageable = PageRequest.of(0, 10);
         List<HistoryResponse> historyResponses = List.of(
-                new HistoryResponse(history.getId(), ticket.getId(), "title", "user", timeT, TicketHistory.UpdateType.TICKET_EDITED)
+                new HistoryResponse(history.getId(), ticket.getId(), "title", null, timeT, null)
         );
         Page<HistoryResponse> historyPage = new PageImpl<>(historyResponses);
 
-        when(historyRepository.getHistory(any(Pageable.class), anyLong(), anyLong(), anyString()))
+        when(historyRepository.getHistory(any(Pageable.class), any(), anyLong(), any()))
                 .thenReturn(historyPage);
 
+
         // When
-        Page<HistoryResponse> result = historyService.getHistory(pageable, user.getId(), ticket.getId(), "TICKET_EDITED");
+        Page<HistoryResponse> result = historyService.getHistory(pageable, null, ticket.getId(), null);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getUpdateType().toString()).isEqualTo("TICKET_EDITED");
+        assertThat(result.getContent().get(0).getUpdateType()).isNull();
     }
+    @Test
+    @DisplayName("존재하지 않는 티켓 ID로 이력 조회 시 TicketNotFoundException 발생")
+    void should_ThrowException_When_TicketNotFound() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        Long invalidTicketId = 333L;
+        Long updatedById = 1L;
+        String updateType = "TICKET_EDITED";
+
+        when(ticketRepository.existsById(eq(invalidTicketId))).thenReturn(false);
+
+        // When & Then
+        Assertions.assertThrows(TicketNotFoundException.class, () -> {
+            historyService.getHistory(pageable, updatedById, invalidTicketId, updateType);
+        });
+
+        // ✅ 해당 메서드가 실제로 호출되었는지 확인
+        verify(ticketRepository, times(1)).existsById(eq(invalidTicketId));
+    }
+
+
+
+
 
 }
