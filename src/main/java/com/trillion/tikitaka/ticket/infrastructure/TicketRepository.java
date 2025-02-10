@@ -21,6 +21,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     Page<Ticket> findByRequesterId(String requesterId, Pageable pageable);
     Page<Ticket> findAll(Pageable pageable);
 
+    boolean existsById(Long ticketId);
+
     // 전체 통계
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month")
     int countByCreatedAtBetween(@Param("year") int year, @Param("month") int month);
