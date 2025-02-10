@@ -106,7 +106,6 @@ class HistoryServiceTest {
             historyService.getHistory(pageable, updatedById, invalidTicketId, updateType);
         });
 
-        // ✅ 해당 메서드가 실제로 호출되었는지 확인
         verify(ticketRepository, times(1)).existsById(eq(invalidTicketId));
     }
 
