@@ -1,17 +1,13 @@
 package com.trillion.tikitaka.history.presentation;
 
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.response.ApiResponse;
-import com.trillion.tikitaka.history.application.HistoryService;
+import com.trillion.tikitaka.history.HistoryService;
 import com.trillion.tikitaka.history.dto.response.HistoryResponse;
-import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

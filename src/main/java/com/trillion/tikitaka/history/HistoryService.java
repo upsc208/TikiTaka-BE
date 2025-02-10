@@ -1,4 +1,4 @@
-package com.trillion.tikitaka.history.application;
+package com.trillion.tikitaka.history;
 
 import com.trillion.tikitaka.history.domain.TicketHistory;
 import com.trillion.tikitaka.history.dto.response.HistoryResponse;
