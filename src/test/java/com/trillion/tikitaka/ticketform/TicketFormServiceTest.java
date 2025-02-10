@@ -8,7 +8,6 @@ import com.trillion.tikitaka.ticketform.application.TicketFormService;
 import com.trillion.tikitaka.ticketform.domain.TicketForm;
 import com.trillion.tikitaka.ticketform.domain.TicketFormId;
 import com.trillion.tikitaka.ticketform.dto.response.TicketFormResponse;
-import com.trillion.tikitaka.ticketform.exception.DuplicatedTicketFormException;
 import com.trillion.tikitaka.ticketform.exception.TicketFormNotFoundException;
 import com.trillion.tikitaka.ticketform.infrastructure.TicketFormRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,6 +71,20 @@ public class TicketFormServiceTest {
 
             // then
             verify(ticketFormRepository, times(1)).save(any(TicketForm.class));
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 1차 카테고리 ID로 생성하면 예외가 발생한다.")
+        void should_ThrowException_when_FirstCategoryNotFound() {
+            // given
+            Long invalidFirstCategoryId = 999L;
+            Long secondCategoryId = 2L;
+
+            when(categoryRepository.findById(invalidFirstCategoryId)).thenReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> ticketFormService.createTicketForm(invalidFirstCategoryId, secondCategoryId, "설명", "필수 설명"))
+                    .isInstanceOf(CategoryNotFoundException.class);
         }
     }
 

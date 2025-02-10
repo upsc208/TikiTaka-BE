@@ -39,6 +39,9 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
+	testImplementation 'org.mockito:mockito-core:5.8.0'
+	testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
 
 	// *** Object Storage ***
 	implementation platform('software.amazon.awssdk:bom:2.23.7')
