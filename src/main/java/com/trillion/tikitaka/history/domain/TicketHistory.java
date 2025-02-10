@@ -54,6 +54,7 @@ public class TicketHistory {
         CATEGORY_CHANGE,
         DEADLINE_CHANGE,
         TICKET_DELETE ,
+        URGENT_CHANGE,
         OTHER
     }
 

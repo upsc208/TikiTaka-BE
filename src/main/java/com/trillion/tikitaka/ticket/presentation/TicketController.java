@@ -146,6 +146,14 @@ public class TicketController {
         return new ApiResponse<>("티켓 유형 수정",null);
     }
 
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PatchMapping("/{ticketId}/urgent")
+    public ApiResponse<Void> editUrgent(@PathVariable Long ticketId,@RequestBody EditTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails){
+        ticketService.editUrgent(ticketId,request,userDetails);
+        return new ApiResponse<>("티켓 긴급상태 수정",null);
+    }
+
+
 
     @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
     @DeleteMapping("/{ticketId}")

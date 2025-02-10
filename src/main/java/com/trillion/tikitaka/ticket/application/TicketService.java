@@ -301,6 +301,18 @@ public class TicketService {
     }
 
     @Transactional
+    public void editUrgent(Long ticketId,EditTicketRequest editTicketRequest,CustomUserDetails userDetails){
+        Boolean urgent = editTicketRequest.getUrgent();
+        log.info("[담당자 티켓 긴급상태 수정] 요청자: {}, 티켓 ID: {}, 상태: {}", userDetails.getUsername(), ticketId, urgent);
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        ticket.updateUrgent(editTicketRequest);
+
+        User user = userDetails.getUser();
+        historyService.recordHistory(ticket, user, TicketHistory.UpdateType.URGENT_CHANGE);
+    }
+
+    @Transactional
     public void approveTicket(Long ticketId, CustomUserDetails userDetails) {
         log.info("[담당자 티켓 승인] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
         Ticket ticket = ticketRepository.findById(ticketId)
