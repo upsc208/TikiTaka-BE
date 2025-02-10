@@ -24,4 +24,6 @@ public class EditSettingRequest {
     private TicketType type;
 
     private Ticket.Status status;
+
+    private Boolean urgent;
 }
