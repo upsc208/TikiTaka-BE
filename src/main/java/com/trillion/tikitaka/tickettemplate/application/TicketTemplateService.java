@@ -41,12 +41,15 @@ public class TicketTemplateService {
     @Transactional
     public Long createTicketTemplate(TicketTemplateRequest req, CustomUserDetails userDetails) {
         log.info("[티켓 템플릿 생성] 템플릿 제목: {}, 제목: {}", req.getTemplateTitle(), req.getTitle());
-        TicketType type = typeRepository.findById(req.getTypeId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        Category firstCat = categoryRepository.findById(req.getFirstCategoryId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        Category secondCat = categoryRepository.findById(req.getSecondCategoryId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
+        TicketType type = (req.getTypeId() != null) ?
+                typeRepository.findById(req.getTypeId()).orElseThrow(TicketTemplateInvalidFKException::new) : null;
+
+        Category firstCat = (req.getFirstCategoryId() != null) ?
+                categoryRepository.findById(req.getFirstCategoryId()).orElseThrow(TicketTemplateInvalidFKException::new) : null;
+
+        Category secondCat = (req.getSecondCategoryId() != null) ?
+                categoryRepository.findById(req.getSecondCategoryId()).orElseThrow(TicketTemplateInvalidFKException::new) : null;
+
 
         User requester = userRepository.findById(userDetails.getId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
@@ -124,10 +127,15 @@ public class TicketTemplateService {
         templateRepository.delete(template);
     }
 
-    public TicketTemplateResponse getOneTicketTemplate(Long id) {
-        log.info("[티켓 템플릿 조회] ID: {}", id);
-        TicketTemplate template = templateRepository.findById(id)
+    public TicketTemplateResponse getOneTicketTemplate(Long templateId, Long userId) {
+        log.info("[티켓 템플릿 조회] ID: {}, 사용자 ID: {}", templateId, userId);
+        TicketTemplate template = templateRepository.findById(templateId)
                 .orElseThrow(TicketTemplateNotFoundException::new);
+
+        if (!template.getRequester().getId().equals(userId)) {
+            log.error("[티켓 템플릿 조회] 사용자가 권한 없음");
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
 
         TicketType typeEntity = template.getType();
         Long typeId = typeEntity.getId();
@@ -170,6 +178,7 @@ public class TicketTemplateService {
                 managerName
         );
     }
+
 
     public List<TicketTemplateListResponse> getMyTemplates(CustomUserDetails userDetails) {
         log.info("[티켓 템플릿 전체 조회]");
