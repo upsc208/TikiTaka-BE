@@ -1,7 +1,7 @@
 package com.trillion.tikitaka.history.presentation;
 
 import com.trillion.tikitaka.global.response.ApiResponse;
-import com.trillion.tikitaka.history.HistoryService;
+import com.trillion.tikitaka.history.application.HistoryService;
 import com.trillion.tikitaka.history.dto.response.HistoryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

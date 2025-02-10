@@ -9,7 +9,7 @@ import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
-import com.trillion.tikitaka.history.HistoryService;
+import com.trillion.tikitaka.history.application.HistoryService;
 import com.trillion.tikitaka.history.domain.TicketHistory;
 import com.trillion.tikitaka.notification.domain.NotificationType;
 import com.trillion.tikitaka.notification.event.TicketCreationEvent;

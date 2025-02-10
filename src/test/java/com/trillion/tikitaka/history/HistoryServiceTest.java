@@ -1,12 +1,12 @@
 package com.trillion.tikitaka.history;
 
 import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.history.application.HistoryService;
 import com.trillion.tikitaka.history.domain.TicketHistory;
 import com.trillion.tikitaka.history.dto.response.HistoryResponse;
 import com.trillion.tikitaka.history.infrastructure.HistoryRepository;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
-import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 

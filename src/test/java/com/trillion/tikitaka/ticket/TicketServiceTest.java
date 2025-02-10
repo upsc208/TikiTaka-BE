@@ -3,7 +3,7 @@ package com.trillion.tikitaka.ticket;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
-import com.trillion.tikitaka.history.HistoryService;
+import com.trillion.tikitaka.history.application.HistoryService;
 import com.trillion.tikitaka.ticket.application.TicketService;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
