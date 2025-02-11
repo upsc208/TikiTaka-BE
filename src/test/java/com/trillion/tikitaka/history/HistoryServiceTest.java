@@ -75,16 +75,15 @@ class HistoryServiceTest {
         LocalDateTime timeT = LocalDateTime.now();
         Pageable pageable = PageRequest.of(0, 10);
         List<HistoryResponse> historyResponses = List.of(
-                new HistoryResponse(history.getId(), ticket.getId(), "title", null, timeT, null)
+                new HistoryResponse(history.getId(), 1L, "title", null, timeT, null)
         );
         Page<HistoryResponse> historyPage = new PageImpl<>(historyResponses);
 
+        // When
         when(historyRepository.getHistory(any(Pageable.class), any(), anyLong(), any()))
                 .thenReturn(historyPage);
-
-
-        // When
-        Page<HistoryResponse> result = historyService.getHistory(pageable, null, ticket.getId(), null);
+        when(ticketRepository.existsById(1L)).thenReturn(true);
+        Page<HistoryResponse> result = historyService.getHistory(pageable, null, 1L, null);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
