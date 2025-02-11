@@ -230,7 +230,7 @@ public class TicketHistoryIntegrationTest {
             historyList.add(response);
         }
 
-        // 변경 이력이 추가되지 않아야 함 - 테스트결과 변경되
-        //assertThat(historyList).isEmpty();
+        // 변경 이력이 추가되지 않아야 함 - 테스트결과 변경되않음
+        assertThat(historyList).isEmpty();
     }
 }
