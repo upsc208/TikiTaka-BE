@@ -104,6 +104,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .leftJoin(ticket.firstCategory)
                 .leftJoin(ticket.secondCategory)
                 .leftJoin(ticket.manager)
+                .leftJoin(ticket.requester)
                 .where(
                         buildRoleConditions(requesterId, role),
                         ticketTypeEq(ticketTypeId),

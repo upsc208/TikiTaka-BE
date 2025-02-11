@@ -73,7 +73,7 @@ public class TicketService {
         User manager = request.getManagerId() != null ? getUserOrThrowForManager(request.getManagerId()) : null;
 
         Ticket ticket = buildTicket(request, requester, manager, ticketType, firstCategory, secondCategory);
-        ticketRepository.save(ticket);
+        ticket = ticketRepository.save(ticket);
         ticketRepository.flush();
 
         if (files != null && !files.isEmpty()) {
@@ -110,15 +110,9 @@ public class TicketService {
                                                   String dateOption, String sort, CustomUserDetails userDetails) {
         log.info("[티켓 목록 조회] 요청자: {}, 상태: {}, 1차/2차 카테고리: {}/{}, 티켓 유형: {}, 담당자: {}, 요청자: {}, 정렬: {}, 날짜 옵션: {}",
                 userDetails.getUsername(), status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, sort, dateOption);
-        String role = userDetails.getUser().getRole().toString();
 
-        if ("USER".equals(role)) {
-            requesterId = userDetails.getUser().getId();
-            if (managerId != null) {
-                log.error("[티켓 목록 조회] 사용자 권한으로 담당자 조회 불가");
-                throw new UnauthorizedTicketAccessException();
-            }
-        }
+        String role = userDetails.getUser().getRole().toString();
+        if ("USER".equals(role)) requesterId = userDetails.getUser().getId();
 
         validateTicketType(ticketTypeId);
         validateCategoryRelation(firstCategoryId, secondCategoryId);
@@ -169,6 +163,8 @@ public class TicketService {
         Category secondCategory = request.getSecondCategoryId() != null
                 ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
                 : null;
+
+        validateCategoryRelation(firstCategory, secondCategory);
 
         User user = userDetails.getUser();
 
