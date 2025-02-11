@@ -125,6 +125,19 @@ public class TicketFormIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("2차 카테고리가 1차 카테고리의 하위가 아닌 경우 티켓 폼 수정")
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    void should_ThrowException_When_SecondCategoryNotChildOfFirstCategory_OnUpdate() throws Exception {
+        TicketFormRequest request = new TicketFormRequest("수정된 필수 설명", "수정된 설명");
+
+        mockMvc.perform(patch("/tickets/forms/{firstCategoryId}/{secondCategoryId}", FIRST_CATEGORY_ID, INVALID_SECOND_CATEGORY_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+
 
     @Test
     @DisplayName("티켓 폼 삭제")
