@@ -1,10 +1,10 @@
-/*
 package com.trillion.tikitaka.ticket;
 
 import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.attachment.dto.response.AttachmentResponse;
 import com.trillion.tikitaka.attachment.infrastructure.AttachmentRepository;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
@@ -23,6 +23,7 @@ import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.exception.UserNotFoundException;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
@@ -873,4 +874,3 @@ class TicketServiceTest {
         }
     }
 }
-*/
