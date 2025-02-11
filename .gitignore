@@ -39,7 +39,7 @@ out/
 **/application-local.yml
 **/.DS_Store
 **/AdminInitializer.java
-
+**/application-test.yml
 **/LOG_PATH_IS_UNDEFINED
 LOG_PATH_IS_UNDEFINED/
 
