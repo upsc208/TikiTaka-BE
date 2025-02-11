@@ -290,6 +290,7 @@ public class TicketService {
 
         User user = userDetails.getUser();
 
+
         historyService.recordHistory(ticket, user, TicketHistory.UpdateType.STATUS_CHANGE);
         eventPublisher.publishEvent(
                 new TicketUpdateEvent(this, ticket.getRequester().getEmail(), ticket, userDetails.getUsername(), "상태", userDetails.getUser().getRole())
