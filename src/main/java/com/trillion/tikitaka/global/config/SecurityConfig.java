@@ -126,6 +126,7 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
+                "https://tikitaka.kr",
                 "https://www.tikitaka.kr",
                 "https://tikitaka-fe.pages.dev"
         ));
