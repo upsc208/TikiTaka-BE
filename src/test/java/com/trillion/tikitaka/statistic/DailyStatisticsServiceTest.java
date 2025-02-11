@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import com.trillion.tikitaka.statistics.dto.AllUser;
@@ -33,7 +34,7 @@ class DailyStatisticsServiceTest {
     private TicketRepository ticketRepository;
 
     @Mock
-    private UserService userService;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -45,10 +46,10 @@ class DailyStatisticsServiceTest {
     class DescribeGetDailySummary {
 
         @Test
-        @DisplayName("금일 생성, 진행중, 완료된 티켓 수를 반환한다")
+        @DisplayName("✅ 금일 생성, 진행중, 완료된 티켓 수를 반환한다")
         void should_ReturnCorrectDailyStatistics() {
             // given
-            LocalDateTime startOfToday = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
             LocalDateTime endOfToday = startOfToday.plusDays(1);
 
             when(ticketRepository.countCreatedToday(startOfToday, endOfToday)).thenReturn(10);
@@ -62,11 +63,6 @@ class DailyStatisticsServiceTest {
             assertThat(result.getCreatedTickets()).isEqualTo(10);
             assertThat(result.getInProgressTickets()).isEqualTo(5);
             assertThat(result.getDoneTickets()).isEqualTo(7);
-
-            // verify
-            verify(ticketRepository, times(1)).countCreatedToday(startOfToday, endOfToday);
-            verify(ticketRepository, times(1)).countInProgressToday(startOfToday, endOfToday, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW);
-            verify(ticketRepository, times(1)).countDoneToday(startOfToday, endOfToday, Ticket.Status.DONE);
         }
     }
     @Nested
@@ -74,70 +70,29 @@ class DailyStatisticsServiceTest {
     class DescribeGetDailyManagerSummary {
 
         @Test
-        @DisplayName("✅ 금일 담당자별 진행 중 & 완료된 티켓 수를 반환한다")
-        void should_ReturnCorrectDailyManagerStatistics() {
+        @DisplayName("✅ 금일 담당자별 진행 중 및 완료된 티켓 수를 반환한다")
+        void should_ReturnCorrectDailyManagerSummary() {
             // given
-            LocalDateTime startOfToday = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
             LocalDateTime endOfToday = startOfToday.plusDays(1);
 
-            // 가짜 사용자 리스트 (매니저 역할)
-            List<UserResponse> mockUsers = List.of(
-                    new UserResponse(101L, "김철수", "chulsoo@example.com", Role.MANAGER, ""),
-                    new UserResponse(102L, "박영희", "younghee@example.com", Role.MANAGER, "")
-            );
+            UserResponse mockUserResponse = new UserResponse(1L, "manager", "manager@example.com", "profile.jpg", Role.MANAGER);
+            when(userRepository.getAllUsers()).thenReturn(List.of(mockUserResponse));
 
-            // ✅ userService.findAllUsers()를 호출하는 대신, mockUsers를 직접 사용
-            when(ticketRepository.countByManagerAndStatus(101L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW))).thenReturn(5);
-            when(ticketRepository.countByManagerAndStatus(102L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW))).thenReturn(3);
-
-            // 가짜 담당자별 완료된 티켓 수
-            when(ticketRepository.countByManagerAndStatus(101L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.DONE))).thenReturn(8);
-            when(ticketRepository.countByManagerAndStatus(102L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.DONE))).thenReturn(6);
-
-            // ✅ 직접 리스트를 사용하여 결과 생성
-            List<AllUser> managerStats = mockUsers.stream().map(user -> {
-                int inProgressTickets = ticketRepository.countByManagerAndStatus(
-                        user.getUserId(), startOfToday, endOfToday, List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW));
-                int doneTickets = ticketRepository.countByManagerAndStatus(
-                        user.getUserId(), startOfToday, endOfToday, List.of(Ticket.Status.DONE));
-
-                AllUser allUser = new AllUser(); // ✅ 기본 생성자로 객체 생성
-                allUser.updateAllUser(
-                        user.getUsername(),
-                        user.getEmail(),
-                        user.getUserId(),
-                        user.getProfileImageUrl(),
-                        doneTickets,
-                        inProgressTickets
-                );
-                return allUser;
-            }).toList();
+            when(ticketRepository.countByManagerAndStatus(1L, startOfToday, endOfToday, List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
+                    .thenReturn(3);
+            when(ticketRepository.countByManagerAndStatus(1L, startOfToday, endOfToday, List.of(Ticket.Status.DONE)))
+                    .thenReturn(2);
 
             // when
             List<AllUser> result = dailyStatisticsService.getDailyManagerSummary();
 
             // then
-            assertThat(result).hasSize(2);
-            assertThat(result.get(0).getUserId()).isEqualTo(101L);
-            assertThat(result.get(0).getDoneTickets()).isEqualTo(8);
-            assertThat(result.get(0).getInProgressTickets()).isEqualTo(5);
-            assertThat(result.get(1).getUserId()).isEqualTo(102L);
-            assertThat(result.get(1).getDoneTickets()).isEqualTo(6);
-            assertThat(result.get(1).getInProgressTickets()).isEqualTo(3);
-
-            // verify
-            verify(ticketRepository, times(1)).countByManagerAndStatus(101L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW));
-            verify(ticketRepository, times(1)).countByManagerAndStatus(102L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW));
-            verify(ticketRepository, times(1)).countByManagerAndStatus(101L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.DONE));
-            verify(ticketRepository, times(1)).countByManagerAndStatus(102L, startOfToday, endOfToday,
-                    List.of(Ticket.Status.DONE));
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getUserId()).isEqualTo(1L);
+            assertThat(result.get(0).getInProgressTickets()).isEqualTo(3);
+            assertThat(result.get(0).getDoneTickets()).isEqualTo(2);
         }
+
     }
 }

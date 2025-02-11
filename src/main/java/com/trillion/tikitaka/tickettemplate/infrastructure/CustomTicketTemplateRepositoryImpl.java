@@ -32,7 +32,12 @@ public class CustomTicketTemplateRepositoryImpl implements CustomTicketTemplateR
                         ticketTemplate.updatedAt
                 ))
                 .from(ticketTemplate)
+                .leftJoin(ticketTemplate.type)
+                .leftJoin(ticketTemplate.firstCategory)
+                .leftJoin(ticketTemplate.secondCategory)
+                .leftJoin(ticketTemplate.requester)
                 .where(ticketTemplate.requester.id.eq(userId))
                 .fetch();
+
     }
 }
