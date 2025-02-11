@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -41,14 +41,17 @@ public class TicketTemplateService {
     @Transactional
     public Long createTicketTemplate(TicketTemplateRequest req, CustomUserDetails userDetails) {
         log.info("[티켓 템플릿 생성] 템플릿 제목: {}, 제목: {}", req.getTemplateTitle(), req.getTitle());
-        TicketType type = (req.getTypeId() != null) ?
-                typeRepository.findById(req.getTypeId()).orElse(null) : null;
 
-        Category firstCat = (req.getFirstCategoryId() != null) ?
-                categoryRepository.findById(req.getFirstCategoryId()).orElse(null) : null;
+        TicketType type = (req.getTypeId() != null) ? typeRepository.findById(req.getTypeId()).orElse(null) : null;
+        Category firstCat = (req.getFirstCategoryId() != null) ? categoryRepository.findById(req.getFirstCategoryId()).orElse(null) : null;
+        Category secondCat = (req.getSecondCategoryId() != null) ? categoryRepository.findById(req.getSecondCategoryId()).orElse(null) : null;
 
-        Category secondCat = (req.getSecondCategoryId() != null) ?
-                categoryRepository.findById(req.getSecondCategoryId()).orElse(null) : null;
+        if (firstCat != null && secondCat != null) {
+            if (secondCat.getParent() == null || !secondCat.getParent().getId().equals(firstCat.getId())) {
+                log.error("[티켓 템플릿 생성] 2차 카테고리가 1차 카테고리에 속하지 않음");
+                throw new TicketTemplateInvalidFKException();
+            }
+        }
 
         User requester = userRepository.findById(userDetails.getId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
@@ -80,21 +83,19 @@ public class TicketTemplateService {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
-        TicketType type = (req.getTypeId() != null) ?
-                typeRepository.findById(req.getTypeId()).orElse(null) : null;
+        TicketType type = (req.getTypeId() != null) ? typeRepository.findById(req.getTypeId()).orElse(null) : null;
+        Category firstCat = (req.getFirstCategoryId() != null) ? categoryRepository.findById(req.getFirstCategoryId()).orElse(null) : null;
+        Category secondCat = (req.getSecondCategoryId() != null) ? categoryRepository.findById(req.getSecondCategoryId()).orElse(null) : null;
 
-        Category firstCat = (req.getFirstCategoryId() != null) ?
-                categoryRepository.findById(req.getFirstCategoryId()).orElse(null) : null;
-
-        Category secondCat = (req.getSecondCategoryId() != null) ?
-                categoryRepository.findById(req.getSecondCategoryId()).orElse(null) : null;
-
-        if (userDetails == null || userDetails.getId() == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        if (firstCat != null && secondCat != null) {
+            if (secondCat.getParent() == null || !secondCat.getParent().getId().equals(firstCat.getId())) {
+                log.error("[티켓 템플릿 수정] 2차 카테고리가 1차 카테고리에 속하지 않음");
+                throw new TicketTemplateInvalidFKException();
+            }
         }
-        User requester = userRepository.findById(userDetails.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        User requester = userRepository.findById(userDetails.getId())
+                .orElseThrow(TicketTemplateInvalidFKException::new);
         User manager = (req.getManagerId() != null) ?
                 userRepository.findById(req.getManagerId()).orElse(null) : null;
 
@@ -138,24 +139,25 @@ public class TicketTemplateService {
         }
 
         TicketType typeEntity = template.getType();
-        Long typeId = (typeEntity != null) ? typeEntity.getId() : null;
-        String typeName = (typeEntity != null) ? typeEntity.getName() : null;
-
         Category firstCat = template.getFirstCategory();
-        Long firstCatId = (firstCat != null) ? firstCat.getId() : null;
-        String firstCatName = (firstCat != null) ? firstCat.getName() : null;
-
         Category secondCat = template.getSecondCategory();
-        Long secondCatId = (secondCat != null) ? secondCat.getId() : null;
-        String secondCatName = (secondCat != null) ? secondCat.getName() : null;
+        User manager = template.getManager();
+
+        Long typeId = (typeEntity != null && typeEntity.getDeletedAt() == null) ? typeEntity.getId() : null;
+        String typeName = (typeEntity != null && typeEntity.getDeletedAt() == null) ? typeEntity.getName() : null;
+
+        Long firstCatId = (firstCat != null && firstCat.getDeletedAt() == null) ? firstCat.getId() : null;
+        String firstCatName = (firstCat != null && firstCat.getDeletedAt() == null) ? firstCat.getName() : null;
+
+        Long secondCatId = (secondCat != null && secondCat.getDeletedAt() == null) ? secondCat.getId() : null;
+        String secondCatName = (secondCat != null && secondCat.getDeletedAt() == null) ? secondCat.getName() : null;
+
+        Long managerId = (manager != null && manager.getDeletedAt() == null) ? manager.getId() : null;
+        String managerName = (manager != null && manager.getDeletedAt() == null) ? manager.getUsername() : null;
 
         User requester = template.getRequester();
         Long requesterId = requester.getId();
         String requesterName = requester.getUsername();
-
-        User manager = template.getManager();
-        Long managerId = (manager != null) ? manager.getId() : null;
-        String managerName = (manager != null) ? manager.getUsername() : null;
 
         return new TicketTemplateResponse(
                 template.getId(),
