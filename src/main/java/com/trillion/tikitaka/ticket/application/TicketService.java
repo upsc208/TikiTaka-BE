@@ -360,19 +360,13 @@ public class TicketService {
     }
 
     public PendingTicketResponse getPendingTickets(Long managerId) {
-        // 담당자가 본인이고 PENDING 상태인 티켓 수
         int myPendingTicket = ticketRepository.countByManagerAndStatus(managerId, Ticket.Status.PENDING);
 
-        // 담당자가 지정되지 않고 PENDING 상태인 티켓 수
-        int unassignedPendingTicket = ticketRepository.countByManagerIsNullAndStatus(Ticket.Status.PENDING);
+        int allPendingTicket = ticketRepository.countByStatus(Ticket.Status.PENDING);
 
-        // 총 대기 티켓 수 (내 요청 + 그룹 요청)
-        int totalPendingTicket = myPendingTicket + unassignedPendingTicket;
+        int urgentPendingTicket = ticketRepository.countUrgentPendingTickets(Ticket.Status.PENDING);
 
-        // 긴급 대기 티켓 수 (담당자가 본인 or 지정되지 않고 PENDING & URGENT)
-        int urgentPendingTicket = ticketRepository.countUrgentPendingTickets(managerId, Ticket.Status.PENDING);
-
-        return new PendingTicketResponse(myPendingTicket, unassignedPendingTicket, totalPendingTicket, urgentPendingTicket);
+        return new PendingTicketResponse(myPendingTicket, allPendingTicket, urgentPendingTicket);
     }
 
     private void validateTicketType(Long ticketTypeId) {
