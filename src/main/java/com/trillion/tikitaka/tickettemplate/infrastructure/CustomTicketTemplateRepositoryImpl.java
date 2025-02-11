@@ -20,8 +20,8 @@ public class CustomTicketTemplateRepositoryImpl implements CustomTicketTemplateR
         return queryFactory
                 .select(new QTicketTemplateListResponse(
                         ticketTemplate.id.as("templateId"),
-                        ticketTemplate.title.as("templateTitle"),
-                        ticketTemplate.title,
+                        ticketTemplate.templateTitle.as("templateTitle"),
+                        ticketTemplate.title.as("title"),
                         ticketTemplate.type.id.as("typeId"),
                         ticketTemplate.type.name.as("typeName"),
                         ticketTemplate.firstCategory.id.as("firstCategoryId"),
