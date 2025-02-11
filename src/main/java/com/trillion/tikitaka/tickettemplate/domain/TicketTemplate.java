@@ -3,6 +3,7 @@ package com.trillion.tikitaka.tickettemplate.domain;
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,6 +38,14 @@ public class TicketTemplate extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "second_category_id")
     private Category secondCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
+
+    public Long getParentId() {
+        return (parent != null) ? parent.getId() : null;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id")
