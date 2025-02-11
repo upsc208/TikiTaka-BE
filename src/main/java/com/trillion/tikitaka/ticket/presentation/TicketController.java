@@ -111,7 +111,7 @@ public class TicketController {
         return new ApiResponse<>("티켓 상태가 수정되었습니다.",null);
     }
 
-    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN','USER')")
     @PatchMapping("/{ticketId}/manager")
     public ApiResponse<Void> editManager(@PathVariable Long ticketId,@RequestBody EditSettingRequest editSettingRequest,@AuthenticationPrincipal CustomUserDetails userDetails){
         ticketService.editManager(ticketId,editSettingRequest.getManagerId(),userDetails);
@@ -146,7 +146,7 @@ public class TicketController {
         return new ApiResponse<>("티켓 유형 수정",null);
     }
 
-    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN','USER')")
     @PatchMapping("/{ticketId}/urgent")
     public ApiResponse<Void> editUrgent(@PathVariable Long ticketId,@RequestBody EditTicketRequest request,@AuthenticationPrincipal CustomUserDetails userDetails){
         ticketService.editUrgent(ticketId,request,userDetails);
@@ -155,7 +155,7 @@ public class TicketController {
 
 
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER','MANAGER')")
     @DeleteMapping("/{ticketId}")
     public ApiResponse<Void> deleteTicket(@PathVariable Long ticketId,@AuthenticationPrincipal CustomUserDetails userDetails){
         subtaskService.deleteAllSubtask(ticketId);

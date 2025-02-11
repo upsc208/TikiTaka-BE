@@ -12,7 +12,6 @@ import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -28,9 +27,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -127,7 +124,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOriginPatterns(Arrays.asList("*"));
+        corsConfiguration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "https://tikitaka.kr",
+                "https://www.tikitaka.kr",
+                "https://tikitaka-fe.pages.dev"
+        ));
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
         corsConfiguration.setExposedHeaders(Arrays.asList("Authorization"));

@@ -47,7 +47,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @RequiredArgsConstructor
 public class TicketService {
 
@@ -300,7 +300,7 @@ public class TicketService {
     @Transactional
     public void editUrgent(Long ticketId,EditTicketRequest editTicketRequest,CustomUserDetails userDetails){
         Boolean urgent = editTicketRequest.getUrgent();
-        log.info("[담당자 티켓 긴급상태 수정] 요청자: {}, 티켓 ID: {}, 상태: {}", userDetails.getUsername(), ticketId, urgent);
+        log.info("[담당자,유저 티켓 긴급상태 수정] 요청자: {}, 티켓 ID: {}, 상태: {}", userDetails.getUsername(), ticketId, urgent);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
         ticket.updateUrgent(editTicketRequest);
@@ -346,34 +346,35 @@ public class TicketService {
     @Transactional
     public void deleteTicket(Long ticketId, CustomUserDetails userDetails) {
         log.info("[티켓 삭제] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
+
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+
         User user = userDetails.getUser();
+
         User requester = userRepository.findById(ticket.getRequester().getId())
                 .orElseThrow(UserNotFoundException::new);
-        if(user.getUsername().equals(requester.getUsername()) && ticket.getStatus().equals(Ticket.Status.PENDING)) {
+
+        if (user.getUsername().equals(requester.getUsername()) && ticket.getStatus().equals(Ticket.Status.PENDING)) {
+
             ticketRepository.delete(ticket);
-            historyService.recordHistory(ticket, user, TicketHistory.UpdateType.TICKET_DELETE);
-        }else {
+
+        } else {
             log.error("[티켓 삭제] 티켓 삭제 권한 없음");
             throw new UnauthorizedTicketAccessException();
         }
+
     }
 
+
     public PendingTicketResponse getPendingTickets(Long managerId) {
-        // 담당자가 본인이고 PENDING 상태인 티켓 수
         int myPendingTicket = ticketRepository.countByManagerAndStatus(managerId, Ticket.Status.PENDING);
 
-        // 담당자가 지정되지 않고 PENDING 상태인 티켓 수
-        int unassignedPendingTicket = ticketRepository.countByManagerIsNullAndStatus(Ticket.Status.PENDING);
+        int allPendingTicket = ticketRepository.countByStatus(Ticket.Status.PENDING);
 
-        // 총 대기 티켓 수 (내 요청 + 그룹 요청)
-        int totalPendingTicket = myPendingTicket + unassignedPendingTicket;
+        int urgentPendingTicket = ticketRepository.countUrgentPendingTickets(Ticket.Status.PENDING);
 
-        // 긴급 대기 티켓 수 (담당자가 본인 or 지정되지 않고 PENDING & URGENT)
-        int urgentPendingTicket = ticketRepository.countUrgentPendingTickets(managerId, Ticket.Status.PENDING);
-
-        return new PendingTicketResponse(myPendingTicket, unassignedPendingTicket, totalPendingTicket, urgentPendingTicket);
+        return new PendingTicketResponse(myPendingTicket, allPendingTicket, urgentPendingTicket);
     }
 
     private void validateTicketType(Long ticketTypeId) {
