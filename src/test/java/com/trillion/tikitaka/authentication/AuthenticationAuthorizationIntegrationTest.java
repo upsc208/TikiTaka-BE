@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,7 +39,7 @@ public class AuthenticationAuthorizationIntegrationTest {
 
         // when & then
         ErrorResponse error = mapper.readValue(responseBody, ErrorResponse.class);
-        assertThat(error.getMessage()).isEqualTo("인증되지 않은 사용자입니다.");
+        assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -52,7 +53,7 @@ public class AuthenticationAuthorizationIntegrationTest {
 
         // when & then
         ErrorResponse error = mapper.readValue(responseBody, ErrorResponse.class);
-        assertThat(error.getMessage()).isEqualTo("접근 권한이 없습니다.");
+        assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 }
 
