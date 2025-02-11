@@ -91,4 +91,11 @@ public class TicketTemplate extends BaseEntity {
         this.requester = requester;
         this.manager = manager;
     }
+    @PreRemove
+    private void preRemove() {
+        this.type = null;
+        this.firstCategory = null;
+        this.secondCategory = null;
+        this.manager = null;
+    }
 }
