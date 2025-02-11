@@ -42,7 +42,7 @@ class InquiryServiceTest {
     private Inquiry inquiry;
 
     @BeforeEach
-    void setUp() {//1L, user, InquiryType.QUESTION, "Test Title", "Test Content"
+    void setUp() {
         inquiryRepository = mock(InquiryRepository.class);
         userRepository = mock(UserRepository.class);
         inquiryService = new InquiryService(inquiryRepository, userRepository);

@@ -3,7 +3,6 @@ package com.trillion.tikitaka.ticket.infrastructure;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -226,7 +225,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
             return ticket.requester.id.eq(requesterId);
         }
 
-        return Expressions.TRUE;
+        return requesterId != null ? ticket.requester.id.eq(requesterId) : null;
     }
 
     private BooleanExpression ticketTypeEq(Long ticketTypeId) {
