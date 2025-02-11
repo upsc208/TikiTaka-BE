@@ -29,16 +29,16 @@ public class JwtService {
         log.info("[토큰 재발급 요청]");
         String refreshToken = extractRefreshToken(request);
         if (refreshToken == null) {
-            log.info("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
-            return null;
+            log.error("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         validateRefreshToken(refreshToken);
 
         Boolean isRefreshTokenExist = jwtTokenRepository.existsByRefreshToken(refreshToken);
         if (!isRefreshTokenExist) {
-            log.info("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
-            return null;
+            log.error("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         Long userId = jwtUtil.getUserId(refreshToken);
