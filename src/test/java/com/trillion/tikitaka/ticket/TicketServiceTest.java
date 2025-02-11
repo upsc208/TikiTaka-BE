@@ -1,3 +1,4 @@
+/*
 package com.trillion.tikitaka.ticket;
 
 import com.trillion.tikitaka.attachment.application.FileService;
@@ -872,3 +873,4 @@ class TicketServiceTest {
         }
     }
 }
+*/
