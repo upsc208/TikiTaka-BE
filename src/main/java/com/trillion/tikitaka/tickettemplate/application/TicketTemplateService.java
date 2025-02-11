@@ -42,22 +42,18 @@ public class TicketTemplateService {
     public Long createTicketTemplate(TicketTemplateRequest req, CustomUserDetails userDetails) {
         log.info("[티켓 템플릿 생성] 템플릿 제목: {}, 제목: {}", req.getTemplateTitle(), req.getTitle());
         TicketType type = (req.getTypeId() != null) ?
-                typeRepository.findById(req.getTypeId()).orElseThrow(TicketTemplateInvalidFKException::new) : null;
+                typeRepository.findById(req.getTypeId()).orElse(null) : null;
 
         Category firstCat = (req.getFirstCategoryId() != null) ?
-                categoryRepository.findById(req.getFirstCategoryId()).orElseThrow(TicketTemplateInvalidFKException::new) : null;
+                categoryRepository.findById(req.getFirstCategoryId()).orElse(null) : null;
 
         Category secondCat = (req.getSecondCategoryId() != null) ?
-                categoryRepository.findById(req.getSecondCategoryId()).orElseThrow(TicketTemplateInvalidFKException::new) : null;
-
+                categoryRepository.findById(req.getSecondCategoryId()).orElse(null) : null;
 
         User requester = userRepository.findById(userDetails.getId())
                 .orElseThrow(TicketTemplateInvalidFKException::new);
-        User manager = null;
-        if (req.getManagerId() != null) {
-            manager = userRepository.findById(req.getManagerId())
-                    .orElseThrow(TicketTemplateInvalidFKException::new);
-        }
+        User manager = (req.getManagerId() != null) ?
+                userRepository.findById(req.getManagerId()).orElse(null) : null;
 
         TicketTemplate entity = TicketTemplate.builder()
                 .templateTitle(req.getTemplateTitle())
@@ -84,20 +80,24 @@ public class TicketTemplateService {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
-        TicketType type = typeRepository.findById(req.getTypeId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        Category firstCat = categoryRepository.findById(req.getFirstCategoryId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        Category secondCat = categoryRepository.findById(req.getSecondCategoryId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
+        TicketType type = (req.getTypeId() != null) ?
+                typeRepository.findById(req.getTypeId()).orElse(null) : null;
 
-        User requester = userRepository.findById(userDetails.getId())
-                .orElseThrow(TicketTemplateInvalidFKException::new);
-        User manager = null;
-        if (req.getManagerId() != null) {
-            manager = userRepository.findById(req.getManagerId())
-                    .orElseThrow(TicketTemplateInvalidFKException::new);
+        Category firstCat = (req.getFirstCategoryId() != null) ?
+                categoryRepository.findById(req.getFirstCategoryId()).orElse(null) : null;
+
+        Category secondCat = (req.getSecondCategoryId() != null) ?
+                categoryRepository.findById(req.getSecondCategoryId()).orElse(null) : null;
+
+        if (userDetails == null || userDetails.getId() == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
+        User requester = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        User manager = (req.getManagerId() != null) ?
+                userRepository.findById(req.getManagerId()).orElse(null) : null;
+
 
         template.update(
                 req.getTemplateTitle(),
@@ -138,28 +138,24 @@ public class TicketTemplateService {
         }
 
         TicketType typeEntity = template.getType();
-        Long typeId = typeEntity.getId();
-        String typeName = typeEntity.getName();
+        Long typeId = (typeEntity != null) ? typeEntity.getId() : null;
+        String typeName = (typeEntity != null) ? typeEntity.getName() : null;
 
         Category firstCat = template.getFirstCategory();
-        Long firstCatId = firstCat.getId();
-        String firstCatName = firstCat.getName();
+        Long firstCatId = (firstCat != null) ? firstCat.getId() : null;
+        String firstCatName = (firstCat != null) ? firstCat.getName() : null;
 
         Category secondCat = template.getSecondCategory();
-        Long secondCatId = secondCat.getId();
-        String secondCatName = secondCat.getName();
+        Long secondCatId = (secondCat != null) ? secondCat.getId() : null;
+        String secondCatName = (secondCat != null) ? secondCat.getName() : null;
 
         User requester = template.getRequester();
         Long requesterId = requester.getId();
         String requesterName = requester.getUsername();
 
         User manager = template.getManager();
-        Long managerId = null;
-        String managerName = null;
-        if (manager != null) {
-            managerId = manager.getId();
-            managerName = manager.getUsername();
-        }
+        Long managerId = (manager != null) ? manager.getId() : null;
+        String managerName = (manager != null) ? manager.getUsername() : null;
 
         return new TicketTemplateResponse(
                 template.getId(),

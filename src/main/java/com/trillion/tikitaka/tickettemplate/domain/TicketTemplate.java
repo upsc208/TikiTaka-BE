@@ -27,19 +27,19 @@ public class TicketTemplate extends BaseEntity {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
+    @JoinColumn(name = "type_id")
     private TicketType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "first_category_id", nullable = false)
+    @JoinColumn(name = "first_category_id")
     private Category firstCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "second_category_id", nullable = false)
+    @JoinColumn(name = "second_category_id")
     private Category secondCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id", nullable = false)
+    @JoinColumn(name = "requester_id")
     private User requester;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,8 +54,7 @@ public class TicketTemplate extends BaseEntity {
                           Category firstCategory,
                           Category secondCategory,
                           User requester,
-                          User manager
-    ) {
+                          User manager) {
         this.templateTitle = templateTitle;
         this.title = title;
         this.description = description;
@@ -73,8 +72,7 @@ public class TicketTemplate extends BaseEntity {
                        Category firstCategory,
                        Category secondCategory,
                        User requester,
-                       User manager
-    ) {
+                       User manager) {
         this.templateTitle = templateTitle;
         this.title = title;
         this.description = description;
