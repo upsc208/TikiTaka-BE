@@ -45,7 +45,9 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .otherwise(0L);
 
         NumberExpression<Long> urgent = new CaseBuilder()
-                .when(ticket.urgent.eq(true)).then(1L)
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
+                .then(1L)
                 .otherwise(0L);
 
         BooleanExpression conditions = buildRoleConditionForOne(requesterId, role);
