@@ -7,6 +7,7 @@ import com.trillion.tikitaka.user.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,6 +21,10 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     Page<Ticket> findByManagerId(String managerId, Pageable pageable);
     Page<Ticket> findByRequesterId(String requesterId, Pageable pageable);
     Page<Ticket> findAll(Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Ticket t SET t.deletedAt = CURRENT_TIMESTAMP WHERE t.requester.id = :userId")
+    void softDeleteTicketsByRequester(@Param("userId") Long userId);
 
     boolean existsById(Long ticketId);
 

@@ -66,11 +66,13 @@ public class TicketCommentService {
         ticket.getManager().getUsername();
         ticket.getRequester().getUsername();
 
+
         if (author.getRole() == Role.USER) {
             eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getManager().getEmail(), ticket, author.getUsername()));
         } else {
             eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getRequester().getEmail(), ticket, author.getUsername()));
         }
+
     }
 
     public List<TicketCommentResponse> getTicketComments(Long ticketId, CustomUserDetails userDetails) {
