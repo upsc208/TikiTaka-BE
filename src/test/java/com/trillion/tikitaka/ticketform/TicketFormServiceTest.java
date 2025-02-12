@@ -7,6 +7,7 @@ import com.trillion.tikitaka.ticketform.application.TicketFormService;
 import com.trillion.tikitaka.ticketform.domain.TicketForm;
 import com.trillion.tikitaka.ticketform.domain.TicketFormId;
 import com.trillion.tikitaka.ticketform.exception.TicketFormNotFoundException;
+import com.trillion.tikitaka.ticketform.exception.DuplicatedTicketFormException;
 import com.trillion.tikitaka.ticketform.infrastructure.TicketFormRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,6 +71,36 @@ public class TicketFormServiceTest {
             // then
             verify(ticketFormRepository, times(1)).save(any(TicketForm.class));
         }
+
+        @Test
+        @DisplayName("이미 존재하는 1,2차 카테고리 ID로 생성하면 예외가 발생한다.")
+        void should_ThrowException_When_DuplicatedTicketFormExists() {
+            // given
+            Long firstCategoryId = 1L;
+            Long secondCategoryId = 2L;
+            String description = "Duplicate Ticket Form";
+            String mustDescription = "필수 설명";
+
+            Category firstCategory = mock(Category.class);
+            Category secondCategory = mock(Category.class);
+
+            when(categoryRepository.findById(firstCategoryId))
+                    .thenReturn(Optional.of(firstCategory));
+            when(categoryRepository.findById(secondCategoryId))
+                    .thenReturn(Optional.of(secondCategory));
+            when(secondCategory.isChildOf(firstCategory)).thenReturn(true);
+
+            TicketFormId formId = new TicketFormId(firstCategoryId, secondCategoryId);
+            when(ticketFormRepository.existsById(formId)).thenReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> ticketFormService.createTicketForm(firstCategoryId, secondCategoryId, description, mustDescription))
+                    .isInstanceOf(DuplicatedTicketFormException.class)
+                    .hasMessage("이미 존재하는 티켓 폼입니다.");
+
+            verify(ticketFormRepository, never()).save(any(TicketForm.class));
+        }
+
 
         @Test
         @DisplayName("존재하지 않는 1차 카테고리 ID로 생성하면 예외가 발생한다.")
