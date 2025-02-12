@@ -2,13 +2,11 @@ package com.trillion.tikitaka.ticketform;
 
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
-import com.trillion.tikitaka.category.exception.InvalidCategoryLevelException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.ticketform.application.TicketFormService;
 import com.trillion.tikitaka.ticketform.domain.TicketForm;
 import com.trillion.tikitaka.ticketform.domain.TicketFormId;
 import com.trillion.tikitaka.ticketform.dto.response.TicketFormResponse;
-import com.trillion.tikitaka.ticketform.exception.TicketFormNotFoundException;
 import com.trillion.tikitaka.ticketform.infrastructure.TicketFormRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -150,10 +148,10 @@ public class TicketFormServiceTest {
                     .thenReturn(Optional.of(ticketForm));
 
             // when
-            ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, description, mustDescription);
+            ticketFormService.updateTicketForm(firstCategoryId, secondCategoryId, mustDescription , description);
 
             // then
-            verify(ticketForm, times(1)).update(description, mustDescription);
+            verify(ticketForm, times(1)).update(mustDescription, description);
         }
     }
 
