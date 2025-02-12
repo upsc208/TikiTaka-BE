@@ -1,12 +1,15 @@
 package com.trillion.tikitaka.tickettype.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trillion.tikitaka.global.exception.GlobalExceptionHandler;
 import com.trillion.tikitaka.global.response.ErrorResponse;
 import com.trillion.tikitaka.tickettype.dto.request.TicketTypeRequest;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,9 +40,9 @@ public class TicketTypeIntegrationTest {
     @Autowired
     private TicketTypeRepository ticketTypeRepository;
 
+
     @BeforeEach
     void setUp() {
-        ticketTypeRepository.deleteAll();
     }
 
     @Test
@@ -123,6 +126,19 @@ public class TicketTypeIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
     }
+    @Test
+    @DisplayName("기본 티켓 타입 수정 시 예외 발생-포스트맨에서는 예외 발생 확인 테스트 코드에서는 성공 처리로 케이스 통과 실패")
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    void should_ThrowException_When_UpdatingDefaultTicketType() throws Exception {
+        // given
+        TicketTypeRequest request = new TicketTypeRequest("New Name");
+
+        // when & then
+        mockMvc.perform(patch("/tickets/types/" + 3L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError());
+    }
 
     @Test
     @DisplayName("정상적인 티켓 타입 삭제")
@@ -146,4 +162,16 @@ public class TicketTypeIntegrationTest {
         mockMvc.perform(delete("/tickets/types/9999"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("기본 티켓 타입 삭제 시 예외 발생")
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    void should_ThrowException_When_DeletingDefaultTicketType() throws Exception {
+        // given
+
+        // when & then
+        mockMvc.perform(delete("/tickets/types/" + 3L))
+                .andExpect(status().isInternalServerError());
+    }
+
 }
