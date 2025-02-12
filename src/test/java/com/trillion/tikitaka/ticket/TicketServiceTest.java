@@ -266,14 +266,14 @@ class TicketServiceTest {
 
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), any(), any(), any(), any(), any(), any(), anyString(), anyString(), nullable(String.class))
+                    any(Pageable.class), any(), any(), any(), any(), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class))
             ).thenReturn(page);
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
             Page<TicketListResponse> result = ticketService.getTicketList(
                     pageable, Ticket.Status.PENDING, null, null, null,
-                    null, userDetails.getId(), null, "newest", userDetails
+                    null, userDetails.getId(), false, null, "newest", userDetails
             );
 
             // then
@@ -303,14 +303,14 @@ class TicketServiceTest {
             Page<TicketListResponse> page = new PageImpl<>(filteredList);
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), eq(filterStatus), any(), any(), any(), any(), any(), anyString(), anyString(), nullable(String.class)
+                    any(Pageable.class), eq(filterStatus), any(), any(), any(), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class)
             )).thenReturn(page);
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
             Page<TicketListResponse> result = ticketService.getTicketList(
                     pageable, filterStatus, null, null, null,
-                    null, userDetails.getId(), null, "newest", userDetails
+                    null, userDetails.getId(), false, null, "newest", userDetails
             );
 
             // then
@@ -350,14 +350,15 @@ class TicketServiceTest {
             when(categoryRepository.findById(firstCategoryId)).thenReturn(Optional.of(category1));
             when(categoryRepository.findById(secondCategoryId)).thenReturn(Optional.of(category2));
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), any(), eq(firstCategoryId), eq(secondCategoryId), any(), any(), any(), anyString(), anyString(), nullable(String.class))
+                    any(Pageable.class), any(), eq(firstCategoryId), eq(secondCategoryId), any(), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class))
             ).thenReturn(page);
 
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
             Page<TicketListResponse> result = ticketService.getTicketList(
-                    pageable, null, firstCategoryId, secondCategoryId, null, null, userDetails.getId(), null, "newest", userDetails
+                    pageable, null, firstCategoryId, secondCategoryId, null,
+                    null, userDetails.getId(), false, null, "newest", userDetails
             );
 
             // then
@@ -392,14 +393,15 @@ class TicketServiceTest {
 
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(ticketTypeRepository.existsById(ticketTypeId)).thenReturn(true);
-            when(ticketRepository.getTicketList(any(Pageable.class), any(), any(), any(), eq(ticketTypeId), any(), any(), anyString(), anyString(), nullable(String.class)
+            when(ticketRepository.getTicketList(any(Pageable.class), any(), any(), any(), eq(ticketTypeId), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class)
             )).thenReturn(page);
 
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
             Page<TicketListResponse> result = ticketService.getTicketList(
-                    pageable, null, null, null, ticketTypeId, null, userDetails.getId(), null, "newest", userDetails
+                    pageable, null, null, null, ticketTypeId,
+                    null, userDetails.getId(), false, null, "newest", userDetails
             );
 
             // then
@@ -440,14 +442,15 @@ class TicketServiceTest {
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(userRepository.existsById(eq(managerId))).thenReturn(true);
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), any(), any(), any(), any(), eq(managerId), any(), anyString(), anyString(), nullable(String.class)
+                    any(Pageable.class), any(), any(), any(), any(), eq(managerId), any(), anyBoolean(), anyString(), anyString(), nullable(String.class)
             )).thenReturn(page);
 
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
             Page<TicketListResponse> result = ticketService.getTicketList(
-                    pageable, null, null, null, null, managerId, 1L, null, "newest", userDetails
+                    pageable, null, null, null, null, managerId,
+                    1L, false, null, "newest", userDetails
             );
 
             // then
