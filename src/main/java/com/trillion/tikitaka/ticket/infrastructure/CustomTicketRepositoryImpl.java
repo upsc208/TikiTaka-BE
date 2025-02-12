@@ -67,8 +67,9 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
     }
 
     @Override
-    public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort) {
+    public Page<TicketListResponse> getTicketList(
+            Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId, Long ticketTypeId,
+            Long managerId, Long requesterId, Boolean urgent, String role, String dateOption, String sort) {
 
         NumberExpression<Integer> urgentPriority = new CaseBuilder()
                 .when(ticket.urgent.eq(true)
@@ -114,7 +115,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         managerEq(managerId),
                         statusEq(status),
                         deletedAtEqNull(),
-                        createdAtBetween(dateOption)
+                        createdAtBetween(dateOption),
+                        urgentCondition(urgent)
                 )
                 .orderBy(urgentPriority.asc(), mainOrder)
                 .offset(pageable.getOffset())
@@ -136,7 +138,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         managerEq(managerId),
                         statusEq(status),
                         deletedAtEqNull(),
-                        createdAtBetween(dateOption)
+                        createdAtBetween(dateOption),
+                        urgentCondition(urgent)
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
@@ -260,6 +263,10 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
 
     private BooleanExpression deletedAtEqNull() {
         return ticket.deletedAt.isNull();
+    }
+
+    private BooleanExpression urgentCondition(Boolean urgent) {
+        return urgent != null && urgent ? ticket.urgent.eq(true) : null;
     }
 
     private BooleanExpression createdAtBetween(String dateOption) {
