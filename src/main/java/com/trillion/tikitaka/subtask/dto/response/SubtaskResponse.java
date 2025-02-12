@@ -2,8 +2,10 @@ package com.trillion.tikitaka.subtask.dto.response;
 
 import com.trillion.tikitaka.subtask.domain.Subtask;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class SubtaskResponse {
     private Long subtaskId;
     private Long parentId;

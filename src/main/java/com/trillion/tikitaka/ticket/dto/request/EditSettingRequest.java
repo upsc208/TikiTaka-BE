@@ -18,10 +18,12 @@ public class EditSettingRequest {
 
     private Ticket.Priority priority;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
 
     private TicketType type;
 
     private Ticket.Status status;
+
+    private Boolean urgent;
 }

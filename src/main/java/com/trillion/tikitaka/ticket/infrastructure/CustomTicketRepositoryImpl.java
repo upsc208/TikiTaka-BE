@@ -3,7 +3,6 @@ package com.trillion.tikitaka.ticket.infrastructure;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -46,10 +45,12 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .otherwise(0L);
 
         NumberExpression<Long> urgent = new CaseBuilder()
-                .when(ticket.urgent.eq(true)).then(1L)
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
+                .then(1L)
                 .otherwise(0L);
 
-        BooleanExpression conditions = buildRoleConditions(requesterId, role);
+        BooleanExpression conditions = buildRoleConditionForOne(requesterId, role);
 
         return queryFactory
                 .select(new QTicketCountByStatusResponse(
@@ -66,8 +67,9 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
     }
 
     @Override
-    public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort) {
+    public Page<TicketListResponse> getTicketList(
+            Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId, Long ticketTypeId,
+            Long managerId, Long requesterId, Boolean urgent, String role, String dateOption, String sort) {
 
         NumberExpression<Integer> urgentPriority = new CaseBuilder()
                 .when(ticket.urgent.eq(true)
@@ -97,22 +99,25 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.priority,
                         ticket.deadline,
-                        ticket.createdAt
+                        ticket.createdAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
                 .leftJoin(ticket.firstCategory)
                 .leftJoin(ticket.secondCategory)
                 .leftJoin(ticket.manager)
+                .leftJoin(ticket.requester)
                 .where(
-                        buildRoleConditions(requesterId, role),
+                        buildRoleConditionForList(requesterId, role),
                         ticketTypeEq(ticketTypeId),
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
                         statusEq(status),
                         deletedAtEqNull(),
-                        createdAtBetween(dateOption)
+                        createdAtBetween(dateOption),
+                        urgentCondition(urgent)
                 )
                 .orderBy(urgentPriority.asc(), mainOrder)
                 .offset(pageable.getOffset())
@@ -127,14 +132,15 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .leftJoin(ticket.secondCategory)
                 .leftJoin(ticket.manager)
                 .where(
-                        buildRoleConditions(requesterId, role),
+                        buildRoleConditionForList(requesterId, role),
                         ticketTypeEq(ticketTypeId),
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
                         statusEq(status),
                         deletedAtEqNull(),
-                        createdAtBetween(dateOption)
+                        createdAtBetween(dateOption),
+                        urgentCondition(urgent)
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
@@ -162,7 +168,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.deadline,
                         ticket.createdAt,
-                        ticket.updatedAt
+                        ticket.updatedAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
@@ -171,7 +178,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .leftJoin(ticket.manager)
                 .leftJoin(ticket.requester)
                 .where(
-                        buildRoleConditions(userId, role),
+                        buildRoleConditionForOne(userId, role),
                         ticketIdEq(ticketId),
                         deletedAtEqNull()
                 )
@@ -220,12 +227,20 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
         return ticket.id.eq(ticketId);
     }
 
-    private BooleanExpression buildRoleConditions(Long requesterId, String role) {
+    private BooleanExpression buildRoleConditionForList(Long requesterId, String role) {
         if ("USER".equals(role)) {
             return ticket.requester.id.eq(requesterId);
         }
 
-        return Expressions.TRUE;
+        return requesterId != null ? ticket.requester.id.eq(requesterId) : null;
+    }
+
+    private BooleanExpression buildRoleConditionForOne(Long requesterId, String role) {
+        if ("USER".equals(role)) {
+            return ticket.requester.id.eq(requesterId);
+        }
+
+        return null;
     }
 
     private BooleanExpression ticketTypeEq(Long ticketTypeId) {
@@ -250,6 +265,10 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
 
     private BooleanExpression deletedAtEqNull() {
         return ticket.deletedAt.isNull();
+    }
+
+    private BooleanExpression urgentCondition(Boolean urgent) {
+        return urgent != null && urgent ? ticket.urgent.eq(true) : null;
     }
 
     private BooleanExpression createdAtBetween(String dateOption) {

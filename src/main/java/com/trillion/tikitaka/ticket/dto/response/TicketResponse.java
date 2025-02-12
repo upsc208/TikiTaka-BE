@@ -31,6 +31,7 @@ public class TicketResponse {
     private Long requesterId;
     private String requesterName;
     private Boolean urgent;
+    private Double progress;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
@@ -47,7 +48,7 @@ public class TicketResponse {
     public TicketResponse(Long ticketId, String title, String description, Ticket.Priority priority, Ticket.Status status,
                           Long typeId, String typeName, Long firstCategoryId, String firstCategoryName, Long secondCategoryId,
                           String secondCategoryName, Long managerId, String managerName, Long requesterId, String requesterName,
-                          Boolean urgent, LocalDateTime deadline, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                          Boolean urgent, LocalDateTime deadline, LocalDateTime createdAt, LocalDateTime updatedAt,Double progress) {
         this.ticketId = ticketId;
         this.title = title;
         this.description = description;
@@ -67,5 +68,6 @@ public class TicketResponse {
         this.deadline = deadline;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.progress = progress;
     }
 }

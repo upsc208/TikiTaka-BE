@@ -10,8 +10,8 @@ public class AllUser {
     private Long userId;
     private String userEmail;
     private String userProfile;
-    private int doneTickets;  // ✅ 완료된 티켓 수 추가
-    private int inProgressTickets; // ✅ 진행 중인 티켓 수 추가
+    private int doneTickets;
+    private int inProgressTickets;
 
     public void updateAllUser(String userName, String userEmail, Long userId, String userProfile, int doneTickets, int inProgressTickets) {
         this.userEmail = userEmail;

@@ -3,10 +3,12 @@ package com.trillion.tikitaka.user.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class PasswordChangeRequest {
 
     @NotBlank
@@ -18,4 +20,9 @@ public class PasswordChangeRequest {
             message = "비밀번호는 8자리 이상, 알파벳, 숫자, 특수문자를 포함해야 합니다."
     )
     private String newPassword;
+
+    public PasswordChangeRequest(String currentPassword, String newPassword) {
+        this.currentPassword = currentPassword;
+        this.newPassword = newPassword;
+    }
 }

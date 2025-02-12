@@ -25,7 +25,7 @@ public class TicketHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE) // 영속성 에러
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
 
@@ -53,7 +53,7 @@ public class TicketHistory {
         PRIORITY_CHANGE,
         CATEGORY_CHANGE,
         DEADLINE_CHANGE,
-        TICKET_DELETE ,
+        URGENT_CHANGE,
         OTHER
     }
 

@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
                 e.getErrorCode().getErrorCode(),
                 e.getErrorCode().getMessage()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, e.getErrorCode().getHttpStatus());
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
