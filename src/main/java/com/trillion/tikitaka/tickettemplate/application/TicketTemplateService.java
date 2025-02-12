@@ -138,44 +138,30 @@ public class TicketTemplateService {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
-        TicketType typeEntity = template.getType();
-        Category firstCat = template.getFirstCategory();
-        Category secondCat = template.getSecondCategory();
-        User manager = template.getManager();
+        TicketType type = (template.getType() != null && template.getType().getDeletedAt() == null) ? template.getType() : null;
+        Category firstCat = (template.getFirstCategory() != null && template.getFirstCategory().getDeletedAt() == null) ? template.getFirstCategory() : null;
+        Category secondCat = (template.getSecondCategory() != null && template.getSecondCategory().getDeletedAt() == null) ? template.getSecondCategory() : null;
 
-        Long typeId = (typeEntity != null && typeEntity.getDeletedAt() == null) ? typeEntity.getId() : null;
-        String typeName = (typeEntity != null && typeEntity.getDeletedAt() == null) ? typeEntity.getName() : null;
-
-        Long firstCatId = (firstCat != null && firstCat.getDeletedAt() == null) ? firstCat.getId() : null;
-        String firstCatName = (firstCat != null && firstCat.getDeletedAt() == null) ? firstCat.getName() : null;
-
-        Long secondCatId = (secondCat != null && secondCat.getDeletedAt() == null) ? secondCat.getId() : null;
-        String secondCatName = (secondCat != null && secondCat.getDeletedAt() == null) ? secondCat.getName() : null;
-
-        Long managerId = (manager != null && manager.getDeletedAt() == null) ? manager.getId() : null;
-        String managerName = (manager != null && manager.getDeletedAt() == null) ? manager.getUsername() : null;
-
-        User requester = template.getRequester();
-        Long requesterId = requester.getId();
-        String requesterName = requester.getUsername();
+        User manager = (template.getManager() != null) ? userRepository.findById(template.getManager().getId()).orElse(null) : null;
 
         return new TicketTemplateResponse(
                 template.getId(),
                 template.getTemplateTitle(),
                 template.getTitle(),
                 template.getDescription(),
-                typeId,
-                typeName,
-                firstCatId,
-                firstCatName,
-                secondCatId,
-                secondCatName,
-                requesterId,
-                requesterName,
-                managerId,
-                managerName
+                (type != null) ? type.getId() : null,
+                (type != null) ? type.getName() : null,
+                (firstCat != null) ? firstCat.getId() : null,
+                (firstCat != null) ? firstCat.getName() : null,
+                (secondCat != null) ? secondCat.getId() : null,
+                (secondCat != null) ? secondCat.getName() : null,
+                template.getRequester().getId(),
+                template.getRequester().getUsername(),
+                (manager != null) ? manager.getId() : null,
+                (manager != null) ? manager.getUsername() : null
         );
     }
+
 
 
     public List<TicketTemplateListResponse> getMyTemplates(CustomUserDetails userDetails) {

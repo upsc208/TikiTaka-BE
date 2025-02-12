@@ -26,6 +26,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "T001", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "T002", "토큰이 만료되었습니다."),
     INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "T003", "잘못된 토큰 서명입니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "T004", "리프레시 토큰이 존재하지 않습니다."),
 
     // Registration
     DUPLICATED_USERNAME(HttpStatus.CONFLICT, "R001", "이미 사용중인 아이디입니다."),
