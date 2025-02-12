@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -36,6 +37,9 @@ class UserServiceIntegrationTest {
     @Autowired
     private RegistrationRepository registrationRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private User testUser;
 
     @BeforeEach
@@ -43,7 +47,7 @@ class UserServiceIntegrationTest {
         testUser = User.builder()
                 .username("testUser")
                 .email("test@email.com")
-                .password("encodedPassword") // 실제 암호화 필요
+                .password(passwordEncoder.encode("originalPassword"))
                 .role(Role.USER)
                 .build();
         userRepository.save(testUser);
@@ -53,21 +57,21 @@ class UserServiceIntegrationTest {
     @DisplayName("비밀번호 변경 성공")
     void updatePassword_Success() {
         // given
-        PasswordChangeRequest request = new PasswordChangeRequest("encodedPassword", "newEncodedPassword");
+        PasswordChangeRequest request = new PasswordChangeRequest("originalPassword", "newPassword");
 
         // when
         userService.updatePassword(testUser.getId(), request);
 
         // then
         User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
-        assertThat(updatedUser.getPassword()).isEqualTo("newEncodedPassword");
+        assertThat(passwordEncoder.matches("newPassword", updatedUser.getPassword())).isTrue();
     }
 
     @Test
     @DisplayName("비밀번호 변경 실패 - 기존 비밀번호와 동일")
     void updatePassword_Fail_SamePassword() {
         // given
-        PasswordChangeRequest request = new PasswordChangeRequest("encodedPassword", "encodedPassword");
+        PasswordChangeRequest request = new PasswordChangeRequest("originalPassword", "originalPassword");
 
         // then
         assertThatThrownBy(() -> userService.updatePassword(testUser.getId(), request))
@@ -79,7 +83,7 @@ class UserServiceIntegrationTest {
     @DisplayName("비밀번호 변경 실패 - 존재하지 않는 사용자")
     void updatePassword_Fail_UserNotFound() {
         // given
-        PasswordChangeRequest request = new PasswordChangeRequest("encodedPassword", "newEncodedPassword");
+        PasswordChangeRequest request = new PasswordChangeRequest("originalPassword", "newPassword");
 
         // then
         assertThatThrownBy(() -> userService.updatePassword(9999L, request))
