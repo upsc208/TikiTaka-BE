@@ -77,6 +77,7 @@ class DailyStatisticsServiceTest {
             LocalDateTime endOfToday = startOfToday.plusDays(1);
 
             UserResponse mockUserResponse = new UserResponse(1L, "manager", "manager@example.com",Role.MANAGER, "profile.jpg");
+
             when(userRepository.getAllUsers()).thenReturn(List.of(mockUserResponse));
 
             when(ticketRepository.countByManagerAndStatus(1L, startOfToday, endOfToday, List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
