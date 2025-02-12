@@ -5,6 +5,7 @@ import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
+import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.dto.request.PasswordChangeRequest;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
@@ -28,6 +29,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RegistrationRepository registrationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TicketRepository ticketRepository;
 
     @Transactional
     public void updatePassword(Long userId, PasswordChangeRequest request) {
@@ -53,7 +55,7 @@ public class UserService {
         log.info("[사용자 삭제] 사용자 ID: {}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-
+        ticketRepository.softDeleteTicketsByRequester(userId);
         userRepository.delete(user);
     }
 

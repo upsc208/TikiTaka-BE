@@ -1,5 +1,10 @@
 package com.trillion.tikitaka.ticket.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
@@ -57,6 +62,7 @@ public class Ticket extends DeletedBaseEntity {
 
 
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -135,6 +141,10 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
+    public User getActiveManager() {
+        return (this.manager == null || this.manager.isDeleted()) ? null : this.manager;
+    }
+
 
     public void updateProgress(Double progress) {
         this.progress = progress;
