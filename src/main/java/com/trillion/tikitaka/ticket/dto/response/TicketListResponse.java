@@ -25,6 +25,7 @@ public class TicketListResponse {
     private Ticket.Status status;
     private Boolean urgent;
     private Ticket.Priority priority;
+    private Double progress;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
@@ -35,7 +36,7 @@ public class TicketListResponse {
     @QueryProjection
     public TicketListResponse(Long ticketId, String title, String description, String typeName, String firstCategoryName,
                               String secondCategoryName, String managerName, Ticket.Status status, Boolean urgent,
-                              Ticket.Priority priority, LocalDateTime deadline, LocalDateTime createdAt) {
+                              Ticket.Priority priority, LocalDateTime deadline, LocalDateTime createdAt,Double progress) {
         this.ticketId = ticketId;
         this.title = title;
         this.description = description;
@@ -48,5 +49,6 @@ public class TicketListResponse {
         this.priority = priority;
         this.deadline = deadline;
         this.createdAt = createdAt;
+        this.progress = progress;
     }
 }
