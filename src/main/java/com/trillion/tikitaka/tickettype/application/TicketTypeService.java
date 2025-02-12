@@ -8,6 +8,7 @@ import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -75,7 +76,9 @@ public class TicketTypeService {
         log.info("[티켓 타입 삭제] 타입 ID: {}", typeId);
         TicketType ticketType = ticketTypeRepository.findById(typeId)
                 .orElseThrow(TicketTypeNotFoundException::new);
-
+        if(ticketType.isDefaultType()){
+            throw new TransactionSystemException("기본 티켓 유형은 변경할 수 없습니다.");
+        }
         ticketTypeRepository.delete(ticketType);
     }
 }
