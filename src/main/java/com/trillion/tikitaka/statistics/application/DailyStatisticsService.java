@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class DailyStatisticsService {
 
+
+
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final TicketTypeRepository ticketTypeRepository;
@@ -140,5 +142,7 @@ public class DailyStatisticsService {
 
         return responseList;
     }
+
+
 }
 

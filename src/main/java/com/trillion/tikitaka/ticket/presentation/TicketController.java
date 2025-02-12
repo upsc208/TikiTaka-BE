@@ -84,13 +84,14 @@ public class TicketController {
             @RequestParam(value = "ticketTypeId", required = false) Long ticketTypeId,
             @RequestParam(value = "managerId", required = false) Long managerId,
             @RequestParam(value = "requesterId", required = false) Long requesterId,
+            @RequestParam(value = "urgent", required = false) Boolean urgent,
             @RequestParam(value = "date", required = false) String dateOption,  // "today", "week", "month"
             @RequestParam(value = "sort", defaultValue = "newest") String sort,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Pageable pageable = PageRequest.of(page, size);
         Page<TicketListResponse> ticketList = ticketService.getTicketList(
-                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, dateOption, sort, userDetails
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, urgent, dateOption, sort, userDetails
         );
         return new ApiResponse<>(ticketList);
     }

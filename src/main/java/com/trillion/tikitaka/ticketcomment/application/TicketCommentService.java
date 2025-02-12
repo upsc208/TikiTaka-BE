@@ -14,6 +14,7 @@ import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentEx
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
 
 @Slf4j
 @Service
@@ -33,6 +36,7 @@ public class TicketCommentService {
     private final TicketRepository ticketRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final FileService fileService;
+    private final UserRepository userRepository;
 
     @Transactional
     public void createTicketComment(Long ticketId, TicketCommentRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
@@ -51,25 +55,50 @@ public class TicketCommentService {
                 .author(author)
                 .content(request.getContent())
                 .build();
-        ticketCommentRepository.save(comment);
-        ticketCommentRepository.flush();
+        ticketCommentRepository.saveAndFlush(comment);
 
         if (files != null && !files.isEmpty()) {
             log.info("[티켓 댓글 생성] 첨부 파일 업로드 시작");
             fileService.uploadFilesForComment(files, comment);
         }
 
-        // 댓글 작성 메시지 작성 시 비동기 처리를 위한 연관 객체 강제 초기화 (프록시 초기화)
-        if (ticket.getFirstCategory() != null) ticket.getFirstCategory().getName();
-        if (ticket.getSecondCategory() != null) ticket.getSecondCategory().getName();
-        if (ticket.getTicketType() != null) ticket.getTicketType().getName();
-        ticket.getManager().getUsername();
-        ticket.getRequester().getUsername();
-
         if (author.getRole() == Role.USER) {
-            eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getManager().getEmail(), ticket, author.getUsername()));
+            User manager = (ticket.getManager() != null) ? userRepository.findById(ticket.getManager().getId()).orElse(null) : null;
+
+            if (manager != null) {
+                String url = END_POINT + "/manager/detail/" + ticket.getId();
+
+                eventPublisher.publishEvent(
+                        new CommentCreateEvent(
+                                this,
+                                manager.getEmail(),
+                                ticket.getId(),
+                                ticket.getTitle(),
+                                ticket.getFirstCategory() == null ? null : ticket.getFirstCategory().getName(),
+                                ticket.getSecondCategory() == null ? null : ticket.getSecondCategory().getName(),
+                                ticket.getTicketType() == null ? null : ticket.getTicketType().getName(),
+                                author.getUsername(),
+                                url
+                        )
+                );
+            }
         } else {
-            eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getRequester().getEmail(), ticket, author.getUsername()));
+            User requester = ticket.getRequester();
+            String url = END_POINT + "/user/detail/" + ticket.getId();
+
+            eventPublisher.publishEvent(
+                    new CommentCreateEvent(
+                            this,
+                            requester.getEmail(),
+                            ticket.getId(),
+                            ticket.getTitle(),
+                            ticket.getFirstCategory() == null ? null : ticket.getFirstCategory().getName(),
+                            ticket.getSecondCategory() == null ? null : ticket.getSecondCategory().getName(),
+                            ticket.getTicketType() == null ? null : ticket.getTicketType().getName(),
+                            author.getUsername(),
+                            url
+                    )
+            );
         }
     }
 
