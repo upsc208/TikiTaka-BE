@@ -48,7 +48,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .when(ticket.urgent.eq(true)).then(1L)
                 .otherwise(0L);
 
-        BooleanExpression conditions = buildRoleConditions(requesterId, role);
+        BooleanExpression conditions = buildRoleConditionForOne(requesterId, role);
 
         return queryFactory
                 .select(new QTicketCountByStatusResponse(
@@ -105,7 +105,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .leftJoin(ticket.manager)
                 .leftJoin(ticket.requester)
                 .where(
-                        buildRoleConditions(requesterId, role),
+                        buildRoleConditionForList(requesterId, role),
                         ticketTypeEq(ticketTypeId),
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
@@ -127,7 +127,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .leftJoin(ticket.secondCategory)
                 .leftJoin(ticket.manager)
                 .where(
-                        buildRoleConditions(requesterId, role),
+                        buildRoleConditionForList(requesterId, role),
                         ticketTypeEq(ticketTypeId),
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
@@ -171,7 +171,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .leftJoin(ticket.manager)
                 .leftJoin(ticket.requester)
                 .where(
-                        buildRoleConditions(userId, role),
+                        buildRoleConditionForOne(userId, role),
                         ticketIdEq(ticketId),
                         deletedAtEqNull()
                 )
@@ -220,12 +220,20 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
         return ticket.id.eq(ticketId);
     }
 
-    private BooleanExpression buildRoleConditions(Long requesterId, String role) {
+    private BooleanExpression buildRoleConditionForList(Long requesterId, String role) {
         if ("USER".equals(role)) {
             return ticket.requester.id.eq(requesterId);
         }
 
         return requesterId != null ? ticket.requester.id.eq(requesterId) : null;
+    }
+
+    private BooleanExpression buildRoleConditionForOne(Long requesterId, String role) {
+        if ("USER".equals(role)) {
+            return ticket.requester.id.eq(requesterId);
+        }
+
+        return null;
     }
 
     private BooleanExpression ticketTypeEq(Long ticketTypeId) {
