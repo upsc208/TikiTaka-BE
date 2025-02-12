@@ -66,7 +66,7 @@ public class TicketFormService {
             description = ticketForm.getDescription();
         }
 
-        return new TicketFormResponse(mustDescription, description);
+        return new TicketFormResponse(description, mustDescription);
     }
 
     @Transactional
