@@ -37,6 +37,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @SpringBootTest
 @Transactional
@@ -479,6 +480,87 @@ public class TicketServiceIntegrationTest {
                     .andExpect(status().isForbidden());
         }
     }
+    @Nested
+    @DisplayName("티켓 삭제 테스트")
+    class DescribeDeleteTicket {
+
+        @Test
+        @DisplayName("정상적으로 PENDING 상태의 티켓을 삭제할 수 있다.")
+        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
+        void should_DeleteTicket_when_ValidRequest() throws Exception {
+            // given
+            Ticket ticket = ticketRepository.save(Ticket.builder()
+                    .title("삭제할 티켓")
+                    .description("삭제할 티켓 내용")
+                    .ticketType(ticketType1)
+                    .firstCategory(parentCategory1)
+                    .secondCategory(childCategory1)
+                    .deadline(LocalDateTime.now().plusDays(5))
+                    .requester(normalUser1)
+                    .status(Ticket.Status.PENDING)
+                    .build());
+
+            // when
+            mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
+                            .with(user(new CustomUserDetails(normalUser1))))
+                    .andExpect(status().isOk());
+
+            // then
+            assertThat(ticketRepository.findById(ticket.getId())).isEmpty();
+        }
+
+        @Test
+        @DisplayName("PENDING 상태가 아닌 티켓을 삭제하려 하면 실패한다.")
+        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
+        void should_FailToDeleteTicket_when_StatusIsNotPending() throws Exception {
+            // given
+            Ticket ticket = ticketRepository.save(Ticket.builder()
+                    .title("삭제 불가능한 티켓")
+                    .description("진행 중 상태이므로 삭제 불가")
+                    .ticketType(ticketType1)
+                    .firstCategory(parentCategory1)
+                    .secondCategory(childCategory1)
+                    .deadline(LocalDateTime.now().plusDays(5))
+                    .requester(normalUser1)
+                    .status(Ticket.Status.IN_PROGRESS)
+                    .build());
+
+            // when
+            mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
+                            .with(user(new CustomUserDetails(normalUser1))))
+                    .andExpect(status().isForbidden());
+
+            // then
+            assertThat(ticketRepository.findById(ticket.getId())).isPresent();
+        }
+
+        @Test
+        @DisplayName("담당자가 티켓을 삭제하려 하면 실패한다.")
+        @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
+        void should_FailToDeleteTicket_when_ManagerTriesToDelete() throws Exception {
+            // given
+            Ticket ticket = ticketRepository.save(Ticket.builder()
+                    .title("담당자가 삭제할 수 없는 티켓")
+                    .description("요청자만 삭제 가능")
+                    .ticketType(ticketType1)
+                    .firstCategory(parentCategory1)
+                    .secondCategory(childCategory1)
+                    .deadline(LocalDateTime.now().plusDays(5))
+                    .requester(normalUser1)
+                    .manager(manager1)
+                    .status(Ticket.Status.PENDING)
+                    .build());
+
+            // when
+            mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
+                            .with(user(new CustomUserDetails(manager1))))
+                    .andExpect(status().isForbidden());
+
+            // then
+            assertThat(ticketRepository.findById(ticket.getId())).isPresent();
+        }
+    }
+
 
 
 }
