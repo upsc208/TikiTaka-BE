@@ -107,9 +107,9 @@ public class TicketService {
 
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
                                                   Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId,
-                                                  String dateOption, String sort, CustomUserDetails userDetails) {
-        log.info("[티켓 목록 조회] 요청자: {}, 상태: {}, 1차/2차 카테고리: {}/{}, 티켓 유형: {}, 담당자: {}, 요청자: {}, 정렬: {}, 날짜 옵션: {}",
-                userDetails.getUsername(), status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, sort, dateOption);
+                                                  Boolean urgent, String dateOption, String sort, CustomUserDetails userDetails) {
+        log.info("[티켓 목록 조회] 요청자: {}, 상태: {}, 1차/2차 카테고리: {}/{}, 티켓 유형: {}, 담당자: {}, 요청자: {}, 긴급 여부: {}, 정렬: {}, 날짜 옵션: {}",
+                userDetails.getUsername(), status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, urgent, sort, dateOption);
 
         String role = userDetails.getUser().getRole().toString();
         if ("USER".equals(role)) requesterId = userDetails.getUser().getId();
@@ -120,7 +120,7 @@ public class TicketService {
         validateUserExistence(managerId);
 
         return ticketRepository.getTicketList(
-                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, role, sort, dateOption
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, urgent, role, sort, dateOption
         );
     }
 
