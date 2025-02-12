@@ -61,6 +61,7 @@ public class SubtaskService {
                 .orElseThrow(UnauthrizedSubtaskAcessExeception::new);
 
         subtask.updateDescription(request.getDescription());
+
     }
 
     @Transactional
@@ -91,6 +92,11 @@ public class SubtaskService {
         Subtask subtask = subtaskRepository.findById(taskId)
                 .orElseThrow(SubtaskNotFoundExeption::new);
         subtask.updateIsDone(checkIsDone);
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(TicketNotFoundException::new);
+        if(ticket.getStatus().equals(Ticket.Status.PENDING)&&subtask.getDone().equals(true)){
+            ticket.updateStatus(Ticket.Status.IN_PROGRESS);
+        }
         calculateProgress(ticketId);
     }
     @Transactional

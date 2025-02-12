@@ -256,11 +256,11 @@ class TicketServiceTest {
                     new TicketListResponse(
                             1L, "테스트 티켓", "티켓 설명", "생성", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now()),
+                            LocalDateTime.now(), LocalDateTime.now(),null),
                     new TicketListResponse(
                             2L, "테스트 티켓1", "티켓 설명2", "생성", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.DONE, false, Ticket.Priority.HIGH,
-                            LocalDateTime.now(), LocalDateTime.now())
+                            LocalDateTime.now(), LocalDateTime.now(),null)
             );
             Page<TicketListResponse> page = new PageImpl<>(list);
 
@@ -289,11 +289,11 @@ class TicketServiceTest {
                     new TicketListResponse(
                             1L, "테스트 티켓", "티켓 설명", "생성", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now()),
+                            LocalDateTime.now(), LocalDateTime.now(),null),
                     new TicketListResponse(
                             2L, "테스트 티켓1", "티켓 설명2", "생성", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.IN_PROGRESS, false, Ticket.Priority.HIGH,
-                            LocalDateTime.now(), LocalDateTime.now())
+                            LocalDateTime.now(), LocalDateTime.now(),null)
             );
 
             List<TicketListResponse> filteredList = list.stream()
@@ -329,15 +329,15 @@ class TicketServiceTest {
                     new TicketListResponse(
                             4L, "카테고리 티켓1", "설명1", "생성", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now()),
+                            LocalDateTime.now(), LocalDateTime.now(),null),
                     new TicketListResponse(
                             5L, "카테고리 티켓2", "설명2", "생성", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.IN_PROGRESS, false, Ticket.Priority.HIGH,
-                            LocalDateTime.now(), LocalDateTime.now()),
+                            LocalDateTime.now(), LocalDateTime.now(),null),
                     new TicketListResponse(
                             6L, "비필터 티켓", "설명3", "생성", "다른카테고리",
                             "다른카테고리", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now())
+                            LocalDateTime.now(), LocalDateTime.now(),null)
             );
 
             List<TicketListResponse> filteredList = list.stream()
@@ -379,11 +379,11 @@ class TicketServiceTest {
                     new TicketListResponse(
                             1L, "유형 티켓1", "설명1", "수정", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now()),
+                            LocalDateTime.now(), LocalDateTime.now(),null),
                     new TicketListResponse(
                             3L, "비필터 티켓", "설명3", "생성", "다른카테고리",
                             "다른카테고리", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now())
+                            LocalDateTime.now(), LocalDateTime.now(),null)
             );
 
             List<TicketListResponse> filteredList = list.stream()
@@ -427,11 +427,11 @@ class TicketServiceTest {
                     new TicketListResponse(
                             1L, "담당자 티켓1", "설명1", "수정", "카테고리1",
                             "카테고리2", "manager.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now()),
+                            LocalDateTime.now(), LocalDateTime.now(),null),
                     new TicketListResponse(
                             2L, "담당자 티켓2", "설명2", "수정", "카테고리1",
                             "카테고리2", "managerDiff.ts", Ticket.Status.PENDING, false, Ticket.Priority.LOW,
-                            LocalDateTime.now(), LocalDateTime.now())
+                            LocalDateTime.now(), LocalDateTime.now(),null)
             );
 
             List<TicketListResponse> filteredList = list.stream()

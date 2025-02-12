@@ -99,7 +99,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.priority,
                         ticket.deadline,
-                        ticket.createdAt
+                        ticket.createdAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
@@ -167,7 +168,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.deadline,
                         ticket.createdAt,
-                        ticket.updatedAt
+                        ticket.updatedAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
