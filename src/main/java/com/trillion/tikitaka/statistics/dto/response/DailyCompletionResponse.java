@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class DailyCompletionResponse {
-    private int createdTickets;
-    private int doneTickets;
+    private final int createdTickets;
+    private final int doneTickets;
 }
