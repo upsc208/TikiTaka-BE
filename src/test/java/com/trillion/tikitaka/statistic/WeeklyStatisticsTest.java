@@ -23,7 +23,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.lenient;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -52,8 +51,24 @@ class WeeklyStatisticsTest {
     class GetWeeklySummary {
 
         @Test
-        @DisplayName("주간 요약 데이터를 반환")
-        void shouldReturnCorrectWeeklyStatistics() {
+        @DisplayName("케이스 1 - 주간 완료된 티켓 수 검증")
+        void shouldReturnWeeklyStatistics_Case1() {
+            testWeeklyStatistics(new int[]{3, 4, 5, 6, 7, 2, 1}, 5, 2, 28);
+        }
+
+        @Test
+        @DisplayName("케이스 2 - 주간 완료된 티켓 수 검증")
+        void shouldReturnWeeklyStatistics_Case2() {
+            testWeeklyStatistics(new int[]{2, 3, 4, 5, 6, 7, 8}, 4, 1, 35);
+        }
+
+        @Test
+        @DisplayName("케이스 3 - 주간 완료된 티켓 수 검증")
+        void shouldReturnWeeklyStatistics_Case3() {
+            testWeeklyStatistics(new int[]{10, 5, 8, 3, 4, 7, 6}, 8, 3, 43);
+        }
+
+        private void testWeeklyStatistics(int[] dailyCounts, int expectedDayTickets, int expectedUrgentTickets, int expectedWeekTickets) {
             Long managerId = 100L;
             LocalDate fixedDate = LocalDate.of(2025, 1, 1);
             LocalDate expectedMonday = fixedDate.with(DayOfWeek.MONDAY);
@@ -71,24 +86,32 @@ class WeeklyStatisticsTest {
                 LocalDateTime saturdayStart = mondayStart.plusDays(5);
 
                 lenient().when(ticketRepository.countDoneBetweenAndManager(eq(todayStart), eq(todayEnd), eq(managerId)))
-                        .thenReturn(5);
+                        .thenReturn(expectedDayTickets);
                 lenient().when(ticketRepository.countUrgentCreatedToday(eq(todayStart), eq(todayEnd), eq(managerId)))
-                        .thenReturn(2);
+                        .thenReturn(expectedUrgentTickets);
                 lenient().when(ticketRepository.countDoneBetweenAndManager(eq(mondayStart), eq(saturdayStart), eq(managerId)))
-                        .thenReturn(20);
+                        .thenReturn(expectedWeekTickets);
 
-                int[] dailyCounts = {3, 4, 5, 6, 7, 2, 1};
+                int calculatedSum = 0;
                 for (int i = 0; i < dailyCounts.length; i++) {
                     lenient().when(ticketRepository.countDoneBetweenAndManager(eq(mondayStart.plusDays(i)), eq(mondayStart.plusDays(i + 1)), eq(managerId)))
                             .thenReturn(dailyCounts[i]);
+                    calculatedSum += dailyCounts[i];
                 }
+
+                assertThat(calculatedSum).isEqualTo(expectedWeekTickets);
 
                 WeeklyStatisticsResponse response = weeklyStatisticsService.getWeeklySummary(mockUserDetails);
 
+                System.out.println("테스트 케이스");
+                System.out.println("오늘 완료된 티켓 수: " + response.getDayTickets());
+                System.out.println("오늘 긴급 티켓 수: " + response.getDayUrgentTickets());
+                System.out.println("주간 완료된 티켓 수: " + response.getWeekTickets());
+
                 assertThat(response).isNotNull();
-                assertThat(response.getDayTickets()).isEqualTo(5);
-                assertThat(response.getDayUrgentTickets()).isEqualTo(2);
-                assertThat(response.getWeekTickets()).isEqualTo(20);
+                assertThat(response.getDayTickets()).isEqualTo(expectedDayTickets);
+                assertThat(response.getDayUrgentTickets()).isEqualTo(expectedUrgentTickets);
+                assertThat(response.getWeekTickets()).isEqualTo(expectedWeekTickets);
 
                 verify(ticketRepository, atLeastOnce())
                         .countDoneBetweenAndManager(eq(todayStart), eq(todayEnd), eq(managerId));
