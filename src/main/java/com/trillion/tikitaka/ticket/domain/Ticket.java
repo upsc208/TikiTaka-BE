@@ -1,5 +1,10 @@
 package com.trillion.tikitaka.ticket.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
@@ -57,6 +62,7 @@ public class Ticket extends DeletedBaseEntity {
 
 
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime deadline;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -75,14 +81,23 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Double progress = null;
 
-    public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
+    public void update(EditTicketRequest request,TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
         if (request.getDescription() != null) this.description = request.getDescription();
         if (request.getDeadline() != null) this.deadline = request.getDeadline();
         if (firstCategory != null) this.firstCategory = firstCategory;
         if (secondCategory != null) this.secondCategory = secondCategory;
         if (request.getUrgent() != null) this.urgent = request.getUrgent();
-        if (ticketType != null) this.ticketType = ticketType;
+        if(ticketType != null) this.ticketType = ticketType;
+    }
+    public void updateNullCategory(EditTicketRequest request,TicketType ticketType, Category firstCategory, Category secondCategory) {
+        if (request.getTitle() != null) this.title = request.getTitle();
+        if (request.getDescription() != null) this.description = request.getDescription();
+        if (request.getDeadline() != null) this.deadline = request.getDeadline();
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
+        if (request.getUrgent() != null) this.urgent = request.getUrgent();
+        if(ticketType != null) this.ticketType = ticketType;
     }
 
     //사용자
@@ -135,6 +150,10 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
+    public User getActiveManager() {
+        return (this.manager == null || this.manager.isDeleted()) ? null : this.manager;
+    }
+
 
     public void updateProgress(Double progress) {
         this.progress = progress;

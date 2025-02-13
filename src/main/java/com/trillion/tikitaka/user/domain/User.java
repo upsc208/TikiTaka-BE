@@ -98,4 +98,8 @@ public class User extends DeletedBaseEntity {
     public void updateRole(Role newRole) {
         this.role = newRole;
     }
+
+    public boolean isDeleted() {
+        return this.getDeletedAt() != null;
+    }
 }

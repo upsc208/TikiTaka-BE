@@ -20,4 +20,14 @@ public class DailyCategoryStatisticsResponse {
         private String secondCategoryName;
         private int ticketCount;
     }
+    @Override
+    public String toString() {
+        return "DailyCategoryStatisticsResponse{" +
+                "firstCategoryId=" + firstCategoryId +
+                ", firstCategoryName='" + firstCategoryName + '\'' +
+                ", secondCategories=" + secondCategories +
+                ", totalTicketCount=" + totalTicketCount +
+                '}';
+    }
+
 }
