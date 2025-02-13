@@ -20,7 +20,7 @@ public class JwtUtil {
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String TOKEN_TYPE_ACCESS = "access";
     public static final String TOKEN_TYPE_REFRESH = "refresh";
-    public static final Long ACCESS_TOKEN_EXPIRATION = 1800000L;
+    public static final Long ACCESS_TOKEN_EXPIRATION = 120000L;
     public static final Long REFRESH_TOKEN_EXPIRATION = 86400000L;
 
     private SecretKey secretKey;
