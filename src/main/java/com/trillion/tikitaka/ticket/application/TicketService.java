@@ -26,6 +26,7 @@ import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
 import com.trillion.tikitaka.ticket.exception.InvalidTicketManagerException;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
 import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketAccessException;
+import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketEditExeception;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
@@ -149,26 +150,44 @@ public class TicketService {
     @Transactional
     public void editTicket(EditTicketRequest request, Long ticketId, CustomUserDetails userDetails) {
         log.info("[사용자 티켓 수정] 요청자: {}, 티켓 ID: {}", userDetails.getUsername(), ticketId);
+
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+
+        if(!userDetails.getUser().getUsername().equals(ticket.getRequester().getUsername())){
+            throw new UnauthorizedTicketEditExeception();
+        }
 
         TicketType ticketType = request.getTicketTypeId() != null
                 ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
                 : ticket.getTicketType();
 
-        Category firstCategory = request.getFirstCategoryId() != null
-                ? categoryRepository.findById(request.getFirstCategoryId()).orElseThrow(CategoryNotFoundException::new)
-                : null;
-
-        Category secondCategory = request.getSecondCategoryId() != null
-                ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
-                : null;
-
-        validateCategoryRelation(firstCategory, secondCategory);
 
         User user = userDetails.getUser();
+        if(request.getSecondCategoryId()==0){
+            Category firstCategory = request.getFirstCategoryId() != null
+                    ? categoryRepository.findById(request.getFirstCategoryId()).orElseThrow(CategoryNotFoundException::new)
+                    : null;
+            Category secondCategory = null;
+            ticket.updateNullCategory(request, ticketType,firstCategory, secondCategory);
+        }else if(request.getFirstCategoryId()==0){
 
-        ticket.update(request, ticketType, firstCategory, secondCategory);
+            Category firstCategory = null;
+            Category secondCategory = null;
+            ticket.updateNullCategory(request, ticketType,firstCategory, secondCategory);
+        }else{
+            Category firstCategory = request.getFirstCategoryId() != null
+                    ? categoryRepository.findById(request.getFirstCategoryId()).orElseThrow(CategoryNotFoundException::new)
+                    : null;
+
+            Category secondCategory = request.getSecondCategoryId() != null
+                    ? categoryRepository.findById(request.getSecondCategoryId()).orElseThrow(CategoryNotFoundException::new)
+                    : null;
+            validateCategoryRelation(firstCategory, secondCategory);
+            ticket.update(request, ticketType,firstCategory, secondCategory);
+        }
+
+       // ticket.update(request, ticketType,firstCategory, secondCategory);
         historyService.recordHistory(ticket, user, TicketHistory.UpdateType.TICKET_EDITED);
 
         if (ticket.getManager() != null) {

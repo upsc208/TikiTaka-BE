@@ -1,6 +1,7 @@
 package com.trillion.tikitaka.ticket.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import lombok.*;
 
 import java.time.LocalDateTime;
