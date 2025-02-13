@@ -81,14 +81,23 @@ public class Ticket extends DeletedBaseEntity {
     @Builder.Default
     private Double progress = null;
 
-    public void update(EditTicketRequest request, TicketType ticketType, Category firstCategory, Category secondCategory) {
+    public void update(EditTicketRequest request,TicketType ticketType, Category firstCategory, Category secondCategory) {
         if (request.getTitle() != null) this.title = request.getTitle();
         if (request.getDescription() != null) this.description = request.getDescription();
         if (request.getDeadline() != null) this.deadline = request.getDeadline();
         if (firstCategory != null) this.firstCategory = firstCategory;
         if (secondCategory != null) this.secondCategory = secondCategory;
         if (request.getUrgent() != null) this.urgent = request.getUrgent();
-        if (ticketType != null) this.ticketType = ticketType;
+        if(ticketType != null) this.ticketType = ticketType;
+    }
+    public void updateNullCategory(EditTicketRequest request,TicketType ticketType, Category firstCategory, Category secondCategory) {
+        if (request.getTitle() != null) this.title = request.getTitle();
+        if (request.getDescription() != null) this.description = request.getDescription();
+        if (request.getDeadline() != null) this.deadline = request.getDeadline();
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
+        if (request.getUrgent() != null) this.urgent = request.getUrgent();
+        if(ticketType != null) this.ticketType = ticketType;
     }
 
     //사용자
