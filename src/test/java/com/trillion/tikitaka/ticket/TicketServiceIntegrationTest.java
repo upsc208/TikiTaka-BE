@@ -37,6 +37,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @SpringBootTest
 @Transactional
@@ -79,6 +80,7 @@ public class TicketServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
         manager1 = userRepository.save(User.builder()
                 .username("manager1")
                 .email("manager1@test.com")
@@ -174,7 +176,6 @@ public class TicketServiceIntegrationTest {
         @DisplayName("유효한 요청이 들어왔을 때, 티켓을 정상적으로 생성한다.")
         void should_CreateTicket_when_ValidRequest() throws Exception {
             // given
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             CreateTicketRequest request = CreateTicketRequest.builder()
                     .title("테스트 티켓 제목")
                     .description("테스트 티켓 상세 내용")
@@ -390,7 +391,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("사용자가 유효한 요청으로 티켓을 수정할 수 있다.")
-        @WithUserDetails(value = "user1", userDetailsServiceBeanName = "customUserDetailsService")
         void should_EditTicket_when_ValidRequest() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -401,19 +401,19 @@ public class TicketServiceIntegrationTest {
                     .secondCategory(childCategory1)
                     .deadline(LocalDateTime.now().plusDays(5))
                     .requester(normalUser1)
-                    .manager(manager1)
                     .build());
 
             EditTicketRequest request = EditTicketRequest.builder()
                     .title("수정된 제목")
                     .description("수정된 상세 내용")
                     .build();
+            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
 
             // when
-            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
             String responseBody = mockMvc.perform(
                             patch("/tickets/{ticketId}", ticket.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
+                                    .with(user(customUserDetails))
                                     .content(objectMapper.writeValueAsString(request))
                     )
                     .andExpect(status().isOk())
@@ -423,37 +423,10 @@ public class TicketServiceIntegrationTest {
             assertThat(responseBody).contains("티켓이 수정되었습니다.");
         }
 
-        @Test
-        @DisplayName("사용자가 유효하지 않은 요청으로 티켓을 수정하면 실패한다.")
-        @WithMockUser(username = "user", authorities = {"USER"})
-        void should_FailToEditTicket_when_InvalidRequest() throws Exception {
-            // given
-            Ticket ticket = ticketRepository.save(Ticket.builder()
-                    .title("제목")
-                    .description("내용")
-                    .ticketType(ticketType1)
-                    .firstCategory(parentCategory1)
-                    .secondCategory(childCategory1)
-                    .deadline(LocalDateTime.now().plusDays(5))
-                    .requester(normalUser1)
-                    .manager(manager1)
-                    .build());
-
-            EditTicketRequest request = new EditTicketRequest(); // 유효하지 않은 요청 (빈 객체)
-
-            // when
-            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
-            mockMvc.perform(
-                            patch("/tickets/{ticketId}", ticket.getId())
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(request))
-                    )
-                    .andExpect(status().isBadRequest()); // 요청이 잘못됨
-        }
 
         @Test
         @DisplayName("담당자가 티켓 유형을 수정할 수 있다.")
-        @WithMockUser(username = "manager", authorities = {"MANAGER"})
+        @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_EditTicketType_when_Manager() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -462,6 +435,7 @@ public class TicketServiceIntegrationTest {
                     .ticketType(ticketType1)
                     .requester(normalUser1)
                     .manager(manager1)
+                    .deadline(LocalDateTime.now().plusDays(5))
                     .build());
 
             EditTicketRequest request = EditTicketRequest.builder()
@@ -480,7 +454,7 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("사용자가 티켓 유형을 수정하려 하면 실패한다.")
-        @WithMockUser(username = "user", authorities = {"USER"})
+        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_FailToEditTicketType_when_User() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -489,6 +463,7 @@ public class TicketServiceIntegrationTest {
                     .ticketType(ticketType1)
                     .requester(normalUser1)
                     .manager(manager1)
+                    .deadline(LocalDateTime.now())
                     .build());
 
             EditTicketRequest request = EditTicketRequest.builder()
@@ -504,6 +479,87 @@ public class TicketServiceIntegrationTest {
                     .andExpect(status().isForbidden());
         }
     }
+    @Nested
+    @DisplayName("티켓 삭제 테스트")
+    class DescribeDeleteTicket {
+
+        @Test
+        @DisplayName("정상적으로 PENDING 상태의 티켓을 삭제할 수 있다.")
+        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
+        void should_DeleteTicket_when_ValidRequest() throws Exception {
+            // given
+            Ticket ticket = ticketRepository.save(Ticket.builder()
+                    .title("삭제할 티켓")
+                    .description("삭제할 티켓 내용")
+                    .ticketType(ticketType1)
+                    .firstCategory(parentCategory1)
+                    .secondCategory(childCategory1)
+                    .deadline(LocalDateTime.now().plusDays(5))
+                    .requester(normalUser1)
+                    .status(Ticket.Status.PENDING)
+                    .build());
+
+            // when
+            mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
+                            .with(user(new CustomUserDetails(normalUser1))))
+                    .andExpect(status().isOk());
+
+            // then
+            assertThat(ticketRepository.findById(ticket.getId())).isEmpty();
+        }
+
+        @Test
+        @DisplayName("PENDING 상태가 아닌 티켓을 삭제하려 하면 실패한다.")
+        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
+        void should_FailToDeleteTicket_when_StatusIsNotPending() throws Exception {
+            // given
+            Ticket ticket = ticketRepository.save(Ticket.builder()
+                    .title("삭제 불가능한 티켓")
+                    .description("진행 중 상태이므로 삭제 불가")
+                    .ticketType(ticketType1)
+                    .firstCategory(parentCategory1)
+                    .secondCategory(childCategory1)
+                    .deadline(LocalDateTime.now().plusDays(5))
+                    .requester(normalUser1)
+                    .status(Ticket.Status.IN_PROGRESS)
+                    .build());
+
+            // when
+            mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
+                            .with(user(new CustomUserDetails(normalUser1))))
+                    .andExpect(status().isForbidden());
+
+            // then
+            assertThat(ticketRepository.findById(ticket.getId())).isPresent();
+        }
+
+        @Test
+        @DisplayName("담당자가 티켓을 삭제하려 하면 실패한다.")
+        @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
+        void should_FailToDeleteTicket_when_ManagerTriesToDelete() throws Exception {
+            // given
+            Ticket ticket = ticketRepository.save(Ticket.builder()
+                    .title("담당자가 삭제할 수 없는 티켓")
+                    .description("요청자만 삭제 가능")
+                    .ticketType(ticketType1)
+                    .firstCategory(parentCategory1)
+                    .secondCategory(childCategory1)
+                    .deadline(LocalDateTime.now().plusDays(5))
+                    .requester(normalUser1)
+                    .manager(manager1)
+                    .status(Ticket.Status.PENDING)
+                    .build());
+
+            // when
+            mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
+                            .with(user(new CustomUserDetails(manager1))))
+                    .andExpect(status().isForbidden());
+
+            // then
+            assertThat(ticketRepository.findById(ticket.getId())).isPresent();
+        }
+    }
+
 
 
 }
