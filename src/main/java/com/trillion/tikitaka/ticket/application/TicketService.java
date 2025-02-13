@@ -68,7 +68,6 @@ public class TicketService {
         Category secondCategory = getCategoryOrNull(request.getSecondCategoryId());
         validateCategoryRelation(firstCategory, secondCategory);
         validateDeadline(request.getDeadline());
-        System.out.println(request.getDeadline());//검증
 
         User requester = getUserOrThrow(userDetails.getId());
         User manager = request.getManagerId() != null ? getUserOrThrowForManager(request.getManagerId()) : null;
@@ -158,7 +157,6 @@ public class TicketService {
             throw new UnauthorizedTicketEditExeception();
         }
         validateDeadline(request.getDeadline());
-        System.out.println(request.getDeadline());
 
         TicketType ticketType = request.getTicketTypeId() != null
                 ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
