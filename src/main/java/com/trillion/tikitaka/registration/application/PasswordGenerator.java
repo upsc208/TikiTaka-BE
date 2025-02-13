@@ -6,7 +6,7 @@ public class PasswordGenerator {
     private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
     private static final String DIGITS = "0123456789";
-    private static final String SPECIAL = "!@#$%^&*-=+?";
+    private static final String SPECIAL = "@#$%^&+=!";
 
     private static final int LENGTH = 12;
     private static final int SPECIAL_COUNT = 2;
