@@ -217,6 +217,7 @@ class TicketServiceTest {
                     30L,
                     LocalDateTime.now().plusDays(3),
                     null,
+                    null,
                     false
             );
             List<MultipartFile> files = Collections.emptyList();
