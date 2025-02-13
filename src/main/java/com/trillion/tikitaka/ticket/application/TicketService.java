@@ -121,7 +121,7 @@ public class TicketService {
         validateUserExistence(managerId);
 
         return ticketRepository.getTicketList(
-                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, urgent, role, sort, dateOption
+                pageable, status, firstCategoryId, secondCategoryId, ticketTypeId, managerId, requesterId, urgent, role, dateOption, sort
         );
     }
 
