@@ -151,27 +151,31 @@ public class TicketCommentTest {
             Long ticketId = 1L;
             TicketCommentRequest request = new TicketCommentRequest("댓글 테스트");
 
-            Ticket mockTicket = mock(Ticket.class);
-            when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(mockTicket));
-
-            when(mockTicket.canComment(any(User.class))).thenReturn(true);
+            Ticket ticket = mock(Ticket.class);
+            when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+            when(ticket.canComment(any(User.class))).thenReturn(true);
 
             User mockManager = mock(User.class);
             when(mockManager.getUsername()).thenReturn("manager_user");
-            when(mockTicket.getManager()).thenReturn(mockManager);
+            when(ticket.getManager()).thenReturn(mockManager);
 
             User mockRequester = mock(User.class);
             when(mockRequester.getUsername()).thenReturn("requester_user");
-            when(mockTicket.getRequester()).thenReturn(mockRequester);
+            when(ticket.getRequester()).thenReturn(mockRequester);
 
+            // 기존의 userDetailsManager를 스파이로 감싼다.
+            CustomUserDetails spyUserDetailsManager = spy(userDetailsManager);
             User mockAuthor = mock(User.class);
             when(mockAuthor.getRole()).thenReturn(Role.MANAGER);
-            when(userDetailsManager.getUser()).thenReturn(mockAuthor);
+            when(spyUserDetailsManager.getUser()).thenReturn(mockAuthor);
 
-            ticketCommentService.createTicketComment(ticketId, request, null, userDetailsManager);
+            // when
+            ticketCommentService.createTicketComment(ticketId, request, null, spyUserDetailsManager);
 
-            verify(ticketCommentRepository, times(1)).save(any(TicketComment.class));
+            // then: save() 대신 saveAndFlush() 검증
+            verify(ticketCommentRepository, times(1)).saveAndFlush(any(TicketComment.class));
         }
+
 
     }
 
