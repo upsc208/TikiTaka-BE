@@ -164,15 +164,16 @@ public class TicketService {
 
 
         User user = userDetails.getUser();
-        if(request.getSecondCategoryId()==0){
+
+        if(request.getFirstCategoryId() != null && request.getFirstCategoryId() == 0){
+            Category firstCategory = null;
+            Category secondCategory = null;
+            ticket.updateNullCategory(request, ticketType,firstCategory, secondCategory);
+
+        }else if(request.getSecondCategoryId() != null &&request.getSecondCategoryId()==0){
             Category firstCategory = request.getFirstCategoryId() != null
                     ? categoryRepository.findById(request.getFirstCategoryId()).orElseThrow(CategoryNotFoundException::new)
                     : null;
-            Category secondCategory = null;
-            ticket.updateNullCategory(request, ticketType,firstCategory, secondCategory);
-        }else if(request.getFirstCategoryId()==0){
-
-            Category firstCategory = null;
             Category secondCategory = null;
             ticket.updateNullCategory(request, ticketType,firstCategory, secondCategory);
         }else{

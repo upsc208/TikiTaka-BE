@@ -176,7 +176,6 @@ public class TicketServiceIntegrationTest {
         @DisplayName("유효한 요청이 들어왔을 때, 티켓을 정상적으로 생성한다.")
         void should_CreateTicket_when_ValidRequest() throws Exception {
             // given
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             CreateTicketRequest request = CreateTicketRequest.builder()
                     .title("테스트 티켓 제목")
                     .description("테스트 티켓 상세 내용")
@@ -392,7 +391,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("사용자가 유효한 요청으로 티켓을 수정할 수 있다.")
-        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")//미리 설정된 user는 인식을 못함 로컬에 저장된 user.tk는 인식가능
         void should_EditTicket_when_ValidRequest() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -403,18 +401,19 @@ public class TicketServiceIntegrationTest {
                     .secondCategory(childCategory1)
                     .deadline(LocalDateTime.now().plusDays(5))
                     .requester(normalUser1)
-                    .manager(manager1)
                     .build());
 
             EditTicketRequest request = EditTicketRequest.builder()
                     .title("수정된 제목")
                     .description("수정된 상세 내용")
                     .build();
+            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
 
             // when
             String responseBody = mockMvc.perform(
                             patch("/tickets/{ticketId}", ticket.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
+                                    .with(user(customUserDetails))
                                     .content(objectMapper.writeValueAsString(request))
                     )
                     .andExpect(status().isOk())
