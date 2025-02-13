@@ -23,10 +23,7 @@ import com.trillion.tikitaka.ticket.dto.response.PendingTicketResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketCountByStatusResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
 import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
-import com.trillion.tikitaka.ticket.exception.InvalidTicketManagerException;
-import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
-import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketAccessException;
-import com.trillion.tikitaka.ticket.exception.UnauthorizedTicketEditExeception;
+import com.trillion.tikitaka.ticket.exception.*;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.exception.TicketTypeNotFoundException;
@@ -44,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -69,6 +67,8 @@ public class TicketService {
         Category firstCategory = getCategoryOrNull(request.getFirstCategoryId());
         Category secondCategory = getCategoryOrNull(request.getSecondCategoryId());
         validateCategoryRelation(firstCategory, secondCategory);
+        validateDeadline(request.getDeadline());
+        System.out.println(request.getDeadline());//검증
 
         User requester = getUserOrThrow(userDetails.getId());
         User manager = request.getManagerId() != null ? getUserOrThrowForManager(request.getManagerId()) : null;
@@ -157,6 +157,8 @@ public class TicketService {
         if(!userDetails.getUser().getUsername().equals(ticket.getRequester().getUsername())){
             throw new UnauthorizedTicketEditExeception();
         }
+        validateDeadline(request.getDeadline());
+        System.out.println(request.getDeadline());
 
         TicketType ticketType = request.getTicketTypeId() != null
                 ? ticketTypeRepository.findById(request.getTicketTypeId()).orElseThrow(TicketTypeNotFoundException::new)
@@ -273,6 +275,7 @@ public class TicketService {
         log.info("[담당자 티켓 마감기한 수정] 요청자: {}, 티켓 ID: {}, 마감기한: {}", userDetails.getUsername(), ticketId, editSettingRequest.getDeadline());
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(TicketNotFoundException::new);
+        validateDeadline(editSettingRequest.getDeadline());
 
         ticket.updateDaedlineForManager(editSettingRequest.getDeadline());
 
@@ -479,4 +482,10 @@ public class TicketService {
             throw new InvalidCategoryLevelException();
         }
     }
+    private void validateDeadline(LocalDateTime deadline){
+        if(deadline!=null && deadline.isBefore(LocalDateTime.now())){
+            throw new InvalidTicektDeadlineException();
+        }
+    }
+
 }
