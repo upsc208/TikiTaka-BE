@@ -3,6 +3,7 @@ package com.trillion.tikitaka.ticket.infrastructure;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -71,21 +72,6 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
             Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId, Long ticketTypeId,
             Long managerId, Long requesterId, Boolean urgent, String role, String dateOption, String sort) {
 
-        NumberExpression<Integer> urgentPriority = new CaseBuilder()
-                .when(ticket.urgent.eq(true)
-                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
-                .then(0)
-                .otherwise(1);
-
-        OrderSpecifier<?> mainOrder;
-        if ("oldest".equalsIgnoreCase(sort)) {
-            mainOrder = ticket.createdAt.asc();
-        } else if ("deadline".equalsIgnoreCase(sort)) {
-            mainOrder = ticket.deadline.asc().nullsLast();
-        } else {
-            mainOrder = ticket.createdAt.desc();
-        }
-
         List<TicketListResponse> content = queryFactory
                 .select(new QTicketListResponse(
                         ticket.id.as("ticketId"),
@@ -119,7 +105,10 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         createdAtBetween(dateOption),
                         urgentCondition(urgent)
                 )
-                .orderBy(urgentPriority.asc(), mainOrder)
+                .orderBy(
+                        getUrgentPriority().asc(),
+                        getMainOrder(sort)
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -223,7 +212,35 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .fetchOne();
     }
 
-    private static BooleanExpression ticketIdEq(Long ticketId) {
+    private NumberExpression<Integer> getUrgentPriority() {
+        // 긴급 & (대기/처리중/검토) 상태면 0, 아니면 1
+        return new CaseBuilder()
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW))
+                )
+                .then(0)
+                .otherwise(1);
+    }
+
+    private OrderSpecifier<?> getMainOrder(String sort) {
+        if ("oldest".equalsIgnoreCase(sort)) {
+            return ticket.createdAt.asc();
+        } else if ("deadline".equalsIgnoreCase(sort)) {
+            // 마감 시점이 이미 지났으면 큰 숫자(999999999),
+            // 그렇지 않으면 (NOW() ~ deadline) 사이의 초 차이
+            return Expressions.numberTemplate(
+                    Long.class,
+                    "CASE WHEN {0} < NOW() THEN 999999999 " +
+                            "     ELSE TIMESTAMPDIFF(SECOND, NOW(), {0}) " +
+                            "END",
+                    ticket.deadline
+            ).asc();
+        } else {
+            return ticket.createdAt.desc();
+        }
+    }
+
+    private BooleanExpression ticketIdEq(Long ticketId) {
         return ticket.id.eq(ticketId);
     }
 
