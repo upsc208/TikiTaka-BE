@@ -65,8 +65,9 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<Void> deleteUser(@PathVariable("userId") Long userId) {
-        userService.deleteUser(userId);
+    public ApiResponse<Void> deleteUser(@PathVariable("userId") Long userId,
+                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.deleteUser(userId, userDetails);
         return new ApiResponse<>(null);
     }
 
