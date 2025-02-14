@@ -1,5 +1,6 @@
 package com.trillion.tikitaka.user;
 
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
@@ -15,12 +16,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // MySQL 사용
@@ -41,6 +42,7 @@ class UserServiceIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private CustomUserDetails userDetails;
 
     @BeforeEach
     void setUp() {
@@ -51,6 +53,8 @@ class UserServiceIntegrationTest {
                 .role(Role.USER)
                 .build();
         userRepository.save(testUser);
+
+        userDetails = new CustomUserDetails(testUser);
     }
 
     @Test
@@ -94,17 +98,42 @@ class UserServiceIntegrationTest {
     @DisplayName("사용자 삭제 성공")
     void deleteUser_Success() {
         // when
-        userService.deleteUser(testUser.getId());
+        User anotherUser = User.builder()
+                .username("anotherUser")
+                .email("anotherUser@email.com")
+                .password(passwordEncoder.encode("originalPassword"))
+                .role(Role.USER)
+                .build();
+        userRepository.save(anotherUser);
+
+        userService.deleteUser(anotherUser.getId(), userDetails);
 
         // then
-        assertThat(userRepository.findById(testUser.getId())).isEmpty();
+        assertThatThrownBy(() -> userRepository.findById(anotherUser.getId())
+                .orElseThrow(UserNotFoundException::new))
+                .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
     @DisplayName("사용자 삭제 실패 - 존재하지 않는 사용자")
     void deleteUser_Fail_NotFound() {
-        assertThatThrownBy(() -> userService.deleteUser(9999L))
+        assertThatThrownBy(() -> userService.deleteUser(9999L, userDetails))
                 .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("사용자 삭제 실패 - 자기 자신 삭제 시도")
+    void deleteUser_Fail_CannotDeleteMyself() {
+        assertThatThrownBy(() -> userService.deleteUser(testUser.getId(), userDetails))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.CANNOT_DELETE_MYSELF.getMessage());
+    }
+
+    @Test
+    @DisplayName("사용자 삭제 실패 - userDetails가 null일 경우")
+    void deleteUser_Fail_NullUserDetails() {
+        assertThatThrownBy(() -> userService.deleteUser(testUser.getId(), null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
