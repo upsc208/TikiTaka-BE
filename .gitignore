@@ -41,6 +41,8 @@ out/
 **/AdminInitializer.java
 **/application-test.yml
 **/application.yml
+**/data.sql
+**/SettingInitializer.java
 
 **/LOG_PATH_IS_UNDEFINED
 LOG_PATH_IS_UNDEFINED/
