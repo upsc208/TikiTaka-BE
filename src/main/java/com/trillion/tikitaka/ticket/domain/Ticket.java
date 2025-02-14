@@ -1,10 +1,6 @@
 package com.trillion.tikitaka.ticket.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
@@ -33,11 +29,11 @@ public class Ticket extends DeletedBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String title;
 
     @Lob
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(nullable = false, length = 5000, columnDefinition = "LONGTEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -101,14 +97,6 @@ public class Ticket extends DeletedBaseEntity {
     }
 
     //사용자
-    public void updateTitle(EditTicketRequest request) {
-        if (request.getTitle() != null) this.title = request.getTitle();
-    }
-
-    public void updateDescription(EditTicketRequest request) {
-        if (request.getDescription() != null) this.description = request.getDescription();
-    }
-
     public void updateCategory(Category firstCategory, Category secondCategory){
         this.firstCategory = firstCategory;
         this.secondCategory = secondCategory;
@@ -122,15 +110,11 @@ public class Ticket extends DeletedBaseEntity {
         this.ticketType = ticketType;
     }
 
-    public void updateDaedline(EditTicketRequest request) {
-        if (request.getDeadline() != null) this.deadline = request.getDeadline();
-    }
-    //사용자
-
     //담당자
     public void updatePriority(Priority priority){
         if (priority != null) this.priority = priority;
     }
+
     public void updateManager(User manager){
         if (manager != null) this.manager = manager;
     }
@@ -142,7 +126,6 @@ public class Ticket extends DeletedBaseEntity {
     public void updateStatus(Status status){
         this.status = status;
     }
-    //담당자
 
     public boolean canComment(User user) {
         if (user.getRole() == Role.USER) {
@@ -150,10 +133,6 @@ public class Ticket extends DeletedBaseEntity {
         }
         return true;
     }
-    public User getActiveManager() {
-        return (this.manager == null || this.manager.isDeleted()) ? null : this.manager;
-    }
-
 
     public void updateProgress(Double progress) {
         this.progress = progress;
@@ -167,6 +146,3 @@ public class Ticket extends DeletedBaseEntity {
         PENDING, IN_PROGRESS, REVIEW, DONE, REJECTED
     }
 }
-
-
-
