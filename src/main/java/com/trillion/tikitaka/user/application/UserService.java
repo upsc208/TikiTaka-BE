@@ -6,6 +6,7 @@ import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.registration.domain.RegistrationStatus;
 import com.trillion.tikitaka.registration.infrastructure.RegistrationRepository;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
+import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.dto.request.PasswordChangeRequest;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
@@ -18,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.trillion.tikitaka.user.domain.Role;
 
 @Slf4j
 @Service
@@ -51,10 +51,17 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long userId) {
+    public void deleteUser(Long userId, CustomUserDetails userDetails) {
         log.info("[사용자 삭제] 사용자 ID: {}", userId);
+
+        if (userId.equals(userDetails.getId())) {
+            log.error("[사용자 삭제] 자기 자신 삭제 불가");
+            throw new CustomException(ErrorCode.CANNOT_DELETE_MYSELF);
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
+
         ticketRepository.softDeleteTicketsByRequester(userId);
         userRepository.delete(user);
     }
