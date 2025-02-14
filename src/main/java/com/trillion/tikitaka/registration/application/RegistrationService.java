@@ -60,8 +60,18 @@ public class RegistrationService {
             throw new DuplicatedEmailException();
         }
 
+        if (registrationRepository.existsByUsernameAndStatus(username, RegistrationStatus.PENDING)) {
+            log.error("[계정 등록 실패] 이미 등록 신청된 아이디입니다. {}", username);
+            throw new DuplicatedUsernameException();
+        }
+        if (registrationRepository.existsByEmailAndStatus(email, RegistrationStatus.PENDING)) {
+            log.error("[계정 등록 실패] 이미 등록 신청된 이메일입니다. {}", email);
+            throw new DuplicatedEmailException();
+        }
+
         // 이미 등록 신청은 승인 되었으나 현재 사용자 존재 여부 확인
-        boolean approvedRegistrationExists = registrationRepository.existsByUsernameAndStatus(username, RegistrationStatus.APPROVED)
+        boolean approvedRegistrationExists =
+                registrationRepository.existsByUsernameAndStatus(username, RegistrationStatus.APPROVED)
                 || registrationRepository.existsByEmailAndStatus(email, RegistrationStatus.APPROVED);
 
         if (approvedRegistrationExists) {
