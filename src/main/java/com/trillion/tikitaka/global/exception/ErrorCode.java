@@ -40,7 +40,7 @@ public enum ErrorCode {
     NEW_PASSWORD_NOT_CHANGED(HttpStatus.BAD_REQUEST, "U003", "새로운 비밀빈호는 기존 비밀번호와 달라야 합니다."),
     DUPLICATED_USER(HttpStatus.CONFLICT, "U004", "이미 존재하는 사용자입니다."),
     CANNOT_DELETE_MYSELF(HttpStatus.FORBIDDEN, "U005", "자기 자신을 삭제할 수 없습니다."),
-    LAST_ADMIN_DELETE(HttpStatus.BAD_REQUEST, "U006", "마지막 관리자는 삭제할 수 없습니다."),
+    CANNOT_CHANGE_LAST_ADMIN(HttpStatus.BAD_REQUEST, "U006", "마지막 관리자는 변경할 수 없습니다."),
 
     // Ticket
     TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "TI001", "해당 티켓을 찾을 수 없습니다."),

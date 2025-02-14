@@ -23,4 +23,6 @@ public interface UserRepository extends JpaRepository<User, Long>, CustomUserRep
     boolean existsByEmailAndDeletedAtIsNull(String email);
 
     List<User> findByUsernameOrEmail(String username, String email);
+
+    long countByRole(Role role);
 }

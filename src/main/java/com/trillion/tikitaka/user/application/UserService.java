@@ -111,6 +111,16 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
+        if (user.getRole() == Role.ADMIN) {
+            long adminCount = userRepository.countByRole(Role.ADMIN);
+
+            // 관리자가 1명만 존재하면 예외 발생
+            if (adminCount == 1) {
+                log.error("[사용자 권한 변경 실패] 마지막 관리자는 변경할 수 없습니다.");
+                throw new CustomException(ErrorCode.CANNOT_CHANGE_LAST_ADMIN);
+            }
+        }
+
         user.updateRole(newRole);
         userRepository.save(user);
     }
