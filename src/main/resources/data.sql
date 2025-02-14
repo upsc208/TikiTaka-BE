@@ -1,0 +1,75 @@
+-- -- 1. TicketType 데이터 삽입 (티켓타입 테이블)
+-- MERGE INTO ticket_types (id, name, default_type)
+--     KEY(id)
+--     VALUES (1, 'Bug', false);
+--
+-- -- 2. Category 데이터 삽입 (카테고리 테이블)
+-- MERGE INTO categories (id, name)
+--     KEY(id)
+--     VALUES (1, 'General');
+--
+-- -- 3. User 데이터 삽입 (사용자 테이블)
+-- INSERT INTO users (
+--     id,
+--     username,
+--     email,
+--     password,
+--     role,
+--     locked,
+--     login_fail_count
+-- )
+-- VALUES (
+--            100,
+--            'testReviewer',
+--            'reviewer@test.com',
+--            'password',
+--            'USER',
+--            false,
+--            0
+--        );
+--
+-- -- 4. Ticket 데이터 삽입 (티켓 테이블)
+-- --    필수 필드: title, status, type_id, deadline, requester_id, urgent
+-- --    그 외 선택 필드도 임의의 값을 채워줍니다.
+-- INSERT INTO tickets (
+--     id,
+--     title,
+--     description,
+--     priority,
+--     status,
+--     type_id,
+--     first_category_id,
+--     second_category_id,
+--     deadline,
+--     requester_id,
+--     manager_id,
+--     urgent,
+--     progress
+-- )
+-- VALUES (
+--            1,
+--            '테스트 티켓',
+--            'Sample description',
+--            'HIGH',        -- priority (예시로 'HIGH' 값)
+--            'REVIEW',      -- status
+--            1,             -- ticketType의 id
+--            1,             -- first_category_id (카테고리 id)
+--            NULL,          -- second_category_id (없으면 NULL)
+--            CURRENT_TIMESTAMP,  -- deadline (현재 시간)
+--            100,           -- requester_id (사용자 id)
+--            NULL,          -- manager_id (없으면 NULL)
+--            false,         -- urgent
+--            0              -- progress (예시값)
+--        );
+--
+-- -- 5. Review 데이터 삽입 (검토 테이블)
+-- INSERT INTO reviews (
+--     id,
+--     ticket_id,
+--     reviewer_id
+-- )
+-- VALUES (
+--            1,
+--            1,
+--            100
+--        );

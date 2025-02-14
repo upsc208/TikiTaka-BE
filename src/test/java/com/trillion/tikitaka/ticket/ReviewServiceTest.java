@@ -89,7 +89,7 @@ class TicketReviewServiceTest {
             when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
             // When & Then
-            assertThatThrownBy(() -> ticketReviewService.doReview(ticketId, reviewerId)) // ✅ 인스턴스 호출
+            assertThatThrownBy(() -> ticketReviewService.doReview(ticketId, reviewerId))
                     .isInstanceOf(TicketReviewNotRequiredException.class)
                     .hasMessage("검토를 요청하지 않은 티켓입니다.");
         }
