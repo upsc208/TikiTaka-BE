@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CustomTicketRepository {
-    TicketCountByStatusResponse countTicketsByStatus(Long requesterId, String role);
+    TicketCountByStatusResponse countTicketsByStatus(Long requesterId);
 
     Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
                                            Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId, Boolean urgent,

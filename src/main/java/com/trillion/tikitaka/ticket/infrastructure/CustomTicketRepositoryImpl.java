@@ -27,7 +27,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId, String role) {
+    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId) {
 
         NumberExpression<Long> pending = new CaseBuilder()
                 .when(ticket.status.eq(Ticket.Status.PENDING)).then(1L)
@@ -51,7 +51,9 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .then(1L)
                 .otherwise(0L);
 
-        BooleanExpression conditions = buildRoleConditionForOne(requesterId, role);
+        BooleanExpression conditions = (requesterId != null)
+                ? ticket.requester.id.eq(requesterId)
+                : null;
 
         return queryFactory
                 .select(new QTicketCountByStatusResponse(

@@ -60,8 +60,8 @@ public class TicketController {
 
     @GetMapping("/count")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER', 'USER')")
-    public ApiResponse<TicketCountByStatusResponse> countTicketsByStatus(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        TicketCountByStatusResponse response = ticketService.countTicketsByStatus(userDetails);
+    public ApiResponse<TicketCountByStatusResponse> countTicketsByStatus(@RequestParam(value = "requesterId", required = false) Long requesterId) {
+        TicketCountByStatusResponse response = ticketService.countTicketsByStatus(requesterId);
         return new ApiResponse<>(response);
     }
 
