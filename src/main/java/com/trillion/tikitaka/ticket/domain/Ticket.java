@@ -37,7 +37,7 @@ public class Ticket extends DeletedBaseEntity {
     private String title;
 
     @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
