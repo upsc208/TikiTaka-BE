@@ -38,6 +38,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다."),
     CURRENT_PASSWORD_NOT_MATCHED(HttpStatus.BAD_REQUEST, "U002", "현재 비밀번호가 일치하지 않습니다."),
     NEW_PASSWORD_NOT_CHANGED(HttpStatus.BAD_REQUEST, "U003", "새로운 비밀빈호는 기존 비밀번호와 달라야 합니다."),
+    DUPLICATED_USER(HttpStatus.CONFLICT, "U004", "이미 존재하는 사용자입니다."),
 
     // Ticket
     TICKET_NOT_FOUND(HttpStatus.NOT_FOUND, "TI001", "해당 티켓을 찾을 수 없습니다."),

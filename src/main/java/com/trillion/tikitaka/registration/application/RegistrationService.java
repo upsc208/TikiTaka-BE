@@ -26,6 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -136,6 +138,12 @@ public class RegistrationService {
     private String createUser(String username, String email, Role role) {
         log.info("[계정 생성] 아이디: {}, 이메일: {}", username, email);
         String rawPassword = PasswordGenerator.generateRandomPassword();
+
+        List<User> duplicatedUsers = userRepository.findByUsernameOrEmail(username, email);
+        if (!duplicatedUsers.isEmpty()) {
+            log.error("[계정 생성 실패] 중복된 사용자가 이미 존재합니다. 아이디: {}, 이메일: {}", username, email);
+            throw new CustomException(ErrorCode.DUPLICATED_USER);
+        }
 
         User user = User.builder()
                 .username(username)
