@@ -6,6 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RegistrationRepository extends JpaRepository<Registration, Long>, CustomRegistrationRepository {
     boolean existsByUsernameAndStatusNot(String username, RegistrationStatus status);
+
     boolean existsByEmailAndStatusNot(String email, RegistrationStatus status);
+
     Long countByStatus(RegistrationStatus status);
+
+    boolean existsByUsernameAndStatus(String username, RegistrationStatus status);
+
+    boolean existsByEmailAndStatus(String email, RegistrationStatus status);
 }

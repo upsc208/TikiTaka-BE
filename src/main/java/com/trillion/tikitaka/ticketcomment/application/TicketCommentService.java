@@ -2,6 +2,8 @@ package com.trillion.tikitaka.ticketcomment.application;
 
 import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.notification.event.CommentCreateEvent;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
@@ -12,8 +14,11 @@ import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
 import com.trillion.tikitaka.ticketcomment.exception.TicketCommentNotFoundException;
 import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentException;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
+import static com.trillion.tikitaka.notification.dto.response.ButtonBlock.END_POINT;
 
 @Slf4j
 @Service
@@ -33,6 +40,9 @@ public class TicketCommentService {
     private final TicketRepository ticketRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final FileService fileService;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final TicketTypeRepository ticketTypeRepository;
 
     @Transactional
     public void createTicketComment(Long ticketId, TicketCommentRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
@@ -51,25 +61,66 @@ public class TicketCommentService {
                 .author(author)
                 .content(request.getContent())
                 .build();
-        ticketCommentRepository.save(comment);
-        ticketCommentRepository.flush();
+        ticketCommentRepository.saveAndFlush(comment);
 
         if (files != null && !files.isEmpty()) {
             log.info("[티켓 댓글 생성] 첨부 파일 업로드 시작");
             fileService.uploadFilesForComment(files, comment);
         }
 
-        // 댓글 작성 메시지 작성 시 비동기 처리를 위한 연관 객체 강제 초기화 (프록시 초기화)
-        if (ticket.getFirstCategory() != null) ticket.getFirstCategory().getName();
-        if (ticket.getSecondCategory() != null) ticket.getSecondCategory().getName();
-        if (ticket.getTicketType() != null) ticket.getTicketType().getName();
-        ticket.getManager().getUsername();
-        ticket.getRequester().getUsername();
+        Category firstCategoryEntity = (ticket.getFirstCategory() != null)
+                ? categoryRepository.findById(ticket.getFirstCategory().getId()).orElse(null)
+                : null;
+
+        Category secondCategoryEntity = (ticket.getSecondCategory() != null)
+                ? categoryRepository.findById(ticket.getSecondCategory().getId()).orElse(null)
+                : null;
+
+        String firstCategoryName = (firstCategoryEntity != null) ? firstCategoryEntity.getName() : null;
+        String secondCategoryName = (secondCategoryEntity != null) ? secondCategoryEntity.getName() : null;
+
+        TicketType ticketTypeEntity = (ticket.getTicketType() != null)
+                ? ticketTypeRepository.findById(ticket.getTicketType().getId()).orElse(null)
+                : null;
+        String ticketTypeName = (ticketTypeEntity != null) ? ticketTypeEntity.getName() : null;
 
         if (author.getRole() == Role.USER) {
-            eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getManager().getEmail(), ticket, author.getUsername()));
+            User manager = (ticket.getManager() != null) ? userRepository.findById(ticket.getManager().getId()).orElse(null) : null;
+
+            if (manager != null) {
+                String url = END_POINT + "/manager/detail/" + ticket.getId();
+
+                eventPublisher.publishEvent(
+                        new CommentCreateEvent(
+                                this,
+                                manager.getEmail(),
+                                ticket.getId(),
+                                ticket.getTitle(),
+                                firstCategoryName,
+                                secondCategoryName,
+                                ticketTypeName,
+                                author.getUsername(),
+                                url
+                        )
+                );
+            }
         } else {
-            eventPublisher.publishEvent(new CommentCreateEvent(this, ticket.getRequester().getEmail(), ticket, author.getUsername()));
+            User requester = ticket.getRequester();
+            String url = END_POINT + "/user/detail/" + ticket.getId();
+
+            eventPublisher.publishEvent(
+                    new CommentCreateEvent(
+                            this,
+                            requester.getEmail(),
+                            ticket.getId(),
+                            ticket.getTitle(),
+                            firstCategoryName,
+                            secondCategoryName,
+                            ticketTypeName,
+                            author.getUsername(),
+                            url
+                    )
+            );
         }
     }
 

@@ -8,15 +8,15 @@ import com.trillion.tikitaka.user.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CustomTicketRepository {
-    TicketCountByStatusResponse countTicketsByStatus(Long requesterId, String role);
+    TicketCountByStatusResponse countTicketsByStatus(Long requesterId);
 
-    Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort);
+    Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
+                                           Long secondCategoryId, Long ticketTypeId, Long managerId, Long requesterId, Boolean urgent,
+                                           String role, String dateOption, String sort);
 
     TicketResponse getTicket(Long ticketId, Long userId, String role);
 

@@ -3,6 +3,7 @@ package com.trillion.tikitaka.ticket.infrastructure;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -26,7 +27,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId, String role) {
+    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId) {
 
         NumberExpression<Long> pending = new CaseBuilder()
                 .when(ticket.status.eq(Ticket.Status.PENDING)).then(1L)
@@ -45,10 +46,14 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .otherwise(0L);
 
         NumberExpression<Long> urgent = new CaseBuilder()
-                .when(ticket.urgent.eq(true)).then(1L)
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
+                .then(1L)
                 .otherwise(0L);
 
-        BooleanExpression conditions = buildRoleConditionForOne(requesterId, role);
+        BooleanExpression conditions = (requesterId != null)
+                ? ticket.requester.id.eq(requesterId)
+                : null;
 
         return queryFactory
                 .select(new QTicketCountByStatusResponse(
@@ -65,23 +70,9 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
     }
 
     @Override
-    public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId,
-                                           Long ticketTypeId, Long managerId, Long requesterId, String role, String dateOption, String sort) {
-
-        NumberExpression<Integer> urgentPriority = new CaseBuilder()
-                .when(ticket.urgent.eq(true)
-                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW)))
-                .then(0)
-                .otherwise(1);
-
-        OrderSpecifier<?> mainOrder;
-        if ("oldest".equalsIgnoreCase(sort)) {
-            mainOrder = ticket.createdAt.asc();
-        } else if ("deadline".equalsIgnoreCase(sort)) {
-            mainOrder = ticket.deadline.asc().nullsLast();
-        } else {
-            mainOrder = ticket.createdAt.desc();
-        }
+    public Page<TicketListResponse> getTicketList(
+            Pageable pageable, Ticket.Status status, Long firstCategoryId, Long secondCategoryId, Long ticketTypeId,
+            Long managerId, Long requesterId, Boolean urgent, String role, String dateOption, String sort) {
 
         List<TicketListResponse> content = queryFactory
                 .select(new QTicketListResponse(
@@ -96,7 +87,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.priority,
                         ticket.deadline,
-                        ticket.createdAt
+                        ticket.createdAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
@@ -110,11 +102,15 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
-                        statusEq(status),
+                        urgentStatusCondition(status, urgent),
                         deletedAtEqNull(),
-                        createdAtBetween(dateOption)
+                        createdAtBetween(dateOption),
+                        urgentCondition(urgent)
                 )
-                .orderBy(urgentPriority.asc(), mainOrder)
+                .orderBy(
+                        getUrgentPriority().asc(),
+                        getMainOrder(sort)
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -132,9 +128,10 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
-                        statusEq(status),
+                        urgentStatusCondition(status, urgent),
                         deletedAtEqNull(),
-                        createdAtBetween(dateOption)
+                        createdAtBetween(dateOption),
+                        urgentCondition(urgent)
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
@@ -162,7 +159,8 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         ticket.urgent,
                         ticket.deadline,
                         ticket.createdAt,
-                        ticket.updatedAt
+                        ticket.updatedAt,
+                        ticket.progress
                 ))
                 .from(ticket)
                 .leftJoin(ticket.ticketType)
@@ -216,7 +214,35 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .fetchOne();
     }
 
-    private static BooleanExpression ticketIdEq(Long ticketId) {
+    private NumberExpression<Integer> getUrgentPriority() {
+        // 긴급 & (대기/처리중/검토) 상태면 0, 아니면 1
+        return new CaseBuilder()
+                .when(ticket.urgent.eq(true)
+                        .and(ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW))
+                )
+                .then(0)
+                .otherwise(1);
+    }
+
+    private OrderSpecifier<?> getMainOrder(String sort) {
+        if ("oldest".equalsIgnoreCase(sort)) {
+            return ticket.createdAt.asc();
+        } else if ("deadline".equalsIgnoreCase(sort)) {
+            // 마감 시점이 이미 지났으면 큰 숫자(999999999),
+            // 그렇지 않으면 (NOW() ~ deadline) 사이의 초 차이
+            return Expressions.numberTemplate(
+                    Long.class,
+                    "CASE WHEN {0} < NOW() THEN 999999999 " +
+                            "     ELSE TIMESTAMPDIFF(SECOND, NOW(), {0}) " +
+                            "END",
+                    ticket.deadline
+            ).asc();
+        } else {
+            return ticket.createdAt.desc();
+        }
+    }
+
+    private BooleanExpression ticketIdEq(Long ticketId) {
         return ticket.id.eq(ticketId);
     }
 
@@ -252,8 +278,20 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
         return managerId != null ? ticket.manager.id.eq(managerId) : null;
     }
 
+    private BooleanExpression urgentStatusCondition(Ticket.Status status, Boolean urgent) {
+        if (Boolean.TRUE.equals(urgent)) {
+            return ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW);
+        } else {
+            return statusEq(status);
+        }
+    }
+
     private BooleanExpression statusEq(Ticket.Status status) {
         return status != null ? ticket.status.eq(status) : null;
+    }
+
+    private BooleanExpression urgentCondition(Boolean urgent) {
+        return (urgent != null && urgent) ? ticket.urgent.eq(true) : null;
     }
 
     private BooleanExpression deletedAtEqNull() {

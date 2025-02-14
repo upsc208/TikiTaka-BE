@@ -25,7 +25,7 @@ public class TicketFormService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public void createTicketForm(Long firstCategoryId, Long secondCategoryId, String mustDescription, String description) {
+    public void createTicketForm(Long firstCategoryId, Long secondCategoryId, String description, String mustDescription) {
         log.info("[티켓 폼 생성] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         Category firstCategory = categoryRepository.findById(firstCategoryId)
                 .orElseThrow(CategoryNotFoundException::new);
@@ -66,11 +66,11 @@ public class TicketFormService {
             description = ticketForm.getDescription();
         }
 
-        return new TicketFormResponse(mustDescription, description);
+        return new TicketFormResponse(description, mustDescription);
     }
 
     @Transactional
-    public void updateTicketForm(Long firstCategoryId, Long secondCategoryId, String newMustDescription, String newDescription) {
+    public void updateTicketForm(Long firstCategoryId, Long secondCategoryId, String newDescription, String newMustDescription) {
         log.info("[티켓 폼 수정] 1차 카테고리 ID: {}, 2차 카테고리 ID: {}", firstCategoryId, secondCategoryId);
         validateCategoryRelationship(firstCategoryId, secondCategoryId);
 
@@ -78,7 +78,7 @@ public class TicketFormService {
         TicketForm ticketForm = ticketFormRepository.findById(ticketFormId)
                 .orElseThrow(TicketFormNotFoundException::new);
 
-        ticketForm.update(newMustDescription, newDescription);
+        ticketForm.update(newDescription, newMustDescription);
     }
 
     @Transactional
