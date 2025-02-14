@@ -2,6 +2,8 @@ package com.trillion.tikitaka.ticketcomment.application;
 
 import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.notification.event.CommentCreateEvent;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
@@ -12,6 +14,8 @@ import com.trillion.tikitaka.ticketcomment.dto.response.TicketCommentResponse;
 import com.trillion.tikitaka.ticketcomment.exception.TicketCommentNotFoundException;
 import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentException;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
@@ -37,6 +41,8 @@ public class TicketCommentService {
     private final ApplicationEventPublisher eventPublisher;
     private final FileService fileService;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final TicketTypeRepository ticketTypeRepository;
 
     @Transactional
     public void createTicketComment(Long ticketId, TicketCommentRequest request, List<MultipartFile> files, CustomUserDetails userDetails) {
@@ -62,6 +68,22 @@ public class TicketCommentService {
             fileService.uploadFilesForComment(files, comment);
         }
 
+        Category firstCategoryEntity = (ticket.getFirstCategory() != null)
+                ? categoryRepository.findById(ticket.getFirstCategory().getId()).orElse(null)
+                : null;
+
+        Category secondCategoryEntity = (ticket.getSecondCategory() != null)
+                ? categoryRepository.findById(ticket.getSecondCategory().getId()).orElse(null)
+                : null;
+
+        String firstCategoryName = (firstCategoryEntity != null) ? firstCategoryEntity.getName() : null;
+        String secondCategoryName = (secondCategoryEntity != null) ? secondCategoryEntity.getName() : null;
+
+        TicketType ticketTypeEntity = (ticket.getTicketType() != null)
+                ? ticketTypeRepository.findById(ticket.getTicketType().getId()).orElse(null)
+                : null;
+        String ticketTypeName = (ticketTypeEntity != null) ? ticketTypeEntity.getName() : null;
+
         if (author.getRole() == Role.USER) {
             User manager = (ticket.getManager() != null) ? userRepository.findById(ticket.getManager().getId()).orElse(null) : null;
 
@@ -74,9 +96,9 @@ public class TicketCommentService {
                                 manager.getEmail(),
                                 ticket.getId(),
                                 ticket.getTitle(),
-                                ticket.getFirstCategory() == null ? null : ticket.getFirstCategory().getName(),
-                                ticket.getSecondCategory() == null ? null : ticket.getSecondCategory().getName(),
-                                ticket.getTicketType() == null ? null : ticket.getTicketType().getName(),
+                                firstCategoryName,
+                                secondCategoryName,
+                                ticketTypeName,
                                 author.getUsername(),
                                 url
                         )
@@ -92,9 +114,9 @@ public class TicketCommentService {
                             requester.getEmail(),
                             ticket.getId(),
                             ticket.getTitle(),
-                            ticket.getFirstCategory() == null ? null : ticket.getFirstCategory().getName(),
-                            ticket.getSecondCategory() == null ? null : ticket.getSecondCategory().getName(),
-                            ticket.getTicketType() == null ? null : ticket.getTicketType().getName(),
+                            firstCategoryName,
+                            secondCategoryName,
+                            ticketTypeName,
                             author.getUsername(),
                             url
                     )
