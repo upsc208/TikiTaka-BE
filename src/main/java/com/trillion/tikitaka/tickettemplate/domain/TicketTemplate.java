@@ -3,7 +3,6 @@ package com.trillion.tikitaka.tickettemplate.domain;
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.category.domain.Category;
-import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,13 +17,14 @@ public class TicketTemplate extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 150)
     private String templateTitle;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 150)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Lob
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,14 +38,6 @@ public class TicketTemplate extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "second_category_id")
     private Category secondCategory;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Category parent;
-
-    public Long getParentId() {
-        return (parent != null) ? parent.getId() : null;
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id")
@@ -91,6 +83,7 @@ public class TicketTemplate extends BaseEntity {
         this.requester = requester;
         this.manager = manager;
     }
+
     @PreRemove
     private void preRemove() {
         this.type = null;

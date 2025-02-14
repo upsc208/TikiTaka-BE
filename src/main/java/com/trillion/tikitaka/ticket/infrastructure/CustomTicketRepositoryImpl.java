@@ -27,7 +27,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId, String role) {
+    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId) {
 
         NumberExpression<Long> pending = new CaseBuilder()
                 .when(ticket.status.eq(Ticket.Status.PENDING)).then(1L)
@@ -51,7 +51,9 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                 .then(1L)
                 .otherwise(0L);
 
-        BooleanExpression conditions = buildRoleConditionForOne(requesterId, role);
+        BooleanExpression conditions = (requesterId != null)
+                ? ticket.requester.id.eq(requesterId)
+                : null;
 
         return queryFactory
                 .select(new QTicketCountByStatusResponse(
@@ -100,7 +102,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
-                        statusEq(status),
+                        urgentStatusCondition(status, urgent),
                         deletedAtEqNull(),
                         createdAtBetween(dateOption),
                         urgentCondition(urgent)
@@ -126,7 +128,7 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
                         firstCategoryEq(firstCategoryId),
                         secondCategoryEq(secondCategoryId),
                         managerEq(managerId),
-                        statusEq(status),
+                        urgentStatusCondition(status, urgent),
                         deletedAtEqNull(),
                         createdAtBetween(dateOption),
                         urgentCondition(urgent)
@@ -276,16 +278,24 @@ public class CustomTicketRepositoryImpl implements CustomTicketRepository {
         return managerId != null ? ticket.manager.id.eq(managerId) : null;
     }
 
+    private BooleanExpression urgentStatusCondition(Ticket.Status status, Boolean urgent) {
+        if (Boolean.TRUE.equals(urgent)) {
+            return ticket.status.in(Ticket.Status.PENDING, Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW);
+        } else {
+            return statusEq(status);
+        }
+    }
+
     private BooleanExpression statusEq(Ticket.Status status) {
         return status != null ? ticket.status.eq(status) : null;
     }
 
-    private BooleanExpression deletedAtEqNull() {
-        return ticket.deletedAt.isNull();
+    private BooleanExpression urgentCondition(Boolean urgent) {
+        return (urgent != null && urgent) ? ticket.urgent.eq(true) : null;
     }
 
-    private BooleanExpression urgentCondition(Boolean urgent) {
-        return urgent != null && urgent ? ticket.urgent.eq(true) : null;
+    private BooleanExpression deletedAtEqNull() {
+        return ticket.deletedAt.isNull();
     }
 
     private BooleanExpression createdAtBetween(String dateOption) {

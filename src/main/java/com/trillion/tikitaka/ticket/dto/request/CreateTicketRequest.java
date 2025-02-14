@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 public class CreateTicketRequest {
 
     @NotBlank(message = "제목을 입력해주세요")
+    @Size(max = 150, message = "제목은 150자를 초과할 수 없습니다.")
     private String title;
 
     @NotNull(message = "상세 내용을 입력해주세요.")

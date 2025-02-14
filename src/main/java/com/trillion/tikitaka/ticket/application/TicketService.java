@@ -97,12 +97,10 @@ public class TicketService {
         return ticket.getId();
     }
 
-    public TicketCountByStatusResponse countTicketsByStatus(CustomUserDetails userDetails) {
-        log.info("[상태별 티켓 수 조회] 요청자: {}", userDetails.getUsername());
-        String role = userDetails.getUser().getRole().toString();
-        Long requesterId = "USER".equals(role) ? userDetails.getUser().getId() : null;
+    public TicketCountByStatusResponse countTicketsByStatus(Long requesterId) {
+        log.info("[상태별 티켓 수 조회] 요청자: {}", requesterId);
 
-        return ticketRepository.countTicketsByStatus(requesterId, role);
+        return ticketRepository.countTicketsByStatus(requesterId);
     }
 
     public Page<TicketListResponse> getTicketList(Pageable pageable, Ticket.Status status, Long firstCategoryId,
