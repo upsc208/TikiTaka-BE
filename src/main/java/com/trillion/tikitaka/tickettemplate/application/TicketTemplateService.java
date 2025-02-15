@@ -35,6 +35,7 @@ public class TicketTemplateService {
     private final TicketTypeRepository typeRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final TicketTypeRepository ticketTypeRepository;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -138,11 +139,29 @@ public class TicketTemplateService {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
-        TicketType type = (template.getType() != null && template.getType().getDeletedAt() == null) ? template.getType() : null;
-        Category firstCat = (template.getFirstCategory() != null && template.getFirstCategory().getDeletedAt() == null) ? template.getFirstCategory() : null;
-        Category secondCat = (template.getSecondCategory() != null && template.getSecondCategory().getDeletedAt() == null) ? template.getSecondCategory() : null;
+        TicketType type = (template.getType() != null) ?
+                ticketTypeRepository.findById(template.getType().getId()).orElse(null) : null;
+        if (type != null && type.getDeletedAt() != null) {
+            type = null;
+        }
 
-        User manager = (template.getManager() != null) ? userRepository.findById(template.getManager().getId()).orElse(null) : null;
+        Category firstCat = (template.getFirstCategory() != null) ?
+                categoryRepository.findById(template.getFirstCategory().getId()).orElse(null) : null;
+        if (firstCat != null && firstCat.getDeletedAt() != null) {
+            firstCat = null;
+        }
+
+        Category secondCat = (template.getSecondCategory() != null) ?
+                categoryRepository.findById(template.getSecondCategory().getId()).orElse(null) : null;
+        if (secondCat != null && secondCat.getDeletedAt() != null) {
+            secondCat = null;
+        }
+
+        User manager = (template.getManager() != null) ?
+                userRepository.findById(template.getManager().getId()).orElse(null) : null;
+        if (manager != null && manager.getDeletedAt() != null) {
+            manager = null;
+        }
 
         return new TicketTemplateResponse(
                 template.getId(),
@@ -161,6 +180,9 @@ public class TicketTemplateService {
                 (manager != null) ? manager.getUsername() : null
         );
     }
+
+
+
 
 
 
