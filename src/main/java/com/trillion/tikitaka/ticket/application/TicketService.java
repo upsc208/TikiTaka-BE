@@ -357,7 +357,7 @@ public class TicketService {
         ticket.updateStatus(Ticket.Status.REJECTED);
 
         eventPublisher.publishEvent(
-                new TicketUpdateEvent(this, ticket.getRequester().getEmail(), ticket, userDetails.getUsername(), "유형", userDetails.getUser().getRole())
+                new TicketUpdateEvent(this, ticket.getRequester().getEmail(), ticket, userDetails.getUsername(), "상태", userDetails.getUser().getRole())
         );
     }
 
@@ -384,7 +384,6 @@ public class TicketService {
         }
 
     }
-
 
     public PendingTicketResponse getPendingTickets(Long managerId) {
         int myPendingTicket = ticketRepository.countByManagerAndStatus(managerId, Ticket.Status.PENDING);
