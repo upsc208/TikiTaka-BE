@@ -169,15 +169,15 @@ public class TicketTemplateService {
                 template.getTitle(),
                 template.getDescription(),
                 (type != null) ? type.getId() : null,
-                (type != null) ? type.getName() : "삭제된 타입",
+                (type != null) ? type.getName() : null,
                 (firstCat != null) ? firstCat.getId() : null,
-                (firstCat != null) ? firstCat.getName() : "삭제된 카테고리",
+                (firstCat != null) ? firstCat.getName() : null,
                 (secondCat != null) ? secondCat.getId() : null,
-                (secondCat != null) ? secondCat.getName() : "삭제된 카테고리",
+                (secondCat != null) ? secondCat.getName() : null,
                 template.getRequester().getId(),
                 template.getRequester().getUsername(),
                 (manager != null) ? manager.getId() : null,
-                (manager != null) ? manager.getUsername() : "삭제된 담당자"
+                (manager != null) ? manager.getUsername() : null
         );
     }
 
