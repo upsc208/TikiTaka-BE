@@ -3,7 +3,6 @@ package com.trillion.tikitaka.notification.application;
 import com.trillion.tikitaka.notification.dto.response.*;
 import com.trillion.tikitaka.notification.event.NotificationEvent;
 import com.trillion.tikitaka.notification.event.TicketUpdateEvent;
-import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.user.domain.Role;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,7 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
     @Override
     public List<Block> buildMessage(TicketUpdateEvent event) {
         List<Block> blocks = new ArrayList<>();
-        Ticket ticket = event.getTicket();
+        var ticket = event.getTicketSnapshot();
 
         // 1. Header Block
         blocks.add(new HeaderBlock("티켓 수정 알림", "yellow"));
@@ -48,7 +47,7 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
             blocks.add(new DescriptionBlock(new Content(modifiedAtText, inlineManager), "변경일시", true));
         } else {
             // 5. Description Block for "담당자"
-            String managerText = ticket.getManager().getUsername();
+            String managerText = ticket.getManagerUsername();
             List<Inline> inlineManager = List.of(new Inline("styled", managerText, true));
             blocks.add(new DescriptionBlock(new Content(managerText, inlineManager), "담당자", true));
         }
@@ -76,18 +75,10 @@ public class TicketUpdateMessageBuilder implements KakaoWorkMessageBuilder<Ticke
     public String buildPreviewText(TicketUpdateEvent event) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
 
-        Ticket ticket = event.getTicket();
-
-        String firstCategoryName = (ticket.getFirstCategory() != null)
-                ? ticket.getFirstCategory().getName()
-                : null;
-        String secondCategoryName = (ticket.getSecondCategory() != null)
-                ? ticket.getSecondCategory().getName()
-                : null;
-
-        String ticketTypeName = (ticket.getTicketType() != null)
-                ? ticket.getTicketType().getName()
-                : "";
+        var ticket = event.getTicketSnapshot();
+        String firstCategoryName = ticket.getFirstCategoryName();
+        String secondCategoryName = ticket.getSecondCategoryName();
+        String ticketTypeName = ticket.getTicketTypeName();
 
         if (firstCategoryName == null) {
             return String.format("%s-%s-#%d 티켓 수정",
