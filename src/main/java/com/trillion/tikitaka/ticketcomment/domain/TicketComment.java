@@ -34,7 +34,7 @@ public class TicketComment extends DeletedBaseEntity {
     @JoinColumn(name = "author_id")
     private User author;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String content;
 
     public void updateComment(String content) {
