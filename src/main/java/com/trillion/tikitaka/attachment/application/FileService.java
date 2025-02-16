@@ -1,17 +1,13 @@
 package com.trillion.tikitaka.attachment.application;
 
 import com.trillion.tikitaka.attachment.domain.Attachment;
-import com.trillion.tikitaka.attachment.exception.*;
+import com.trillion.tikitaka.attachment.exception.FileNotFoundException;
 import com.trillion.tikitaka.attachment.infrastructure.AttachmentRepository;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.global.exception.CustomException;
 import com.trillion.tikitaka.global.exception.ErrorCode;
 import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
-import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.ticketcomment.domain.TicketComment;
-import com.trillion.tikitaka.ticketcomment.exception.TicketCommentNotFoundException;
-import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.exception.UserNotFoundException;
@@ -19,12 +15,9 @@ import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -34,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -245,7 +237,7 @@ public class FileService {
 
                     s3Client.putObject(putObjectRequest, path);
 
-                    String fileUrl = endpoint + "/v1/" + projectId + "/" + bucketName + "/" + fileName;
+                    String fileUrl = endpoint + "/v1/" + projectId + "/" + bucketName + "/" + s3Key;
                     log.info("[파일 업로드] 파일 업로드 성공 - URL: {}", fileUrl);
 
                     Files.delete(path);
