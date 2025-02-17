@@ -1,4 +1,5 @@
 package com.trillion.tikitaka.statistics.application;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +20,7 @@ public class MonthlyStatisticsScheduler {
      * - 현재 연도와 월을 기준으로 월별 통계를 갱신
      * - 예: 2025년 2월이면 2025/2
      */
-    @Scheduled(cron = "0 0 1 * * ?") //새벽 1시마다 자동 저장
+    @Scheduled(cron = "0 0 1 * * ?")
     public void updateMonthlyStatisticsAtMidnight() {
         LocalDate now = LocalDate.now();
         int year = now.getYear();

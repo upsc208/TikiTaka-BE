@@ -89,6 +89,7 @@ class HistoryServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getUpdateType()).isNull();
     }
+
     @Test
     @DisplayName("존재하지 않는 티켓 ID로 이력 조회 시 TicketNotFoundException 발생")
     void should_ThrowException_When_TicketNotFound() {
@@ -107,9 +108,4 @@ class HistoryServiceTest {
 
         verify(ticketRepository, times(1)).existsById(eq(invalidTicketId));
     }
-
-
-
-
-
 }

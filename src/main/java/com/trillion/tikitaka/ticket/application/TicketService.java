@@ -1,6 +1,5 @@
 package com.trillion.tikitaka.ticket.application;
 
-
 import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.attachment.dto.response.AttachmentResponse;
 import com.trillion.tikitaka.attachment.infrastructure.AttachmentRepository;
@@ -186,7 +185,6 @@ public class TicketService {
             ticket.update(request, ticketType,firstCategory, secondCategory);
         }
 
-       // ticket.update(request, ticketType,firstCategory, secondCategory);
         historyService.recordHistory(ticket, user, TicketHistory.UpdateType.TICKET_EDITED);
 
         if (ticket.getManager() != null) {

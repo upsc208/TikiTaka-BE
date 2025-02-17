@@ -1,15 +1,12 @@
 package com.trillion.tikitaka.tickettype.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.trillion.tikitaka.global.exception.GlobalExceptionHandler;
 import com.trillion.tikitaka.global.response.ErrorResponse;
 import com.trillion.tikitaka.tickettype.dto.request.TicketTypeRequest;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @Transactional
@@ -167,7 +164,6 @@ public class TicketTypeIntegrationTest {
     @DisplayName("기본 티켓 타입 삭제 시 예외 발생")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ThrowException_When_DeletingDefaultTicketType() throws Exception {
-        // given
 
         // when & then
         mockMvc.perform(delete("/tickets/types/" + 3L))

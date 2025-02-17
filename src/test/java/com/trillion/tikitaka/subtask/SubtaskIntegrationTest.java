@@ -3,13 +3,12 @@ package com.trillion.tikitaka.subtask;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.global.response.ErrorResponse;
-import com.trillion.tikitaka.subtask.domain.Subtask;
 import com.trillion.tikitaka.subtask.dto.request.SubtaskRequest;
 import com.trillion.tikitaka.subtask.dto.response.SubtaskResponse;
-import com.trillion.tikitaka.ticket.domain.Ticket;
-import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.subtask.infrastructure.SubtaskRepository;
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
+import com.trillion.tikitaka.user.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,13 +27,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc
-@ActiveProfiles("test")  // ✅ `application-test.yml` 사용
-@DisplayName("📝 하위 태스크 (Subtask) 통합 테스트")
+@ActiveProfiles("test")
+@DisplayName("하위 태스크 (Subtask) 통합 테스트")
 public class SubtaskIntegrationTest {
 
     @Autowired
@@ -57,7 +56,6 @@ public class SubtaskIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // 🔹 테스트 유저 및 티켓 생성
         user = new User(1L, "testUser", "MANAGER");
         ticket = Ticket.builder()
                 .title("테스트 티켓")
@@ -79,7 +77,7 @@ public class SubtaskIntegrationTest {
         String responseBody = mockMvc.perform(post("/subtasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
-                .andExpect(status().isOk())  // 200
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode jsonNode = mapper.readTree(responseBody);
@@ -98,7 +96,7 @@ public class SubtaskIntegrationTest {
         String responseBody = mockMvc.perform(post("/subtasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
-                .andExpect(status().isBadRequest()) // 400 예상
+                .andExpect(status().isBadRequest())
                 .andReturn().getResponse().getContentAsString();
 
         ErrorResponse error = mapper.readValue(responseBody, ErrorResponse.class);
@@ -109,13 +107,11 @@ public class SubtaskIntegrationTest {
     @DisplayName("하위 태스크 목록을 조회하면 200 OK와 리스트를 반환한다.")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ReturnSubtasks_when_ValidTicketId() throws Exception {
-        // given
-
 
         // when
         String responseBody = mockMvc.perform(get("/subtasks/" + 1L)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()) // 200 예상
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode jsonNode = mapper.readTree(responseBody);
@@ -130,12 +126,11 @@ public class SubtaskIntegrationTest {
     @DisplayName("하위 태스크 삭제하면 204 No Content 반환")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_DeleteSubtask_when_ValidTaskId() throws Exception {
-        // given
 
         // when
         mockMvc.perform(delete("/subtasks/" + 1L + "/" + 1L)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()); // 200
+                .andExpect(status().isOk());
     }
 
     @Test

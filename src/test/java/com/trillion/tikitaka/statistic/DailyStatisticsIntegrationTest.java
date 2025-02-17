@@ -33,7 +33,7 @@ public class DailyStatisticsIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("✅ [요약] 금일 티켓 처리 현황 조회")
+    @DisplayName("금일 티켓 처리 현황 조회")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void getDailySummaryTest() throws Exception {
         String responseBody = mockMvc.perform(get("/statistics/daily/summary")
@@ -46,7 +46,7 @@ public class DailyStatisticsIntegrationTest {
     }
 
     @Test
-    @DisplayName("✅ [담당자] 금일 담당자별 티켓 통계 조회")
+    @DisplayName("금일 담당자별 티켓 통계 조회")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void getDailyManagerSummaryTest() throws Exception {
         String responseBody = mockMvc.perform(get("/statistics/daily/manSummary")
@@ -59,7 +59,7 @@ public class DailyStatisticsIntegrationTest {
     }
 
     @Test
-    @DisplayName("✅ [유형] 금일 유형별 티켓 생성 수 조회")
+    @DisplayName("금일 유형별 티켓 생성 수 조회")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void getDailyTypeSummaryTest() throws Exception {
         String responseBody = mockMvc.perform(get("/statistics/daily/typeSummary")
@@ -72,7 +72,7 @@ public class DailyStatisticsIntegrationTest {
     }
 
     @Test
-    @DisplayName("✅ [카테고리] 금일 1차, 2차 카테고리별 티켓 생성 수 조회")
+    @DisplayName("금일 1차, 2차 카테고리별 티켓 생성 수 조회")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void getDailyCategorySummaryTest() throws Exception {
         String responseBody = mockMvc.perform(get("/statistics/daily/catSummary")

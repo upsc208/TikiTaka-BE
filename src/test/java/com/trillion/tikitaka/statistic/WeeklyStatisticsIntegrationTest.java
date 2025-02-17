@@ -1,9 +1,9 @@
 package com.trillion.tikitaka.statistic;
 
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.statistics.application.WeeklyStatisticsService;
 import com.trillion.tikitaka.statistics.dto.response.WeeklyStatisticsResponse;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,9 +21,6 @@ import org.mockito.quality.Strictness;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import static org.mockito.Mockito.lenient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
