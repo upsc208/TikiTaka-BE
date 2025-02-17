@@ -67,8 +67,9 @@ public class StatisticsService {
 
                 allCategories.add(allCategory);
 
-            }else{
-                int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
+
+            }else{ 
+                int totalCreated = ticketRepository.countByCreatedAtBetweenAndFirstCategoryAndUserAndType(
                         year, month, category, null, null);
 
                 AllCategory allCategory = new AllCategory();
