@@ -47,7 +47,7 @@ public class DailyStatisticsController {
     /**
      * 📌 일간 유형별 티켓 생성 현황
      */
-    @PreAuthorize("hasAnyAuthority('USER', 'MANAGER')")
+    @PreAuthorize("hasAnyAuthority('USER', 'MANAGER', 'ADMIN')")
     @GetMapping("/typeSummary")
     public ApiResponse<List<DailyTypeStatisticsResponse>> getDailyTypeSummary() {
         List<DailyTypeStatisticsResponse> response = dailyStatisticsService.getDailyTypeSummary();
