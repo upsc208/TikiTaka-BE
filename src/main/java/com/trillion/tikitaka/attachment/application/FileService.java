@@ -267,25 +267,19 @@ public class FileService {
                 .orElseThrow(FileNotFoundException::new);
 
         if (currentUser.getUser().getRole() == Role.USER) {
-            // 일반 사용자의 경우:
             if (attachment.getTicket() != null && attachment.getComment() == null) {
-                // 티켓 첨부파일: 첨부파일의 티켓 요청자와 현재 사용자 일치 확인
                 if (!attachment.getTicket().getRequester().getId().equals(currentUser.getId())) {
                     log.error("[파일 삭제] 권한 없음");
                     throw new CustomException(ErrorCode.UNAUTHORIZED_FILE_ACCESS);
                 }
             } else if (attachment.getComment() != null) {
-                // 댓글 첨부파일: 첨부파일의 댓글 작성자와 현재 사용자 일치 확인
                 if (!attachment.getComment().getAuthor().getId().equals(currentUser.getId())) {
                     log.error("[파일 삭제] 권한 없음");
                     throw new CustomException(ErrorCode.UNAUTHORIZED_FILE_ACCESS);
                 }
             }
         } else {
-            // 담당자의 경우:
-            // 티켓 첨부파일은 제한 없이 삭제 가능
             if (attachment.getComment() != null) {
-                // 댓글 첨부파일: 담당자도 자신이 작성한 댓글 첨부파일만 삭제 가능
                 if (!attachment.getComment().getAuthor().getId().equals(currentUser.getId())) {
                     log.error("[파일 삭제] 권한 없음");
                     throw new CustomException(ErrorCode.UNAUTHORIZED_FILE_ACCESS);

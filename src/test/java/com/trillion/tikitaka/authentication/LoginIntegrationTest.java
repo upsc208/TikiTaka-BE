@@ -123,7 +123,6 @@ public class LoginIntegrationTest {
                     .andExpect(status().isBadRequest());
         }
 
-
         User user = userRepository.findByUsername("user").orElseThrow();
         assertThat(user.isLocked()).isTrue();
 

@@ -1,13 +1,13 @@
 package com.trillion.tikitaka.user.infrastructure;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.response.QUserResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             builder.and(user.role.eq(targetRole));
         } else {
             if (currentUserRole == Role.ADMIN) {
-                // 관리자일 경우 모든 유저 조회
+
             } else {
                 builder.and(user.role.in(Role.MANAGER, Role.USER));
             }

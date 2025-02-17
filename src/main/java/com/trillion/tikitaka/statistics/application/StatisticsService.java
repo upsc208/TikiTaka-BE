@@ -1,5 +1,5 @@
 package com.trillion.tikitaka.statistics.application;
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
@@ -26,9 +26,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,15 +46,13 @@ public class StatisticsService {
 
 
     public List<AllCategory> getAllCategoryTicket(int year, int month) {
-        // 모든 카테고리 조회
         List<Category> categories = categoryRepository.findAll();
         List<AllCategory> allCategories = new ArrayList<>();
 
         for (Category category : categories) {
-            // 1차 카테고리인지 체크 (parent가 null이면 1차 카테고리)
             boolean isFirstCategory = (category.getParent() == null);
 
-            if(!isFirstCategory) { //2카테고리 일때
+            if(!isFirstCategory) {
 
                 int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
                         year, month, category, null, null);
@@ -69,7 +67,8 @@ public class StatisticsService {
 
                 allCategories.add(allCategory);
 
-            }else{ //1차카테고리인경우
+
+            }else{ 
                 int totalCreated = ticketRepository.countByCreatedAtBetweenAndFirstCategoryAndUserAndType(
                         year, month, category, null, null);
 
@@ -96,24 +95,21 @@ public class StatisticsService {
         allMonth.updateAllMonth(totalCreated,urgentTickets,totalCompleted);
         return allMonth;
     }
+
+
     public List<AllType> getAllTypeTicket(int year, int month) {
-        // 모든 티켓 유형 조회
         List<TicketTypeListResponse> ticketTypes = ticketTypeService.getTicketTypes();
 
-        // 결과 리스트 생성
         List<AllType> allTypes = new ArrayList<>();
 
-        // 각 티켓 유형별로 생성된 티켓 개수 조회
         for (TicketTypeListResponse ticketTypeResponse : ticketTypes) {
-            // 티켓 유형을 DB에서 조회
+
             TicketType ticketType = ticketTypeRepository.findById(ticketTypeResponse.getTypeId())
                     .orElse(null);
 
-            // 해당 유형의 티켓 개수 조회
             int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
                     year, month, null, null,ticketType);
 
-            // AllType DTO 생성 및 값 설정
             AllType allType = new AllType();
             allType.updateAllType(
                     ticketTypeResponse.getTypeId(),
@@ -127,20 +123,17 @@ public class StatisticsService {
         return allTypes;
     }
 
+
     public List<AllUser> getAllUserTicket(int year, int month) {
-        // 모든 유저 조회
         List<UserResponse> users = userRepository.getAllUsers();
 
-        // 결과 리스트 생성
         List<AllUser> allUsers = new ArrayList<>();
 
-        // 각 유저별로 티켓 개수 조회 (담당자인 경우만)
         for (UserResponse userResponse : users) {
             if (userResponse.getRole() == Role.MANAGER) {
                 int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
                         year, month, null, userRepository.findById(userResponse.getUserId()).orElse(null), null);
 
-                // AllUser DTO 생성 및 값 설정
                 AllUser allUser = new AllUser();
                 allUser.updateAllUser(
                         userResponse.getUsername(),
@@ -156,6 +149,8 @@ public class StatisticsService {
 
         return allUsers;
     }
+
+
     public DailyCompletionResponse getDailyCompletionStatistics(Long userId) {
         LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime todayEnd = todayStart.plusDays(1).minusNanos(1);
@@ -179,6 +174,7 @@ public class StatisticsService {
         for (TicketType t : types) saveOrUpdateStatistics(year, month, null, null, t);
     }
 
+
     @Transactional
     public void saveOrUpdateStatistics(int year, int month, Category category, User user, TicketType type) {
         Long categoryId = (category != null) ? category.getId() : null;
@@ -196,11 +192,9 @@ public class StatisticsService {
         float completionRatio = (totalCreated == 0) ? 0 : (totalCompleted * 100f / totalCreated);
 
         if (existingStat.isPresent()) {
-            // ✅ 기존 값이 존재하면 업데이트
             MonthlyStatistics ms = existingStat.get();
             ms.updateStatistics(totalCreated, totalCompleted, urgentTickets, inProgressCount, completionRatio);
         } else {
-            // ✅ 존재하지 않으면 새로 저장
             MonthlyStatistics ms = MonthlyStatistics.builder()
                     .statYear(year)
                     .statMonth(month)

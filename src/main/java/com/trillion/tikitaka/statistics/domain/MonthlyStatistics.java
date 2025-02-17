@@ -1,4 +1,5 @@
 package com.trillion.tikitaka.statistics.domain;
+
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.global.common.BaseEntity;
 import com.trillion.tikitaka.global.common.DeletedBaseEntity;
@@ -13,8 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "monthly_statistics"/*,
-        uniqueConstraints = { @UniqueConstraint(columnNames = {"stat_year", "stat_month", "category_id", "user_id","type_id"}) }*/) // 중복 방지
+@Table(name = "monthly_statistics")
 @Getter
 @Builder
 @AllArgsConstructor
@@ -66,16 +66,6 @@ public class MonthlyStatistics extends DeletedBaseEntity {
     @Column(name = "last_updated_at")
     private LocalDateTime lastUpdatedAt;
 
-    // 통계 업데이트 메서드
-    /*public void updateStatistics(int totalCreated, int totalCompleted,int urgentTickets, int inProgressCount, float averageCompletionTime, float completionRatio) {
-        this.totalCreated = totalCreated;
-        this.totalCompleted = totalCompleted;
-        this.urgentTickets = urgentTickets;
-        this.inProgressCount = inProgressCount;
-        this.averageCompletionTime = averageCompletionTime;
-        this.completionRatio = completionRatio;
-        this.lastUpdatedAt = LocalDateTime.now();
-    }*/
     public void updateStatistics(int totalCreated, int totalCompleted, int urgentTickets, int inProgressCount, float completionRatio) {
         this.totalCreated = totalCreated;
         this.totalCompleted = totalCompleted;

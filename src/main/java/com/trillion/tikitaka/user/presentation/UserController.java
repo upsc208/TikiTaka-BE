@@ -6,6 +6,7 @@ import com.trillion.tikitaka.global.response.ApiResponse;
 import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.dto.request.PasswordChangeRequest;
+import com.trillion.tikitaka.user.dto.request.RoleChangeRequest;
 import com.trillion.tikitaka.user.dto.response.RegistrationAndUserCountResponse;
 import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
@@ -14,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import com.trillion.tikitaka.user.dto.request.RoleChangeRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 

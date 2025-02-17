@@ -1,9 +1,9 @@
 package com.trillion.tikitaka.ticket.dto.response;
 
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.querydsl.core.annotations.QueryProjection;
-import com.trillion.tikitaka.ticket.domain.Ticket;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

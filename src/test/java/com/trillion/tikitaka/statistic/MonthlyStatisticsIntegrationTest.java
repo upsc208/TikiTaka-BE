@@ -68,16 +68,6 @@ public class MonthlyStatisticsIntegrationTest {
         assertThat(response.getMessage()).isEqualTo("성공");
     }
 
-    /*@Test
-    @DisplayName("USER 권한을 가진 사용자는 월간 통계를 조회할 수 없다.")
-    @WithMockUser(username = "user", roles = {"USER"})
-    void should_Return403_When_UserRoleAccess() throws Exception {
-        mockMvc.perform(get("/statistic/monAll")
-                        .param("year", "2025")
-                        .param("month", "2"))
-                .andExpect(status().isForbidden());
-    }*/
-
     @Test
     @DisplayName("잘못된 연도와 월을 입력하면 400 BAD REQUEST 응답을 반환한다.")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
@@ -87,16 +77,6 @@ public class MonthlyStatisticsIntegrationTest {
                         .param("month", "99"))
                 .andExpect(status().isBadRequest());
     }
-
-    /*@Test
-    @DisplayName("USER 권한을 가진 사용자는 특정 카테고리별 통계를 조회할 수 없다.")
-    @WithMockUser(username = "user", roles = {"USER"})
-    void should_Return403_When_UserAccessCategoryStatistics() throws Exception {
-        mockMvc.perform(get("/statistic/monCategory")
-                        .param("year", "2025")
-                        .param("month", "2"))
-                .andExpect(status().isForbidden());
-    }*/
 
     @Test
     @DisplayName("ADMIN 사용자는 특정 타입별 통계를 조회할 수 있다.")

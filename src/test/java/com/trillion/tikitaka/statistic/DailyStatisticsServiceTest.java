@@ -1,18 +1,20 @@
 package com.trillion.tikitaka.statistic;
 
+import com.trillion.tikitaka.user.domain.Role;
+import com.trillion.tikitaka.user.dto.response.UserResponse;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.statistics.dto.response.DailyCategoryStatisticsResponse;
 import com.trillion.tikitaka.statistics.application.DailyStatisticsService;
+import com.trillion.tikitaka.statistics.application.StatisticsService;
+import com.trillion.tikitaka.statistics.dto.AllDoneUser;
 import com.trillion.tikitaka.statistics.dto.response.DailyStatisticsResponse;
 import com.trillion.tikitaka.statistics.dto.response.DailyTypeStatisticsResponse;
+import com.trillion.tikitaka.statistics.dto.response.DailyCompletionResponse;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
-import com.trillion.tikitaka.statistics.application.StatisticsService;
-import com.trillion.tikitaka.statistics.dto.response.DailyCompletionResponse;
-import com.trillion.tikitaka.user.application.UserService;
-import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,19 +22,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import com.trillion.tikitaka.statistics.dto.AllUser;
-import com.trillion.tikitaka.user.domain.Role;
-import com.trillion.tikitaka.user.dto.response.UserListResponse;
-import com.trillion.tikitaka.user.dto.response.UserResponse;
 import java.util.List;
 import java.time.LocalTime;
 import java.util.Arrays;
-import java.util.ArrayList;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @DisplayName("일간 티켓 처리 현황 테스트")
 class DailyStatisticsServiceTest {
@@ -58,11 +56,11 @@ class DailyStatisticsServiceTest {
     }
 
     @Nested
-    @DisplayName("📌 금일 티켓 처리 현황 조회")
+    @DisplayName("금일 티켓 처리 현황 조회")
     class DescribeGetDailySummary {
 
         @Test
-        @DisplayName("✅ 금일 생성, 진행중, 완료된 티켓 수를 반환한다")
+        @DisplayName("금일 생성, 진행중, 완료된 티켓 수를 반환한다")
         void should_ReturnCorrectDailyStatistics() {
             // given
             LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
@@ -82,11 +80,11 @@ class DailyStatisticsServiceTest {
         }
     }
     @Nested
-    @DisplayName("🌍 일간 담당자별 티켓 통계 조회")
+    @DisplayName("일간 담당자별 티켓 통계 조회")
     class DescribeGetDailyManagerSummary {
 
         @Test
-        @DisplayName("✅ 각 담당자의 진행 중 및 완료된 티켓 수를 반환한다")
+        @DisplayName("각 담당자의 진행 중 및 완료된 티켓 수를 반환한다")
         void should_ReturnCorrectManagerStatistics() {
             // given
             LocalDateTime startOfToday = LocalDateTime.now().toLocalDate().atStartOfDay();
@@ -95,28 +93,25 @@ class DailyStatisticsServiceTest {
             UserResponse manager1 = new UserResponse(101L, "김철수", "chulsoo@example.com", Role.MANAGER, "profile1.jpg");
             UserResponse manager2 = new UserResponse(102L, "박영희", "younghee@example.com", Role.MANAGER, "profile2.jpg");
 
-
             when(userRepository.getAllUsers()).thenReturn(List.of(manager1, manager2));
-
             when(ticketRepository.countByManagerAndStatus(101L, startOfToday, endOfToday, List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW))).thenReturn(3);
             when(ticketRepository.countByManagerAndStatus(101L, startOfToday, endOfToday, List.of(Ticket.Status.DONE))).thenReturn(5);
-
             when(ticketRepository.countByManagerAndStatus(102L, startOfToday, endOfToday, List.of(Ticket.Status.IN_PROGRESS, Ticket.Status.REVIEW))).thenReturn(2);
             when(ticketRepository.countByManagerAndStatus(102L, startOfToday, endOfToday, List.of(Ticket.Status.DONE))).thenReturn(7);
 
             // when
-            List<AllUser> response = dailyStatisticsService.getDailyManagerSummary();
+            List<AllDoneUser> response = dailyStatisticsService.getDailyManagerSummary();
 
             // then
             assertThat(response).hasSize(2);
 
-            AllUser result1 = response.get(0);
+            AllDoneUser result1 = response.get(0);
             assertThat(result1.getUserId()).isEqualTo(101L);
             assertThat(result1.getUserName()).isEqualTo("김철수");
             assertThat(result1.getInProgressTickets()).isEqualTo(3);
             assertThat(result1.getDoneTickets()).isEqualTo(5);
 
-            AllUser result2 = response.get(1);
+            AllDoneUser result2 = response.get(1);
             assertThat(result2.getUserId()).isEqualTo(102L);
             assertThat(result2.getUserName()).isEqualTo("박영희");
             assertThat(result2.getInProgressTickets()).isEqualTo(2);
@@ -124,11 +119,11 @@ class DailyStatisticsServiceTest {
         }
     }
     @Nested
-    @DisplayName("✅ 일간 유형별 티켓 생성 수 조회")
+    @DisplayName("일간 유형별 티켓 생성 수 조회")
     class DescribeGetDailyTypeSummary {
 
         @Test
-        @DisplayName("📌 각 유형별 금일 생성된 티켓 개수를 반환한다")
+        @DisplayName("각 유형별 금일 생성된 티켓 개수를 반환한다")
         void should_ReturnCorrectDailyTypeStatistics() {
             // given
             LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
@@ -159,17 +154,17 @@ class DailyStatisticsServiceTest {
             verify(ticketRepository, times(1)).countByCreatedAtBetweenAndTicketType(startOfDay, endOfDay, featureRequest);
         }
     }
+
     @Nested
-    @DisplayName("✅ 일간 1차, 2차 카테고리별 생성된 티켓 개수 조회")
+    @DisplayName("일간 1차, 2차 카테고리별 생성된 티켓 개수 조회")
     class DescribeGetDailyCategorySummary {
 
         @Test
-        @DisplayName("✅ 금일 1차, 2차 카테고리별 생성된 티켓 수를 반환한다")
+        @DisplayName("금일 1차, 2차 카테고리별 생성된 티켓 수를 반환한다")
         void should_ReturnCorrectDailyCategoryStatistics() {
             // Given
-            // ✅ ID를 포함한 새로운 테스트용 생성자 사용
             Category firstCategory1 = new Category(1L, "IT 서비스", null);
-            Category firstCategory2 = new Category(2L, "고객 지원", null);
+            Category firstCategory2 = new Category(2L, "인프라 지원", null);
 
             Category secondCategory1 = new Category(101L, "백엔드 개발", firstCategory1);
             Category secondCategory2 = new Category(102L, "프론트엔드 개발", firstCategory1);
@@ -177,14 +172,12 @@ class DailyStatisticsServiceTest {
             Category secondCategory4 = new Category(202L, "불만 접수", firstCategory2);
 
 
-            // 1차 카테고리별 티켓 개수 Mock 설정
             when(ticketRepository.countByFirstCategoryToday(any(), any()))
                     .thenReturn(List.of(
                             new Object[]{firstCategory1, 43},
                             new Object[]{firstCategory2, 53}
                     ));
 
-            // 2차 카테고리별 티켓 개수 Mock 설정
             when(ticketRepository.countBySecondCategoryToday(any(), any(), eq(firstCategory1)))
                     .thenReturn(List.of(
                             new Object[]{secondCategory1, 25},
@@ -229,32 +222,31 @@ class DailyStatisticsServiceTest {
         }
     }
     @Nested
-    @DisplayName("📌 금일 완료된 티켓 현황 조회")
+    @DisplayName("금일 완료된 티켓 현황 조회")
     class DescribeGetDailyCompletionStatistics {
 
         @Test
-        @DisplayName("✅ 담당자의 금일 생성 및 완료된 티켓 수를 반환한다")
+        @DisplayName("담당자의 금일 생성 및 완료된 티켓 수를 반환한다")
         void should_ReturnCorrectCompletionStatistics() {
-            // Given (오늘 날짜 및 담당자 ID 설정)
-            Long managerId = 22L; // 테스트할 담당자 ID
+            // Given
+            Long managerId = 22L;
             LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
             LocalDateTime todayEnd = todayStart.plusDays(1).minusNanos(1);
 
-            int createdTickets = 13; // 금일 생성된 티켓 수
-            int doneTickets = 7;     // 금일 완료된 티켓 수
+            int createdTickets = 13;
+            int doneTickets = 7;
 
             when(ticketRepository.countByCreatedAtAndUserId(todayStart, todayEnd, managerId)).thenReturn(createdTickets);
             when(ticketRepository.countByCompletedAtAndUserId(todayStart, todayEnd, managerId)).thenReturn(doneTickets);
 
-            // When (서비스 실행)
+            // When
             DailyCompletionResponse response = statisticsService.getDailyCompletionStatistics(managerId);
 
-            // Then (결과 검증)
+            // Then
             assertThat(response).isNotNull();
             assertThat(response.getCreatedTickets()).isEqualTo(createdTickets);
             assertThat(response.getDoneTickets()).isEqualTo(doneTickets);
 
-            // Mock 검증 (해당 메서드가 한 번씩 호출되었는지 확인)
             verify(ticketRepository, times(1)).countByCreatedAtAndUserId(todayStart, todayEnd, managerId);
             verify(ticketRepository, times(1)).countByCompletedAtAndUserId(todayStart, todayEnd, managerId);
         }

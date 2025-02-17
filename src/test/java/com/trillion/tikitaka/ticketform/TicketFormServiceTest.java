@@ -101,7 +101,6 @@ public class TicketFormServiceTest {
             verify(ticketFormRepository, never()).save(any(TicketForm.class));
         }
 
-
         @Test
         @DisplayName("존재하지 않는 1차 카테고리 ID로 생성하면 예외가 발생한다.")
         void should_ThrowException_when_FirstCategoryNotFound() {

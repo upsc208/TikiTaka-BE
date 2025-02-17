@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class AllUser {
+public class AllDoneUser {
     private String userName;
     private Long userId;
     private String userEmail;

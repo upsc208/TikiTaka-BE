@@ -85,7 +85,6 @@ public class LoginUnitTest {
         for (int i = 0; i < 5; i++) {
             user.handleLoginFailure();
         }
-
         // when & then
         assertThat(user.isLocked()).isTrue();
     }

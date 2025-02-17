@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -118,8 +119,5 @@ public class SubtaskService {
         log.info("[티켓 진행률 계산] 진행률: {}", progress);
         return Math.round(progress * 10.0) / 10.0;
     }
-
-
-
 }
 

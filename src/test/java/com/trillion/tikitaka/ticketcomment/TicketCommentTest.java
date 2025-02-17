@@ -1,6 +1,6 @@
-
 package com.trillion.tikitaka.ticketcomment;
 
+import com.trillion.tikitaka.attachment.application.FileService;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.exception.TicketNotFoundException;
@@ -14,7 +14,6 @@ import com.trillion.tikitaka.ticketcomment.exception.UnauthorizedTicketCommentEx
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
-import com.trillion.tikitaka.attachment.application.FileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,7 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
-
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @DisplayName("티켓 댓글 유닛 테스트")
 public class TicketCommentTest {
@@ -51,7 +49,6 @@ public class TicketCommentTest {
 
     @InjectMocks
     private TicketCommentService ticketCommentService;
-
     private CustomUserDetails userDetailsUser;
     private CustomUserDetails userDetailsManager;
 
@@ -141,9 +138,6 @@ public class TicketCommentTest {
             verify(ticketCommentRepository, never()).save(any(TicketComment.class));
         }
 
-        /*
-        바로 아래 에러 사항 해결 부탁
-        */
         @Test
         @DisplayName("담당자는 모든 티켓에 댓글을 작성할 수 있다")
         void should_CreateTicketComment_When_Manager() {
@@ -163,7 +157,6 @@ public class TicketCommentTest {
             when(mockRequester.getUsername()).thenReturn("requester_user");
             when(ticket.getRequester()).thenReturn(mockRequester);
 
-            // 기존의 userDetailsManager를 스파이로 감싼다.
             CustomUserDetails spyUserDetailsManager = spy(userDetailsManager);
             User mockAuthor = mock(User.class);
             when(mockAuthor.getRole()).thenReturn(Role.MANAGER);
@@ -172,7 +165,6 @@ public class TicketCommentTest {
             // when
             ticketCommentService.createTicketComment(ticketId, request, null, spyUserDetailsManager);
 
-            // then: save() 대신 saveAndFlush() 검증
             verify(ticketCommentRepository, times(1)).saveAndFlush(any(TicketComment.class));
         }
 

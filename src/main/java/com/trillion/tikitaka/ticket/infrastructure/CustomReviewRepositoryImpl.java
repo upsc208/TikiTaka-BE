@@ -1,8 +1,8 @@
 package com.trillion.tikitaka.ticket.infrastructure;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.trillion.tikitaka.ticket.dto.response.QReviewListResponse;
 import com.trillion.tikitaka.ticket.dto.response.ReviewListResponse;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

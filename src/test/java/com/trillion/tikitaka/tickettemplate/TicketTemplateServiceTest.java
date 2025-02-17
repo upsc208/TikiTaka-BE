@@ -23,7 +23,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +46,6 @@ class TicketTemplateServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        // userDetails: id=100
         User mockUser = new User(100L, "testUser", "USER");
         mockUserDetails = new CustomUserDetails(mockUser);
     }
@@ -65,8 +63,6 @@ class TicketTemplateServiceTest {
                 "Sample Description"
         );
     }
-
-    // ─────────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("생성 관련 테스트")
@@ -155,8 +151,6 @@ class TicketTemplateServiceTest {
         }
 
     }
-
-    // ─────────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("수정 관련 테스트")
@@ -257,8 +251,6 @@ class TicketTemplateServiceTest {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-
     @Nested
     @DisplayName("조회 관련 테스트")
     class RetrieveTests {
@@ -288,10 +280,8 @@ class TicketTemplateServiceTest {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-
     @Nested
-    @DisplayName("❌ 삭제 관련 테스트")
+    @DisplayName("삭제 관련 테스트")
     class DeleteTests {
 
         @Test

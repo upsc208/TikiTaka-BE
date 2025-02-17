@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-@DisplayName("🎟 티켓 폼 통합 테스트")
+@DisplayName("🎟티켓 폼 통합 테스트")
 public class TicketFormIntegrationTest {
 
     @Autowired
@@ -49,16 +49,14 @@ public class TicketFormIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // 기존 데이터 초기화
         ticketFormRepository.deleteAll();
         categoryRepository.deleteAll();
 
-        // 새로운 카테고리 추가
         Category firstCategory = categoryRepository.save(new Category("1차 카테고리", null));
         Category secondCategory = categoryRepository.save(new Category("2차 카테고리", firstCategory));
 
         Category invalidFirstCategory = categoryRepository.save(new Category("잘못된 1차 카테고리", null));
-        Category invalidSecondCategory = categoryRepository.save(new Category("잘못된 2차 카테고리", null)); // 관계가 없음
+        Category invalidSecondCategory = categoryRepository.save(new Category("잘못된 2차 카테고리", null));
 
         firstCategoryId = firstCategory.getId();
         secondCategoryId = secondCategory.getId();
@@ -80,7 +78,6 @@ public class TicketFormIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        // 생성된 데이터 검증
         assertThat(ticketFormRepository.findById(new TicketFormId(firstCategoryId, secondCategoryId))).isPresent();
     }
 
@@ -135,7 +132,6 @@ public class TicketFormIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        // 수정된 데이터 검증
         TicketForm updatedTicketForm = ticketFormRepository.findById(new TicketFormId(firstCategoryId, secondCategoryId)).orElseThrow();
         assertThat(updatedTicketForm.getMustDescription()).isEqualTo("수정된 필수 설명");
         assertThat(updatedTicketForm.getDescription()).isEqualTo("수정된 설명");
@@ -160,7 +156,6 @@ public class TicketFormIntegrationTest {
         mockMvc.perform(delete("/tickets/forms/{firstCategoryId}/{secondCategoryId}", firstCategoryId, secondCategoryId))
                 .andExpect(status().isOk());
 
-        // 삭제된 데이터 검증
         assertThat(ticketFormRepository.findById(new TicketFormId(firstCategoryId, secondCategoryId))).isEmpty();
     }
 

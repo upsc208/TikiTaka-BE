@@ -1,4 +1,5 @@
 package com.trillion.tikitaka.ticket;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
@@ -9,7 +10,6 @@ import com.trillion.tikitaka.ticket.dto.request.CreateTicketRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditSettingRequest;
 import com.trillion.tikitaka.ticket.dto.request.EditTicketRequest;
 import com.trillion.tikitaka.ticket.dto.response.TicketListResponse;
-import com.trillion.tikitaka.ticket.dto.response.TicketResponse;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
@@ -25,7 +25,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,12 +36,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @SpringBootTest
 @Transactional
@@ -224,10 +220,8 @@ public class TicketServiceIntegrationTest {
                     .title("빈 옵션 티켓 제목")
                     .description("빈 옵션 티켓 상세 내용")
                     .typeId(ticketType1.getId())
-                    // 카테고리, 담당자 등 선택적 필드를 null로 설정 (비워둠)
                     .firstCategoryId(null)
                     .secondCategoryId(null)
-                    // 예시로 담당자 ID를 입력하지 않음 (서비스에서 null로 처리)
                     .deadline(LocalDateTime.parse("2025-05-05 12:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                     .urgent(false)
                     .build();
@@ -383,7 +377,7 @@ public class TicketServiceIntegrationTest {
             @Test
             @DisplayName("티켓 조회시 긴급 티켓이 우선적으로 조회된다.")
             void should_PrioritizeUrgentTicketsInTicketList() throws Exception {
-                // given: urgent 티켓 2개와 일반 티켓 2개 생성
+
                 Ticket urgentTicket1 = ticketRepository.save(Ticket.builder()
                         .title("긴급 티켓 1")
                         .description("긴급 티켓 상세 내용")
@@ -436,7 +430,6 @@ public class TicketServiceIntegrationTest {
                         .status(Ticket.Status.PENDING)
                         .build());
 
-                // when: 긴급 티켓이 우선적으로 정렬된 상태로 목록 조회
                 String responseBody = mockMvc.perform(
                                 get("/tickets/list")
                                         .with(user(new CustomUserDetails(normalUser1)))
@@ -445,11 +438,8 @@ public class TicketServiceIntegrationTest {
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString();
 
-                // 응답 전체를 JsonNode로 읽어들임
                 JsonNode root = objectMapper.readTree(responseBody);
-                // data.content 필드를 추출
                 JsonNode contentNode = root.path("data").path("content");
-                // TicketListResponse 배열로 변환
                 TicketListResponse[] ticketResponses = objectMapper.treeToValue(contentNode, TicketListResponse[].class);
 
                 // 검증
@@ -568,7 +558,7 @@ public class TicketServiceIntegrationTest {
                     .build());
 
             EditTicketRequest request = EditTicketRequest.builder()
-                    .ticketTypeId(ticketType2.getId()) // 다른 유형으로 변경
+                    .ticketTypeId(ticketType2.getId())
                     .build();
 
             // when
@@ -596,7 +586,7 @@ public class TicketServiceIntegrationTest {
                     .build());
 
             EditTicketRequest request = EditTicketRequest.builder()
-                    .ticketTypeId(ticketType2.getId()) // 다른 유형으로 변경
+                    .ticketTypeId(ticketType2.getId())
                     .build();
 
             // when
@@ -611,7 +601,7 @@ public class TicketServiceIntegrationTest {
             @Test
             @DisplayName("담당자가 티켓 상태를 수정할 수 있다.")
             void should_EditTicketStatus_when_Manager() throws Exception {
-                // given: 초기 상태 PENDING인 티켓 생성
+
                 Ticket ticket = ticketRepository.save(Ticket.builder()
                         .title("상태 변경 테스트 티켓")
                         .description("상태 변경 전")
@@ -623,7 +613,7 @@ public class TicketServiceIntegrationTest {
                         .manager(manager1)
                         .status(Ticket.Status.PENDING)
                         .build());
-                // 담당자가 상태를 IN_PROGRESS로 변경하는 요청
+
                 EditSettingRequest request = EditSettingRequest.builder()
                         .status(Ticket.Status.IN_PROGRESS)
                         .build();
@@ -638,7 +628,6 @@ public class TicketServiceIntegrationTest {
                         ).andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString();
 
-                // then: 티켓 상태가 IN_PROGRESS로 변경되었는지 확인
                 Ticket updatedTicket = ticketRepository.findById(ticket.getId()).orElse(null);
                 assertThat(updatedTicket).isNotNull();
                 assertThat(updatedTicket.getStatus()).isEqualTo(Ticket.Status.IN_PROGRESS);
@@ -647,7 +636,7 @@ public class TicketServiceIntegrationTest {
             @Test
             @DisplayName("담당자가 티켓 우선순위를 수정할 수 있다.")
             void should_EditTicketPriority_when_Manager() throws Exception {
-                // given: 초기 우선순위가 null(또는 낮은 값)인 티켓 생성
+                // given
                 Ticket ticket = ticketRepository.save(Ticket.builder()
                         .title("우선순위 변경 테스트 티켓")
                         .description("우선순위 변경 전")
@@ -659,7 +648,6 @@ public class TicketServiceIntegrationTest {
                         .manager(manager1)
                         .status(Ticket.Status.PENDING)
                         .build());
-                // 담당자가 우선순위를 HIGH로 변경하는 요청
                 EditSettingRequest request = EditSettingRequest.builder()
                         .priority(Ticket.Priority.HIGH)
                         .build();
@@ -674,7 +662,7 @@ public class TicketServiceIntegrationTest {
                         ).andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString();
 
-                // then: 티켓 우선순위가 HIGH로 변경되었는지 확인
+                // then
                 Ticket updatedTicket = ticketRepository.findById(ticket.getId()).orElse(null);
                 assertThat(updatedTicket).isNotNull();
                 assertThat(updatedTicket.getPriority()).isEqualTo(Ticket.Priority.HIGH);
@@ -683,7 +671,7 @@ public class TicketServiceIntegrationTest {
             @Test
             @DisplayName("담당자가 티켓 마감기한을 수정할 수 있다.")
             void should_EditTicketDeadline_when_Manager() throws Exception {
-                // given: 초기 마감기한을 가진 티켓 생성
+                // given
                 Ticket ticket = ticketRepository.save(Ticket.builder()
                         .title("마감기한 변경 테스트 티켓")
                         .description("마감기한 변경 전")
@@ -695,7 +683,7 @@ public class TicketServiceIntegrationTest {
                         .manager(manager1)
                         .status(Ticket.Status.PENDING)
                         .build());
-                // 새 마감기한 설정
+
                 LocalDateTime newDeadline = LocalDateTime.now().plusDays(10);
                 EditTicketRequest request = EditTicketRequest.builder()
                         .deadline(newDeadline)
@@ -711,7 +699,7 @@ public class TicketServiceIntegrationTest {
                         ).andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString();
 
-                // then: 티켓 마감기한이 새롭게 설정되었는지 확인
+                // then
                 Ticket updatedTicket = ticketRepository.findById(ticket.getId()).orElse(null);
                 assertThat(updatedTicket).isNotNull();
                 assertThat(updatedTicket.getDeadline().truncatedTo(ChronoUnit.MINUTES))
@@ -722,7 +710,7 @@ public class TicketServiceIntegrationTest {
             @Test
             @DisplayName("담당자가 티켓 담당자를 수정할 수 있다.")
             void should_EditTicketManager_when_Manager() throws Exception {
-                // given: 초기 담당자가 manager1인 티켓 생성
+                // given
                 Ticket ticket = ticketRepository.save(Ticket.builder()
                         .title("담당자 변경 테스트 티켓")
                         .description("담당자 변경 전")
@@ -734,11 +722,11 @@ public class TicketServiceIntegrationTest {
                         .manager(manager1)
                         .status(Ticket.Status.PENDING)
                         .build());
-                // 담당자를 manager2로 변경하는 요청 (manager2는 미리 생성되어 있음)
+
                 EditSettingRequest request = EditSettingRequest.builder()
                         .managerId(manager2.getId())
                         .build();
-                CustomUserDetails customUserDetails = new CustomUserDetails(manager1); // 현재 담당자인 manager1이 수정 요청
+                CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
                 // when
                 String responseBody = mockMvc.perform(
@@ -749,7 +737,7 @@ public class TicketServiceIntegrationTest {
                         ).andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString();
 
-                // then: 티켓 담당자가 manager2로 변경되었는지 확인
+                // then
                 Ticket updatedTicket = ticketRepository.findById(ticket.getId()).orElse(null);
                 assertThat(updatedTicket).isNotNull();
                 assertThat(updatedTicket.getManager().getId()).isEqualTo(manager2.getId());

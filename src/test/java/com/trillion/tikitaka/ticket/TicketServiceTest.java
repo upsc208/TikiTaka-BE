@@ -85,7 +85,6 @@ class TicketServiceTest {
 
     @InjectMocks
     private TicketService ticketService;
-
     private CustomUserDetails userDetails;
     private User user;
     private TicketType ticketType;
@@ -154,56 +153,6 @@ class TicketServiceTest {
             assertThat(ticketId).isEqualTo(1L);
             verify(ticketRepository, times(1)).save(any(Ticket.class));
         }
-
-//        @Test
-//        @DisplayName("제목이 비어있을 때 오류가 발생한다. (컨트롤러, DB 단에서 체크)")
-//        void should_ThrowException_When_TitleIsBlank() {
-//            // given
-//            CreateTicketRequest request = CreateTicketRequest.builder()
-//                    .title(null)
-//                    .description("티켓 설명")
-//                    .typeId(10L)
-//                    .firstCategoryId(20L)
-//                    .secondCategoryId(30L)
-//                    .deadline(LocalDateTime.now().plusDays(3))
-//                    .urgent(false)
-//                    .build();
-//            List<MultipartFile> files = Collections.emptyList();
-//
-//            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-//            when(ticketTypeRepository.findById(10L)).thenReturn(Optional.of(ticketType));
-//            when(categoryRepository.findById(20L)).thenReturn(Optional.of(category1));
-//            when(categoryRepository.findById(30L)).thenReturn(Optional.of(category2));
-//
-//            // when & then
-//            assertThatThrownBy(() -> ticketService.createTicket(request, files, userDetails))
-//                    .isInstanceOf(IllegalArgumentException.class);
-//        }
-
-//        @Test
-//        @DisplayName("내용이 비어있을 때 오류가 발생한다. (컨트롤러, DB 단에서 체크)")
-//        void should_ThrowException_When_DescriptionIsBlank() {
-//            // given
-//            CreateTicketRequest request = CreateTicketRequest.builder()
-//                    .title("테스트 티켓")
-//                    .description(null)
-//                    .typeId(10L)
-//                    .firstCategoryId(20L)
-//                    .secondCategoryId(30L)
-//                    .deadline(LocalDateTime.now().plusDays(3))
-//                    .urgent(false)
-//                    .build();
-//            List<MultipartFile> files = Collections.emptyList();
-//
-//            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-//            when(ticketTypeRepository.findById(10L)).thenReturn(Optional.of(ticketType));
-//            when(categoryRepository.findById(20L)).thenReturn(Optional.of(category1));
-//            when(categoryRepository.findById(30L)).thenReturn(Optional.of(category2));
-//
-//            // When & Then
-//            assertThatThrownBy(() -> ticketService.createTicket(request, files, userDetails))
-//                    .isInstanceOf(IllegalArgumentException.class);
-//        }
 
         @Test
         @DisplayName("티켓 유형 비어있을 때 오류가 발생한다.")

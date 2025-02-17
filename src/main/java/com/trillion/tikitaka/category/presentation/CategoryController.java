@@ -5,8 +5,6 @@ import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

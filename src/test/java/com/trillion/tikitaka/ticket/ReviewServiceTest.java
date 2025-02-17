@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @DisplayName("📝 티켓 검토 서비스 유닛 테스트")
-class TicketReviewServiceTest {
+class ReviewServiceTest {
 
     @Mock
     private TicketRepository ticketRepository;
@@ -51,11 +51,11 @@ class TicketReviewServiceTest {
     }
 
     @Nested
-    @DisplayName("🔍 티켓 검토 기능 테스트")
+    @DisplayName("티켓 검토 기능 테스트")
     class DescribeDoReview {
 
         @Test
-        @DisplayName("✅ 검토가 필요한 티켓을 정상적으로 검토하면 저장된다")
+        @DisplayName("검토가 필요한 티켓을 정상적으로 검토하면 저장")
         void should_SaveReview_When_TicketNeedsReview() {
             // Given
             Long ticketId = 1L;
@@ -77,14 +77,14 @@ class TicketReviewServiceTest {
         }
 
         @Test
-        @DisplayName("✅ 검토가 필요 없는 티켓에 대해 예외를 발생시킨다.")
+        @DisplayName("검토가 필요 없는 티켓에 대해 예외를 발생")
         void should_ThrowException_When_TicketDoesNotNeedReview() {
             // Given
             Long ticketId = 1L;
             Long reviewerId = 100L;
 
             Ticket ticket = mock(Ticket.class);
-            when(ticket.getStatus()).thenReturn(Ticket.Status.DONE); // 검토가 필요 없는 상태
+            when(ticket.getStatus()).thenReturn(Ticket.Status.DONE);
 
             when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
@@ -97,7 +97,7 @@ class TicketReviewServiceTest {
 
 
         @Test
-        @DisplayName("❌ 이미 검토한 티켓을 다시 검토하면 예외가 발생한다")
+        @DisplayName("이미 검토한 티켓을 다시 검토하면 예외가 발생")
         void should_ThrowException_When_ReviewAlreadyExists() {
             // Given
             Long ticketId = 1L;
@@ -121,11 +121,11 @@ class TicketReviewServiceTest {
     }
 
     @Nested
-    @DisplayName("📌 검토 목록 조회 기능 테스트")
+    @DisplayName("검토 목록 조회 기능 테스트")
     class DescribeGetReviews {
 
         @Test
-        @DisplayName("✅ 검토된 티켓 목록을 정상적으로 반환한다")
+        @DisplayName("검토된 티켓 목록을 정상적으로 반환한다")
         void should_ReturnReviewList_When_TicketExists() {
             // Given
             Long ticketId = 1L;
@@ -150,7 +150,7 @@ class TicketReviewServiceTest {
 
 
         @Test
-        @DisplayName("✅ 존재하지 않는 티켓을 조회하면 예외를 발생시킨다.")
+        @DisplayName("존재하지 않는 티켓을 조회하면 예외를 발생시킨다.")
         void should_ThrowException_When_TicketDoesNotExist() {
             // Given
             Long nonExistentTicketId = 999L;
@@ -162,7 +162,7 @@ class TicketReviewServiceTest {
                     .isInstanceOf(TicketNotFoundException.class)
                     .hasMessage("해당 티켓을 찾을 수 없습니다.");
 
-        verify(reviewRepository, never()).findAllByTicketId(any());
+            verify(reviewRepository, never()).findAllByTicketId(any());
         }
     }
 }

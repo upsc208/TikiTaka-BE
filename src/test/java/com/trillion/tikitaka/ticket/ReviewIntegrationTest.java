@@ -2,13 +2,14 @@ package com.trillion.tikitaka.ticket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
-import com.trillion.tikitaka.ticket.domain.Ticket;
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
 import com.trillion.tikitaka.ticket.domain.Review;
-import com.trillion.tikitaka.tickettype.domain.TicketType;
-import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.dto.response.ReviewListResponse;
 import com.trillion.tikitaka.ticket.infrastructure.ReviewRepository;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
@@ -19,35 +20,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 
-
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.springframework.test.context.ActiveProfiles;
-import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-/**
- * 🎯 티켓 검토 통합 테스트
- */
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 @Transactional
 @WithMockUser(username = "testReviewer", authorities = {"MANAGER"})
 public class ReviewIntegrationTest {
-
-
 
     @Autowired
     private MockMvc mockMvc;
@@ -85,7 +80,6 @@ public class ReviewIntegrationTest {
         userRepository.save(reviewer);
         reviewerId = reviewer.getId();
 
-// SecurityContext에 CustomUserDetails 수동 주입
         CustomUserDetails userDetails = new CustomUserDetails(reviewer);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities()
@@ -119,7 +113,7 @@ public class ReviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("✅ 검토 요청이 정상적으로 수행된다.")
+    @DisplayName("검토 요청이 정상적으로 수행된다.")
     void should_ReviewTicket_When_ValidRequest() throws Exception {
         mockMvc.perform(post("/tickets/{ticketId}/reviews", ticketId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -133,9 +127,9 @@ public class ReviewIntegrationTest {
 
 
     @Test
-    @DisplayName("❌ 존재하지 않는 티켓 검토 시 예외 발생")
+    @DisplayName("존재하지 않는 티켓 검토 시 예외 발생")
     void should_ThrowException_When_TicketDoesNotExist() throws Exception {
-        Long nonExistentTicketId = 999L; // 존재하지 않는 티켓
+        Long nonExistentTicketId = 999L;
 
         mockMvc.perform(post("/tickets/{ticketId}/reviews", nonExistentTicketId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -144,7 +138,7 @@ public class ReviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("❌ 이미 검토된 티켓을 다시 검토하면 예외 발생")
+    @DisplayName("이미 검토된 티켓을 다시 검토하면 예외 발생")
     void should_ThrowException_When_ReviewAlreadyExists() throws Exception {
         Review review = Review.builder()
                 .ticket(ticketRepository.findById(ticketId).orElseThrow())
@@ -159,7 +153,7 @@ public class ReviewIntegrationTest {
     }
 
     @Test
-    @DisplayName("✅ 검토 내역 조회가 정상적으로 수행된다.")
+    @DisplayName("검토 내역 조회가 정상적으로 수행")
     void should_ReturnReviewList_When_TicketHasReviews() throws Exception {
         Review review = Review.builder()
                 .ticket(ticketRepository.findById(ticketId).orElseThrow())

@@ -154,8 +154,6 @@ public class TicketController {
         return new ApiResponse<>("티켓 긴급상태 수정",null);
     }
 
-
-
     @PreAuthorize("hasAnyAuthority('ADMIN','USER','MANAGER')")
     @DeleteMapping("/{ticketId}")
     public ApiResponse<Void> deleteTicket(@PathVariable Long ticketId,@AuthenticationPrincipal CustomUserDetails userDetails){
