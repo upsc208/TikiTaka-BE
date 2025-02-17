@@ -1,13 +1,9 @@
 package com.trillion.tikitaka.statistics.application;
 
 import com.trillion.tikitaka.category.domain.Category;
-import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.statistics.domain.MonthlyStatistics;
-import com.trillion.tikitaka.statistics.dto.response.AllCategory;
-import com.trillion.tikitaka.statistics.dto.response.AllMonth;
-import com.trillion.tikitaka.statistics.dto.response.AllType;
-import com.trillion.tikitaka.statistics.dto.response.AllUser;
+import com.trillion.tikitaka.statistics.dto.response.*;
 import com.trillion.tikitaka.statistics.infrastructure.MonthlyStatisticsRepository;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
@@ -18,12 +14,9 @@ import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import com.trillion.tikitaka.user.application.UserService;
 import com.trillion.tikitaka.user.domain.Role;
 import com.trillion.tikitaka.user.domain.User;
-import com.trillion.tikitaka.user.dto.response.UserListResponse;
 import com.trillion.tikitaka.user.dto.response.UserResponse;
 import com.trillion.tikitaka.user.infrastructure.UserRepository;
-import com.trillion.tikitaka.statistics.dto.response.DailyCompletionResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +61,8 @@ public class StatisticsService {
                 allCategories.add(allCategory);
 
 
-            }else{ 
+            }
+            else{
                 int totalCreated = ticketRepository.countByCreatedAtBetweenAndFirstCategoryAndUserAndType(
                         year, month, category, null, null);
 

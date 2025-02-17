@@ -28,8 +28,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
 
     boolean existsById(Long ticketId);
 
-    //===============================일간+주간================================//
-
+    //===============================일간+주간========================================//
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdAt BETWEEN :startOfDay AND :endOfDay AND t.manager.id = :userId")
     int countByCreatedAtAndUserId(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay, @Param("userId") Long userId);
 
@@ -51,7 +50,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
             @Param("managerId") Long managerId
     );
 
-
     @Query("""
         SELECT COUNT(t)
         FROM Ticket t
@@ -66,7 +64,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
             @Param("managerId") Long managerId
     );
 
-
+    //금일 생성된 티켓 수
     @Query("""
         SELECT COUNT(t)
         FROM Ticket t
@@ -75,7 +73,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     """)
     int countCreatedToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-
+    //금일 기준 진행 중(IN_PROGRESS, REVIEW) 상태인 티켓 수
     @Query("""
         SELECT COUNT(t)
         FROM Ticket t
@@ -86,6 +84,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
     int countInProgressToday(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end,
                              @Param("inProgressStatuses") Ticket.Status... inProgressStatuses);
 
+    //금일 완료된 (DONE) 상태인 티켓 수
     @Query("""
         SELECT COUNT(t)
         FROM Ticket t
@@ -108,27 +107,30 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                 @Param("start") LocalDateTime start,
                                 @Param("end") LocalDateTime end,
                                 @Param("statuses") List<Ticket.Status> statuses);
-
     int countByCreatedAtBetweenAndTicketType(LocalDateTime start, LocalDateTime end, TicketType ticketType);
 
 
+    // 담당자가 본인이고 상태가 PENDING인 티켓 수 조회
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.manager.id = :managerId AND t.status = :status")
     int countByManagerAndStatus(@Param("managerId") Long managerId, @Param("status") Ticket.Status status);
 
-
+    // 담당자가 상관없이 상태가 PENDING인 티켓 수 조회
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.status = :status")
     int countByStatus(@Param("status") Ticket.Status status);
 
+    // 담당자가 본인 or 지정되지 않고 상태가 PENDING & URGENT인 티켓 수 조회
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.status = :status AND t.urgent = true")
     int countUrgentPendingTickets(@Param("status") Ticket.Status status);
 
 
+    //금일 1차 카테고리별 생성된 티켓 개수
     @Query("SELECT t.firstCategory, COUNT(t) FROM Ticket t " +
             "WHERE t.createdAt BETWEEN :startOfDay AND :endOfDay " +
             "GROUP BY t.firstCategory")
     List<Object[]> countByFirstCategoryToday(@Param("startOfDay") LocalDateTime startOfDay,
                                              @Param("endOfDay") LocalDateTime endOfDay);
 
+    //금일 특정 1차 카테고리 내 2차 카테고리별 생성된 티켓 개수
     @Query("SELECT t.secondCategory, COUNT(t) FROM Ticket t " +
             "WHERE t.createdAt BETWEEN :startOfDay AND :endOfDay " +
             "AND t.firstCategory = :firstCategory " +
@@ -137,8 +139,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                               @Param("endOfDay") LocalDateTime endOfDay,
                                               @Param("firstCategory") Category firstCategory);
 
-
     //===============================월간========================================//
+
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
             "AND (:category IS NULL OR " +
             "(t.secondCategory IS NOT NULL AND t.secondCategory = :category) OR " +
@@ -151,6 +153,27 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                                          @Param("user") User user,
                                                          @Param("type") TicketType type);
 
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +  // firstCategory만 체크하도록 변경
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByCreatedAtBetweenAndFirstCategoryAndUserAndType(@Param("year") int year,
+                                                              @Param("month") int month,
+                                                              @Param("category") Category category,
+                                                              @Param("user") User user,
+                                                              @Param("type") TicketType type);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
+            "AND t.status = 'DONE' " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByCompletedAtBetweenAndCategoryAndUserAndType(@Param("year") int year,
+                                                           @Param("month") int month,
+                                                           @Param("category") Category category,
+                                                           @Param("user") User user,
+                                                           @Param("type") TicketType type);
+
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
             "AND t.status = 'DONE' " +
             "AND (:category IS NULL OR t.firstCategory = :category) " +
@@ -161,7 +184,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                                         @Param("category") Category category,
                                                         @Param("user") User user,
                                                         @Param("type") TicketType type);
-
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
             "AND t.urgent = true " +
@@ -174,7 +196,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                                    @Param("user") User user,
                                                    @Param("type") TicketType type);
 
-
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
             "AND t.status = :status " +
             "AND (:category IS NULL OR t.firstCategory = :category) " +
@@ -186,4 +207,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                                @Param("user") User user,
                                                @Param("type") TicketType type,
                                                @Param("status") Ticket.Status status);
+
+
 }
