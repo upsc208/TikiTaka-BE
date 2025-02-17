@@ -204,6 +204,17 @@ public interface TicketRepository extends JpaRepository<Ticket, Long>, CustomTic
                                                          @Param("user") User user,
                                                          @Param("type") TicketType type);
 
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month " +
+            "AND (:category IS NULL OR t.firstCategory = :category) " +  // firstCategory만 체크하도록 변경
+            "AND (:user IS NULL OR t.manager = :user) " +
+            "AND (:type IS NULL OR t.ticketType = :type)")
+    int countByCreatedAtBetweenAndFirstCategoryAndUserAndType(@Param("year") int year,
+                                                         @Param("month") int month,
+                                                         @Param("category") Category category,
+                                                         @Param("user") User user,
+                                                         @Param("type") TicketType type);
+
+
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE YEAR(t.updatedAt) = :year AND MONTH(t.updatedAt) = :month " +
             "AND t.status = 'DONE' " +

@@ -70,7 +70,7 @@ public class StatisticsService {
                 allCategories.add(allCategory);
 
             }else{ //1차카테고리인경우
-                int totalCreated = ticketRepository.countByCreatedAtBetweenAndCategoryAndUserAndType(
+                int totalCreated = ticketRepository.countByCreatedAtBetweenAndFirstCategoryAndUserAndType(
                         year, month, category, null, null);
 
                 AllCategory allCategory = new AllCategory();
