@@ -336,10 +336,11 @@ public class TicketCommentIntegrationTest {
 
     @Test
     @DisplayName("존재하지 않는 티켓 댓글 삭제 시 예외 발생")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ThrowException_When_DeleteNonExistentComment() throws Exception {
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
         // when & then
-        mockMvc.perform(delete("/tickets/1/comments/9999"))
+        mockMvc.perform(delete("/tickets/1/comments/9999")
+                        .with(user(customUserDetails)))
                 .andExpect(status().isNotFound());
     }
 }

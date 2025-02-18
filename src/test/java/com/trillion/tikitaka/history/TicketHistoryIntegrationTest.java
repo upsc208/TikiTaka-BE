@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -278,18 +279,21 @@ public class TicketHistoryIntegrationTest {
 
 
     @Test
-    @DisplayName("관리자가 티켓 상태를 변경하면 변경 이력이 기록된다.")
-    @WithUserDetails(value = "admin.tk", userDetailsServiceBeanName = "customUserDetailsService")
+    @DisplayName("담당자가 티켓 상태를 변경하면 변경 이력이 기록된다.")
+    @WithMockUser(username = "manager1", authorities = {"MANAGER"})
     void should_RecordHistory_when_AdminUpdatesTicketStatus() throws Exception {
         Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
         Long ticketId = ticket.getId();
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
         // given
         EditSettingRequest request = new EditSettingRequest(null, null, null, null, Ticket.Status.IN_PROGRESS, null);
         String jsonRequest = mapper.writeValueAsString(request);
 
         // when
-        mockMvc.perform(patch("/tickets/" + ticketId + "/status") // ✅ 변경된 ID 사용
+        mockMvc.perform(patch("/tickets/" + ticketId + "/status")
+                        .with(user(customUserDetails))
                         .contentType("application/json")
                         .content(jsonRequest))
                 .andExpect(status().isOk());
@@ -318,7 +322,7 @@ public class TicketHistoryIntegrationTest {
 
     @Test
     @DisplayName("일반 사용자가 티켓 상태를 변경하려 하면 403 Forbidden을 반환하고 이력이 기록되지 않는다.")
-    @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
+    @WithMockUser(username = "normalUser1", authorities = {"USER"})
     void should_Return403AndNotRecordHistory_when_UserWithoutPermissionUpdatesTicket() throws Exception {
 
         Ticket ticketWithoutHistory = ticketRepository.findAll().stream()
@@ -327,12 +331,15 @@ public class TicketHistoryIntegrationTest {
                 .orElseThrow(() -> new IllegalStateException("히스토리가 없는 티켓이 없습니다."));
         Long ticketId = ticketWithoutHistory.getId();
 
+        CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
+
         // given
         EditSettingRequest request = new EditSettingRequest(null, null, null, null, Ticket.Status.IN_PROGRESS, null);
         String jsonRequest = mapper.writeValueAsString(request);
 
         // when (권한 없는 사용자가 상태 변경 요청)
         String responseBody = mockMvc.perform(patch("/tickets/" + ticketId + "/status")
+                        .with(user(customUserDetails))
                         .contentType("application/json")
                         .content(jsonRequest))
                 .andExpect(status().isForbidden()) // ✅ 403 Forbidden 기대
