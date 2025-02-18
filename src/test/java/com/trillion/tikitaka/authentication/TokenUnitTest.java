@@ -102,22 +102,21 @@ public class TokenUnitTest {
     class DescribeTokenReissue {
 
         @Test
-        @DisplayName("요청 쿠키에 리프레시 토큰이 없으면 null을 반환한다.")
-        void should_ReturnNull_when_RefreshTokenNotFoundInCookie() {
+        @DisplayName("요청 쿠키에 리프레시 토큰이 없으면 예외를 발생시킨다.")
+        void should_ThrowException_when_RefreshTokenNotFoundInCookie() {
             // given
             HttpServletRequest request = mock(HttpServletRequest.class);
             when(request.getCookies()).thenReturn(null);
 
-            // when
-            TokenResponse response = jwtService.reissueTokens(request);
-
-            // then
-            assertThat(response).isNull();
+            // when & then
+            assertThatThrownBy(() -> jwtService.reissueTokens(request))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage("리프레시 토큰이 존재하지 않습니다.");
         }
 
         @Test
-        @DisplayName("요청한 리프리시 토큰이 저장되어 있지 않으면 null을 반환한다.")
-        void should_ReturnNull_when_RefreshTokenNotFoundInRepository() {
+        @DisplayName("요청한 리프리시 토큰이 저장되어 있지 않으면 예외를 반환한다.")
+        void should_ThrowException_when_RefreshTokenNotFoundInRepository() {
             // given
             String refreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, 1L, "user", "ROLE_USER", 86400000L);
             Cookie refreshCookie = new Cookie(TOKEN_TYPE_REFRESH, refreshToken);
@@ -126,11 +125,11 @@ public class TokenUnitTest {
             when(request.getCookies()).thenReturn(new Cookie[]{refreshCookie});
             when(jwtTokenRepository.existsByRefreshToken(refreshToken)).thenReturn(false);
 
-            // when
-            TokenResponse response = jwtService.reissueTokens(request);
 
             // then
-            assertThat(response).isNull();
+            assertThatThrownBy(() -> jwtService.reissueTokens(request))
+                    .isInstanceOf(CustomException.class)
+                    .hasMessage("리프레시 토큰이 존재하지 않습니다.");
         }
 
         @Test

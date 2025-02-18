@@ -2,6 +2,7 @@ package com.trillion.tikitaka.tickettype.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.global.response.ErrorResponse;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.dto.request.TicketTypeRequest;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -124,18 +127,27 @@ public class TicketTypeIntegrationTest {
                 .andExpect(status().isConflict());
     }
     @Test
-    @DisplayName("기본 티켓 타입 수정 시 예외 발생-포스트맨에서는 예외 발생 확인 테스트 코드에서는 성공 처리로 케이스 통과 실패")
+    @DisplayName("기본 티켓 타입 수정 시 예외 발생")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ThrowException_When_UpdatingDefaultTicketType() throws Exception {
-        // given
+        // ✅ 기본 티켓 타입을 명확하게 설정
+        TicketType defaultTicketType = ticketTypeRepository.save(new TicketType(3L,"ads",true));
+
         TicketTypeRequest request = new TicketTypeRequest("New Name");
 
+        // 기본 티켓 타입 여부 확인 로그 추가
+        Optional<TicketType> ticketType = ticketTypeRepository.findById(defaultTicketType.getId());
+        System.out.println("티켓 타입 ID " + defaultTicketType.getId() + " 기본 타입 여부: " + ticketType.map(TicketType::isDefaultType).orElse(false));
+
         // when & then
-        mockMvc.perform(patch("/tickets/types/" + 3L)
+        mockMvc.perform(patch("/tickets/types/" + defaultTicketType.getId()) // 생성한 기본 타입 ID 사용
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isInternalServerError()); // 기본 타입 수정 시 500 응답 기대
     }
+
+
+
 
     @Test
     @DisplayName("정상적인 티켓 타입 삭제")

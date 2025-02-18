@@ -33,6 +33,12 @@ public class TicketType extends DeletedBaseEntity {
         this.name = name;
     }
 
+    public TicketType(Long id, String name, Boolean defaultType){
+        this.name = name;
+        this.id = id;
+        this.defaultType = defaultType;
+    }
+
     @PreUpdate
     private void preventDefaultTypeUpdate() {
         if (this.defaultType) {
