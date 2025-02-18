@@ -20,10 +20,11 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<Void> createCategory(@RequestParam(value = "parentId", required = false) Long parentId,
-                                            @RequestBody @Valid CategoryRequest categoryRequest) {
-        categoryService.createCategory(parentId, categoryRequest);
-        return new ApiResponse<>(null);
+    public ApiResponse<Long> createCategory(
+            @RequestParam(value = "parentId", required = false) Long parentId,
+            @RequestBody @Valid CategoryRequest categoryRequest) {
+        Long createdId = categoryService.createCategory(parentId, categoryRequest);
+        return new  ApiResponse<>(createdId);
     }
 
     @GetMapping("/list")
