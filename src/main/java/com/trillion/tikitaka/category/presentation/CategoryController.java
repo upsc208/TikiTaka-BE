@@ -6,8 +6,6 @@ import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,11 +20,11 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ApiResponse<Long>> createCategory(
+    public ApiResponse<Long> createCategory(
             @RequestParam(value = "parentId", required = false) Long parentId,
             @RequestBody @Valid CategoryRequest categoryRequest) {
         Long createdId = categoryService.createCategory(parentId, categoryRequest);
-        return new ResponseEntity<>(new ApiResponse<>("요청이 성공적으로 처리되었습니다", createdId), HttpStatus.CREATED);
+        return new  ApiResponse<>(createdId);
     }
 
     @GetMapping("/list")
