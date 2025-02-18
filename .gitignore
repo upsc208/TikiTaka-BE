@@ -39,7 +39,6 @@ out/
 **/application-local.yml
 **/.DS_Store
 **/AdminInitializer.java
-**/application-test.yml
 **/application.yml
 **/data.sql
 **/SettingInitializer.java
