@@ -254,9 +254,8 @@ public class TicketHistoryIntegrationTest {
     @DisplayName("이력이 없는 경우 200 OK와 빈 배열을 반환한다.")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ReturnEmptyList_when_NoHistoryExists() throws Exception {
-        // ✅ 히스토리가 없는 티켓 찾기
         Ticket ticketWithoutHistory = ticketRepository.findAll().stream()
-                .filter(ticket -> historyRepository.findByTicketId(ticket.getId()).isEmpty())  // ✅ 올바른 필터 조건
+                .filter(ticket -> historyRepository.findByTicketId(ticket.getId()).isEmpty())
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("히스토리가 없는 티켓이 없습니다."));
 
@@ -342,17 +341,17 @@ public class TicketHistoryIntegrationTest {
                         .with(user(customUserDetails))
                         .contentType("application/json")
                         .content(jsonRequest))
-                .andExpect(status().isForbidden()) // ✅ 403 Forbidden 기대
+                .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
-        // then (에러 메시지 검증)
+
         ErrorResponse error = mapper.readValue(responseBody, ErrorResponse.class);
         assertThat(error.getMessage()).isEqualTo("접근 권한이 없습니다.");
 
         String historyResponse = mockMvc.perform(get("/history")
-                        .param("ticketId", String.valueOf(ticketId)) // ✅ 동적으로 ID 사용
+                        .param("ticketId", String.valueOf(ticketId))
                         .contentType("application/json"))
-                .andExpect(status().isOk()) // ✅ 200 OK 기대
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode jsonNode = mapper.readTree(historyResponse);
@@ -364,7 +363,7 @@ public class TicketHistoryIntegrationTest {
             historyList.add(response);
         }
 
-        // ✅ 변경 이력이 없어야 함
+
         assertThat(historyList).isEmpty();
     }
 
