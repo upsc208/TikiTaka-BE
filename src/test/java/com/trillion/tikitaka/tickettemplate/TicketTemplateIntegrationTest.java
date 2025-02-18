@@ -63,6 +63,11 @@ public class TicketTemplateIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
+        categoryRepository.deleteAll();
+        ticketTypeRepository.deleteAll();
+        templateRepository.deleteAll();
+
         testUser = User.builder()
                 .username("testUser")
                 .email("test@domain.com")
@@ -200,7 +205,7 @@ public class TicketTemplateIntegrationTest {
     void updateTemplate_CategoryMismatch() throws Exception {
         TicketTemplateRequest request = new TicketTemplateRequest(
                 type1.getId(),
-                firstCat.getId(),
+                1L,
                 999L,
                 101L,
                 "Mismatch Title",

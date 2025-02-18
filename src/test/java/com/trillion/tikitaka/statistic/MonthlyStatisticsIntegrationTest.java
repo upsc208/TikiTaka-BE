@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -174,11 +175,14 @@ public class MonthlyStatisticsIntegrationTest {
 
     @Test
     @DisplayName("MANAGER 권한을 가진 사용자는 월간 통계를 조회할 수 있다.")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ReturnMonthlyStatistics_When_ManagerUser() throws Exception {
+        CustomUserDetails userDetails = new CustomUserDetails(manager1);
+
         String responseBody = mockMvc.perform(get("/statistic/monAll")
                         .param("year", "2025")
-                        .param("month", "2"))
+                        .param("month", "2")
+                        .with(user(userDetails))
+                )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
