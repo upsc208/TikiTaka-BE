@@ -23,8 +23,9 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public void createCategory(Long parentId, CategoryRequest categoryRequest) {
-        log.info("[카테고리 생성 요청]");
+    public Long createCategory(Long parentId, CategoryRequest categoryRequest) {
+        log.info("[카테고리 생성 요청] 카테고리명: {}", categoryRequest.getName());
+
         categoryRepository.findByName(categoryRequest.getName())
                 .ifPresent(c -> {
                     log.error("[카테고리 생성 실패] 중복된 카테고리명: {}", categoryRequest.getName());
@@ -38,7 +39,8 @@ public class CategoryService {
         }
 
         Category category = new Category(categoryRequest.getName(), parentCategory);
-        categoryRepository.save(category);
+        category = categoryRepository.save(category);
+        return category.getId();
     }
 
     public List<CategoryResponse> getCategories(Long parentId) {
