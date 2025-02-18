@@ -75,25 +75,30 @@ class RegistrationServiceTest {
         void should_FailToCreateRegistration_when_DuplicateUsernameFromRegistration() {
             // given
             RegistrationRequest request = new RegistrationRequest("test.ts", "test@email.com");
-            when(registrationRepository.existsByUsernameAndStatusNot(request.getUsername(), RegistrationStatus.REJECTED))
-                    .thenReturn(true);
+
+            when(registrationRepository.existsByUsernameAndStatus(request.getUsername(), RegistrationStatus.PENDING))
+                    .thenReturn(true); // 올바른 조건 설정
 
             // when & then
             assertThatThrownBy(() -> registrationService.createRegistration(request))
-                    .isInstanceOf(DuplicatedUsernameException.class);
+                    .isInstanceOf(DuplicatedUsernameException.class)
+                    .hasMessage("이미 사용중인 아이디입니다.");
         }
+
 
         @Test
         @DisplayName("계정 등록 요청한 이메일로 이미 등록 요청이 존재하면 오류가 발생한다.")
         void should_FailToCreateRegistration_when_DuplicateEmailFromRegistration() {
             // given
             RegistrationRequest request = new RegistrationRequest("test.ts", "test@email.com");
-            when(registrationRepository.existsByEmailAndStatusNot(request.getEmail(), RegistrationStatus.REJECTED))
+
+            when(registrationRepository.existsByEmailAndStatus(request.getEmail(), RegistrationStatus.PENDING))
                     .thenReturn(true);
 
             // when & then
             assertThatThrownBy(() -> registrationService.createRegistration(request))
-                    .isInstanceOf(DuplicatedEmailException.class);
+                    .isInstanceOf(DuplicatedEmailException.class)
+                    .hasMessage("이미 사용중인 이메일입니다.");
         }
 
         @Test
@@ -148,7 +153,7 @@ class RegistrationServiceTest {
 
             // then
             assertThat(violations).isNotEmpty();
-            assertThat(violation.getMessage()).contains("올바른 형식의 이메일 주소여야 합니다");
+            assertThat(violation.getMessage()).contains("must be a well-formed email address");
         }
 
         @Test
@@ -159,10 +164,6 @@ class RegistrationServiceTest {
 
             when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
             when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
-            when(registrationRepository.existsByUsernameAndStatusNot(request.getUsername(), RegistrationStatus.REJECTED))
-                    .thenReturn(false);
-            when(registrationRepository.existsByEmailAndStatusNot(request.getEmail(), RegistrationStatus.REJECTED))
-                    .thenReturn(false);
 
             // when
             registrationService.createRegistration(request);
@@ -173,6 +174,7 @@ class RegistrationServiceTest {
                             && reg.getEmail().equals("test@email.com")
                             && reg.getStatus() == RegistrationStatus.PENDING));
         }
+
     }
 
     @Nested

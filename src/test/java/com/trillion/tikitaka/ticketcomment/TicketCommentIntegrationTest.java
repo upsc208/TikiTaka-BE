@@ -1,9 +1,18 @@
 package com.trillion.tikitaka.ticketcomment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trillion.tikitaka.authentication.domain.CustomUserDetails;
+import com.trillion.tikitaka.category.domain.Category;
+import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
 import com.trillion.tikitaka.ticketcomment.dto.request.TicketCommentRequest;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
+import com.trillion.tikitaka.tickettype.domain.TicketType;
+import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
+import com.trillion.tikitaka.user.domain.Role;
+import com.trillion.tikitaka.user.domain.User;
+import com.trillion.tikitaka.user.infrastructure.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +25,9 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,15 +51,121 @@ public class TicketCommentIntegrationTest {
     @Autowired
     private TicketRepository ticketRepository;
 
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private TicketTypeRepository ticketTypeRepository;
+
+    private User manager1;
+    private User manager2;
+    private User normalUser1;
+    private User normalUser2;
+
+    private User admin1;
+    private CustomUserDetails userDetails;
+
+    private TicketType ticketType1;
+    private TicketType ticketType2;
+
+    private Category parentCategory1;
+    private Category childCategory1;
+    private Category parentCategory2;
+    private Category childCategory2;
+
+
     @BeforeEach
     void setUp() {
+        ticketRepository.deleteAll();
+        userRepository.deleteAll();
 
+
+        manager1 = userRepository.saveAndFlush(User.builder()
+                .username("manager1")
+                .email("manager1@test.com")
+                .password("manager1pass")
+                .role(Role.MANAGER)
+                .build());
+
+        manager2 = userRepository.saveAndFlush(User.builder()
+                .username("manager2")
+                .email("manager2@test.com")
+                .password("manager2pass")
+                .role(Role.MANAGER)
+                .build());
+
+        normalUser1 = userRepository.saveAndFlush(User.builder()
+                .username("normalUser1")
+                .email("user1@test.com")
+                .password("user1pass")
+                .role(Role.USER)
+                .build());
+
+        normalUser2 = userRepository.saveAndFlush(User.builder()
+                .username("normalUser2")
+                .email("user2@test.com")
+                .password("user2pass")
+                .role(Role.USER)
+                .build());
+
+        admin1 = userRepository.saveAndFlush(User.builder()
+                .username("admin1")
+                .email("admin1@test.com")
+                .password("admin1pass")
+                .role(Role.ADMIN)
+                .build());
+
+
+        userRepository.flush();
+
+        userDetails = new CustomUserDetails(normalUser1);
+
+
+        ticketType1 = ticketTypeRepository.saveAndFlush(new TicketType("기본 티켓 유형"));
+        ticketType2 = ticketTypeRepository.saveAndFlush(new TicketType("두번째 티켓 유형"));
+
+
+        parentCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A", null));
+        childCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A-1", parentCategory1));
+
+
+        Ticket ticket1 = ticketRepository.saveAndFlush(Ticket.builder()
+                .title("TicketA")
+                .description("Desc A")
+                .ticketType(ticketType1)
+                .firstCategory(parentCategory1)
+                .secondCategory(childCategory1)
+                .requester(normalUser1)
+                .manager(manager1)
+                .deadline(LocalDateTime.parse("2025-05-05 12:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                .status(Ticket.Status.IN_PROGRESS)
+                .build());
+
+        Ticket ticket2 = ticketRepository.saveAndFlush(Ticket.builder()
+                .title("TicketB")
+                .description("Desc B")
+                .ticketType(ticketType2)
+                .firstCategory(parentCategory1)
+                .secondCategory(childCategory1)
+                .requester(normalUser1)
+                .manager(manager1)
+                .deadline(LocalDateTime.parse("2025-06-10 15:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                .status(Ticket.Status.PENDING)
+                .build());
+
+        ticketRepository.flush();
     }
 
     @Test
     @DisplayName("정상적인 티켓 댓글 생성")
     @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_CreateTicketComment_When_ValidRequest() throws Exception {
+        Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+        Long ticketId = ticket.getId();
 
         TicketCommentRequest request = new TicketCommentRequest("This is a test comment.");
 
@@ -66,7 +184,7 @@ public class TicketCommentIntegrationTest {
         );
 
         // when & then
-        mockMvc.perform(multipart("/tickets/" + 1L + "/comments")
+        mockMvc.perform(multipart("/tickets/" + ticketId + "/comments")
                         .file(requestPart)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk());
@@ -105,6 +223,8 @@ public class TicketCommentIntegrationTest {
     @DisplayName("유효하지 않은 유저가 댓글을 생성할 경우 예외 발생")
     @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ThrowException_When_InvalidUserCreatesComment() throws Exception {
+        Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+        Long ticketId = ticket.getId();
 
         TicketCommentRequest request = new TicketCommentRequest("Unauthorized Comment Attempt");
 
@@ -123,7 +243,7 @@ public class TicketCommentIntegrationTest {
         );
 
         // when & then
-        mockMvc.perform(multipart("/tickets/" + 1L + "/comments")
+        mockMvc.perform(multipart("/tickets/" + ticketId + "/comments")
                         .file(requestPart)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isForbidden());
@@ -133,8 +253,10 @@ public class TicketCommentIntegrationTest {
     @DisplayName("정상적인 티켓 댓글 조회")
     @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_GetTicketComments_When_ValidRequest() throws Exception {
+        Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+        Long ticketId = ticket.getId();
 
-        mockMvc.perform(get("/tickets/" + 1L + "/comments"))
+        mockMvc.perform(get("/tickets/" + ticketId + "/comments"))
                 .andExpect(status().isOk());
     }
 

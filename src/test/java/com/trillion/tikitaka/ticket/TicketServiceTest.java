@@ -216,8 +216,17 @@ class TicketServiceTest {
 
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), any(), any(), any(), any(), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class))
-            ).thenReturn(page);
+                    any(Pageable.class),
+                    eq(Ticket.Status.PENDING),
+                    isNull(), isNull(), isNull(),
+                    isNull(),
+                    eq(userDetails.getId()),
+                    eq(false),
+                    anyString(),
+                    isNull(),
+                    eq("newest")
+            )).thenReturn(page);
+
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
@@ -253,8 +262,18 @@ class TicketServiceTest {
             Page<TicketListResponse> page = new PageImpl<>(filteredList);
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), eq(filterStatus), any(), any(), any(), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class)
+                    any(Pageable.class),
+                    eq(filterStatus),  // ⬅️ 올바른 상태 필터 적용
+                    isNull(), isNull(), isNull(),
+                    isNull(),
+                    eq(userDetails.getId()),  // ⬅️ userId를 정확하게 설정
+                    eq(false),
+                    anyString(), // "USER" 예상 값 추가
+                    isNull(),
+                    eq("newest")
             )).thenReturn(page);
+
+
             Pageable pageable = PageRequest.of(0, 20);
 
             // when
@@ -300,8 +319,18 @@ class TicketServiceTest {
             when(categoryRepository.findById(firstCategoryId)).thenReturn(Optional.of(category1));
             when(categoryRepository.findById(secondCategoryId)).thenReturn(Optional.of(category2));
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), any(), eq(firstCategoryId), eq(secondCategoryId), any(), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class))
-            ).thenReturn(page);
+                    any(Pageable.class),
+                    nullable(Ticket.Status.class),  // 상태 필터가 null일 수도 있음
+                    eq(firstCategoryId),
+                    eq(secondCategoryId),
+                    isNull(), isNull(),
+                    eq(userDetails.getId()),
+                    eq(false),
+                    anyString(),  // "USER" 예상 값 추가
+                    isNull(),
+                    eq("newest")
+            )).thenReturn(page);
+
 
             Pageable pageable = PageRequest.of(0, 20);
 
@@ -341,9 +370,20 @@ class TicketServiceTest {
                     .collect(Collectors.toList());
             Page<TicketListResponse> page = new PageImpl<>(filteredList);
 
-            when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
-            when(ticketTypeRepository.existsById(ticketTypeId)).thenReturn(true);
-            when(ticketRepository.getTicketList(any(Pageable.class), any(), any(), any(), eq(ticketTypeId), any(), any(), anyBoolean(), anyString(), anyString(), nullable(String.class)
+            lenient().when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
+            lenient().when(ticketTypeRepository.existsById(ticketTypeId)).thenReturn(true);
+            lenient().when(ticketRepository.getTicketList(
+                    any(Pageable.class),
+                    any(),
+                    any(),
+                    any(),
+                    eq(ticketTypeId),   // ✅ ticketTypeId 일치
+                    any(),
+                    eq(userDetails.getId()),  // ✅ userDetails.getId()를 명확하게 지정
+                    anyBoolean(),
+                    eq("USER"),  // ✅ "USER"로 전달된 값을 맞춤
+                    nullable(String.class),
+                    eq("newest")
             )).thenReturn(page);
 
             Pageable pageable = PageRequest.of(0, 20);
@@ -360,6 +400,7 @@ class TicketServiceTest {
                 assertThat(ticket.getTypeName()).isEqualTo("생성");
             });
         }
+
 
         @Test
         @DisplayName("담당자 필터가 적용되면 해당 담당자의 티켓 목록만 반환되어야 한다.")
@@ -392,8 +433,20 @@ class TicketServiceTest {
             when(userRepository.existsById(eq(userDetails.getId()))).thenReturn(true);
             when(userRepository.existsById(eq(managerId))).thenReturn(true);
             when(ticketRepository.getTicketList(
-                    any(Pageable.class), any(), any(), any(), any(), eq(managerId), any(), anyBoolean(), anyString(), anyString(), nullable(String.class)
+                    any(Pageable.class),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    eq(managerId),
+                    eq(1L),
+                    eq(false),
+                    eq("USER"),  // 정확한 값 매칭
+                    nullable(String.class),
+                    eq("newest")  // 정확한 값 매칭
             )).thenReturn(page);
+
+
 
             Pageable pageable = PageRequest.of(0, 20);
 

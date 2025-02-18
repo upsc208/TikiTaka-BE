@@ -71,6 +71,9 @@ public class TicketServiceIntegrationTest {
     private User normalUser1;
     private User normalUser2;
 
+    private User admin1;
+    private CustomUserDetails userDetails;
+
     private TicketType ticketType1;
     private TicketType ticketType2;
 
@@ -81,46 +84,60 @@ public class TicketServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        ticketRepository.deleteAll();
         userRepository.deleteAll();
-        manager1 = userRepository.save(User.builder()
+
+
+        manager1 = userRepository.saveAndFlush(User.builder()
                 .username("manager1")
                 .email("manager1@test.com")
                 .password("manager1pass")
                 .role(Role.MANAGER)
                 .build());
 
-        manager2 = userRepository.save(User.builder()
+        manager2 = userRepository.saveAndFlush(User.builder()
                 .username("manager2")
                 .email("manager2@test.com")
                 .password("manager2pass")
                 .role(Role.MANAGER)
                 .build());
 
-        normalUser1 = userRepository.save(User.builder()
-                .username("user1")
+        normalUser1 = userRepository.saveAndFlush(User.builder()
+                .username("normalUser1")
                 .email("user1@test.com")
                 .password("user1pass")
                 .role(Role.USER)
                 .build());
 
-        normalUser2 = userRepository.save(User.builder()
-                .username("user2")
+        normalUser2 = userRepository.saveAndFlush(User.builder()
+                .username("normalUser2")
                 .email("user2@test.com")
                 .password("user2pass")
                 .role(Role.USER)
                 .build());
 
-        ticketType1 = ticketTypeRepository.save(new TicketType("기본 티켓 유형"));
-        ticketType2 = ticketTypeRepository.save(new TicketType("두번째 티켓 유형"));
+        admin1 = userRepository.saveAndFlush(User.builder()
+                .username("admin1")
+                .email("admin1@test.com")
+                .password("admin1pass")
+                .role(Role.ADMIN)
+                .build());
 
-        parentCategory1 = categoryRepository.save(new Category("카테고리A", null));
-        childCategory1 = categoryRepository.save(new Category("카테고리A-1", parentCategory1));
 
-        parentCategory2 = categoryRepository.save(new Category("카테고리B", null));
-        childCategory2 = categoryRepository.save(new Category("카테고리B-1", parentCategory2));
+        userRepository.flush();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        ticketRepository.save(Ticket.builder()
+        userDetails = new CustomUserDetails(normalUser1);
+
+
+        ticketType1 = ticketTypeRepository.saveAndFlush(new TicketType("기본 티켓 유형"));
+        ticketType2 = ticketTypeRepository.saveAndFlush(new TicketType("두번째 티켓 유형"));
+
+
+        parentCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A", null));
+        childCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A-1", parentCategory1));
+
+
+        Ticket ticket1 = ticketRepository.saveAndFlush(Ticket.builder()
                 .title("TicketA")
                 .description("Desc A")
                 .ticketType(ticketType1)
@@ -132,41 +149,19 @@ public class TicketServiceIntegrationTest {
                 .status(Ticket.Status.IN_PROGRESS)
                 .build());
 
-        ticketRepository.save(Ticket.builder()
+        Ticket ticket2 = ticketRepository.saveAndFlush(Ticket.builder()
                 .title("TicketB")
                 .description("Desc B")
                 .ticketType(ticketType2)
-                .firstCategory(parentCategory2)
-                .secondCategory(childCategory2)
-                .requester(normalUser2)
-                .manager(manager1)
-                .deadline(LocalDateTime.parse("2025-05-05 12:00", formatter))
-                .status(Ticket.Status.PENDING)
-                .build());
-
-        ticketRepository.save(Ticket.builder()
-                .title("TicketC")
-                .description("Desc C")
-                .ticketType(ticketType1)
                 .firstCategory(parentCategory1)
                 .secondCategory(childCategory1)
                 .requester(normalUser1)
-                .manager(manager2)
-                .deadline(LocalDateTime.parse("2025-05-05 12:00", formatter))
-                .status(Ticket.Status.REJECTED)
+                .manager(manager1)
+                .deadline(LocalDateTime.parse("2025-06-10 15:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                .status(Ticket.Status.PENDING)
                 .build());
 
-        ticketRepository.save(Ticket.builder()
-                .title("TicketD")
-                .description("Desc D")
-                .ticketType(ticketType2)
-                .firstCategory(parentCategory2)
-                .secondCategory(childCategory2)
-                .requester(normalUser2)
-                .manager(manager2)
-                .deadline(LocalDateTime.parse("2025-05-05 12:00", formatter))
-                .status(Ticket.Status.IN_PROGRESS)
-                .build());
+        ticketRepository.flush();
     }
 
     @Nested
@@ -336,42 +331,30 @@ public class TicketServiceIntegrationTest {
         @DisplayName("유효한 티켓 ID를 조회하면 상세 티켓 정보를 반환한다.")
         void should_ReturnTicketDetail_when_ValidTicketId() throws Exception {
             // given
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            LocalDateTime deadline = LocalDateTime.parse("2025-05-05 12:00", formatter);
-
-            Ticket ticket = Ticket.builder()
-                    .title("테스트 티켓 제목")
-                    .description("테스트 티켓 상세 내용")
-                    .ticketType(ticketType1)
-                    .firstCategory(parentCategory1)
-                    .secondCategory(childCategory1)
-                    .deadline(deadline)
-                    .urgent(false)
-                    .requester(normalUser1)
-                    .manager(manager1)
-                    .build();
-            ticketRepository.save(ticket);
+            Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+            Long ticketId = ticket.getId();
 
             // when
             CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
 
             String responseBody = mockMvc.perform(
-                            get("/tickets/{ticketId}", ticket.getId())
+                            get("/tickets/{ticketId}", ticketId)
                                     .with(user(customUserDetails))
                     )
                     .andExpect(status().isOk())
                     .andReturn().getResponse().getContentAsString();
 
             // then
-            assertThat(responseBody).contains("테스트 티켓 제목");
-            assertThat(responseBody).contains("테스트 티켓 상세 내용");
+            assertThat(responseBody).contains("TicketA");
+            assertThat(responseBody).contains("Desc A");
             assertThat(responseBody).contains("기본 티켓 유형");
             assertThat(responseBody).contains("카테고리A");
             assertThat(responseBody).contains("카테고리A-1");
             assertThat(responseBody).contains("2025-05-05 12:00");
             assertThat(responseBody).contains("false");
-            assertThat(responseBody).contains("user1");
+            assertThat(responseBody).contains("normalUser1");
             assertThat(responseBody).contains("manager1");
+
         }
 
             @Test
@@ -476,25 +459,14 @@ public class TicketServiceIntegrationTest {
         @DisplayName("다른 사용자가 생성한 티켓을 사용자가 조회하면 실패한다.")
         void should_FailToGetTicket_when_OtherUserTicket() throws Exception {
             // given
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            Ticket otherTicket = Ticket.builder()
-                    .title("다른 유저 티켓")
-                    .description("다른 유저 내용")
-                    .ticketType(ticketType1)
-                    .firstCategory(parentCategory1)
-                    .secondCategory(childCategory1)
-                    .deadline(LocalDateTime.parse("2025-05-05 12:00", formatter))
-                    .urgent(false)
-                    .requester(normalUser2) // user2
-                    .manager(manager1)
-                    .build();
-            ticketRepository.save(otherTicket);
+            Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+            Long ticketId = ticket.getId();
 
             // when
-            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
+            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser2);
 
             String responseBody = mockMvc.perform(
-                            get("/tickets/{ticketId}", otherTicket.getId())
+                            get("/tickets/{ticketId}", ticketId)
                                     .with(user(customUserDetails))
                     )
                     .andExpect(status().isNotFound())
@@ -711,17 +683,8 @@ public class TicketServiceIntegrationTest {
             @DisplayName("담당자가 티켓 담당자를 수정할 수 있다.")
             void should_EditTicketManager_when_Manager() throws Exception {
                 // given
-                Ticket ticket = ticketRepository.save(Ticket.builder()
-                        .title("담당자 변경 테스트 티켓")
-                        .description("담당자 변경 전")
-                        .ticketType(ticketType1)
-                        .firstCategory(parentCategory1)
-                        .secondCategory(childCategory1)
-                        .deadline(LocalDateTime.now().plusDays(5))
-                        .requester(normalUser1)
-                        .manager(manager1)
-                        .status(Ticket.Status.PENDING)
-                        .build());
+                Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+                Long ticketId = ticket.getId();
 
                 EditSettingRequest request = EditSettingRequest.builder()
                         .managerId(manager2.getId())

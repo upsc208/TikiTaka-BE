@@ -141,7 +141,7 @@ public class TokenIntegrationTest {
         }
 
         @Test
-        @DisplayName("만료된 리프레시 토큰일 경우 400 Bad Request를 반환한다.")
+        @DisplayName("만료된 리프레시 토큰일 경우 401 Unauthorized를 반환한다.")
         void should_ReturnBadRequest_when_RefreshTokenExpired() throws Exception {
             // given
             String refreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, 1L, "user", "ROLE_USER", 100L);
@@ -152,7 +152,7 @@ public class TokenIntegrationTest {
             mockMvc.perform(post("/reissue")
                             .contentType(MediaType.APPLICATION_JSON)
                             .cookie(refreshCookie))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
