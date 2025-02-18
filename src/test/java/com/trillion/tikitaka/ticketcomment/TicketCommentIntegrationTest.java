@@ -123,7 +123,11 @@ public class TicketCommentIntegrationTest {
                 .build());
 
 
-        userRepository.flush();
+        userRepository.saveAndFlush(manager1);
+        userRepository.saveAndFlush(manager2);
+        userRepository.saveAndFlush(normalUser1);
+        userRepository.saveAndFlush(normalUser2);
+        userRepository.saveAndFlush(admin1);
 
         userDetails = new CustomUserDetails(normalUser1);
 
@@ -160,7 +164,8 @@ public class TicketCommentIntegrationTest {
                 .status(Ticket.Status.PENDING)
                 .build());
 
-        ticketRepository.flush();
+        ticketRepository.saveAndFlush(ticket1);
+        ticketRepository.saveAndFlush(ticket2);
         TicketComment comment1 = ticketCommentRepository.saveAndFlush(TicketComment.builder()
                 .content("첫 번째 댓글입니다.")
                 .ticket(ticket1)
