@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,12 +85,12 @@ public class MonthlyStatisticsIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // ✅ 기존 데이터 삭제
+
         historyRepository.deleteAll();
         ticketRepository.deleteAll();
         userRepository.deleteAll();
 
-        // ✅ 유저 저장
+
         manager1 = userRepository.saveAndFlush(User.builder()
                 .username("manager1")
                 .email("manager1@test.com")
@@ -111,27 +112,26 @@ public class MonthlyStatisticsIntegrationTest {
                 .role(Role.ADMIN)
                 .build());
 
-        // ✅ 즉시 반영하여 `requester_id`가 NULL이 되지 않도록 보장
+
         userRepository.flush();
 
         userDetails = new CustomUserDetails(normalUser1);
 
-        // ✅ 기본 티켓 유형 생성
+
         ticketType1 = ticketTypeRepository.saveAndFlush(new TicketType("기본 티켓 유형"));
         ticketType2 = ticketTypeRepository.saveAndFlush(new TicketType("두번째 티켓 유형"));
 
-        // ✅ 카테고리 생성
+
         parentCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A", null));
         childCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A-1", parentCategory1));
 
-        // ✅ `requester`를 반드시 설정 후 `saveAndFlush()`로 티켓 2개 저장
         Ticket ticket1 = ticketRepository.saveAndFlush(Ticket.builder()
                 .title("TicketA")
                 .description("Desc A")
                 .ticketType(ticketType1)
                 .firstCategory(parentCategory1)
                 .secondCategory(childCategory1)
-                .requester(normalUser1)  // ✅ 반드시 `requester` 설정
+                .requester(normalUser1)
                 .manager(manager1)
                 .deadline(LocalDateTime.parse("2025-05-05 12:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                 .status(Ticket.Status.IN_PROGRESS)
@@ -149,13 +149,13 @@ public class MonthlyStatisticsIntegrationTest {
                 .status(Ticket.Status.PENDING)
                 .build());
 
-        // ✅ `ticketRepository.flush();` 호출하여 데이터 반영 강제
+
         ticketRepository.flush();
 
         TicketHistory history = TicketHistory.builder()
                 .ticket(ticket1)
                 .updateType(TicketHistory.UpdateType.STATUS_CHANGE)
-                .updatedBy(admin1) // 관리자(admin1)가 변경했다고 설정
+                .updatedBy(admin1)
                 .updatedAt(LocalDateTime.now())
                 .build();
 
@@ -174,11 +174,14 @@ public class MonthlyStatisticsIntegrationTest {
 
     @Test
     @DisplayName("MANAGER 권한을 가진 사용자는 월간 통계를 조회할 수 있다.")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ReturnMonthlyStatistics_When_ManagerUser() throws Exception {
+        CustomUserDetails userDetails = new CustomUserDetails(manager1);
+
         String responseBody = mockMvc.perform(get("/statistic/monAll")
                         .param("year", "2025")
-                        .param("month", "2"))
+                        .param("month", "2")
+                        .with(user(userDetails))
+                )
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

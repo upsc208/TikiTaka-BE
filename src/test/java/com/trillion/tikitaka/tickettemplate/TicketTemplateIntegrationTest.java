@@ -57,47 +57,65 @@ public class TicketTemplateIntegrationTest {
     private User testUser;
     private Category firstCat;
     private Category secondCat;
+    private Category mismatchSecondCat;
     private TicketType type1;
     private TicketTemplate template1;
     private TicketTemplate template2;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                .username("testUser")
-                .email("test@domain.com")
-                .password("pass")
-                .role(Role.MANAGER)
-                .build();
-        testUser = userRepository.save(testUser);
+        userRepository.deleteAll();
+        categoryRepository.deleteAll();
+        ticketTypeRepository.deleteAll();
+        templateRepository.deleteAll();
 
-        firstCat = Category.builder()
-                .name("First Category")
-                .build();
-        firstCat = categoryRepository.save(firstCat);
+        testUser = userRepository.save(
+                User.builder()
+                        .username("testUser")
+                        .email("test@domain.com")
+                        .password("pass")
+                        .role(Role.MANAGER)
+                        .build()
+        );
 
-        secondCat = Category.builder()
-                .name("Second Category")
-                .parent(firstCat)
-                .build();
-        secondCat = categoryRepository.save(secondCat);
+        firstCat = categoryRepository.save(
+                Category.builder()
+                        .name("First Category")
+                        .build()
+        );
+        secondCat = categoryRepository.save(
+                Category.builder()
+                        .name("Second Category")
+                        .parent(firstCat)
+                        .build()
+        );
 
-        type1 = TicketType.builder()
-                .name("Bug")
-                .build();
-        type1 = ticketTypeRepository.save(type1);
+        mismatchSecondCat = categoryRepository.save(
+                Category.builder()
+                        .name("Mismatch Second Cat")
+                        .parent(null)
+                        .build()
+        );
 
-        template1 = TicketTemplate.builder()
-                .templateTitle("Init Title")
-                .title("Init T1")
-                .description("Init Description")
-                .requester(testUser)
-                .firstCategory(firstCat)
-                .secondCategory(secondCat)
-                .type(type1)
-                .manager(null)
-                .build();
-        template1 = templateRepository.save(template1);
+        type1 = ticketTypeRepository.save(
+                TicketType.builder()
+                        .name("Bug")
+                        .build()
+        );
+
+        template1 = templateRepository.save(
+                TicketTemplate.builder()
+                        .templateTitle("Init Title")
+                        .title("Init T1")
+                        .description("Init Description")
+                        .requester(testUser)
+                        .firstCategory(firstCat)
+                        .secondCategory(secondCat)
+                        .type(type1)
+                        .manager(null)
+                        .build()
+        );
+
 
         User otherUser = User.builder()
                 .username("otherUser")
@@ -152,13 +170,12 @@ public class TicketTemplateIntegrationTest {
     }
 
     @Test
-    @DisplayName("[생성] 2차 카테고리가 1차 카테고리에 속하지 않고 생성 요청")
+    @DisplayName("[생성] 2차 카테고리가 1차 카테고리에 속하지 않으면서 생성 요청")
     void createTemplate_CategoryMismatch() throws Exception {
-
         TicketTemplateRequest request = new TicketTemplateRequest(
                 type1.getId(),
                 firstCat.getId(),
-                999L,
+                mismatchSecondCat.getId(),
                 101L,
                 "Sample Template Title",
                 "Sample Title",
@@ -170,7 +187,7 @@ public class TicketTemplateIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("2차 카테고리가 1차 카테고리에 속하지 않습니다."));
+                .andExpect(jsonPath("$.message").value("티켓 템플릿 FK값이 유효하지 않습니다."));
     }
 
     @Test
@@ -201,7 +218,7 @@ public class TicketTemplateIntegrationTest {
         TicketTemplateRequest request = new TicketTemplateRequest(
                 type1.getId(),
                 firstCat.getId(),
-                999L,
+                mismatchSecondCat.getId(),
                 101L,
                 "Mismatch Title",
                 "Mismatch Title",
@@ -213,8 +230,10 @@ public class TicketTemplateIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("2차 카테고리가 1차 카테고리에 속하지 않습니다."));
+                .andExpect(jsonPath("$.message")
+                        .value("티켓 템플릿 FK값이 유효하지 않습니다."));
     }
+
 
     @Test
     @DisplayName("[삭제] 권한 없는 유저가 삭제")

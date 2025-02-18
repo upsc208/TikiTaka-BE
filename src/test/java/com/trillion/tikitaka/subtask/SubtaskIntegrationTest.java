@@ -97,9 +97,9 @@ public class SubtaskIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        subtaskRepository.deleteAll();
         ticketRepository.deleteAll();
         userRepository.deleteAll();
-
 
         manager1 = userRepository.saveAndFlush(User.builder()
                 .username("manager1")
@@ -122,10 +122,7 @@ public class SubtaskIntegrationTest {
                 .role(Role.ADMIN)
                 .build());
 
-
         userRepository.flush();
-
-        userDetails = new CustomUserDetails(normalUser1);
 
 
         ticketType1 = ticketTypeRepository.saveAndFlush(new TicketType("기본 티켓 유형"));
@@ -148,32 +145,33 @@ public class SubtaskIntegrationTest {
                 .status(Ticket.Status.IN_PROGRESS)
                 .build());
 
-        Ticket ticket2 = ticketRepository.saveAndFlush(Ticket.builder()
-                .title("TicketB")
-                .description("Desc B")
-                .ticketType(ticketType2)
-                .firstCategory(parentCategory1)
-                .secondCategory(childCategory1)
-                .requester(normalUser1)
-                .manager(manager1)
-                .deadline(LocalDateTime.parse("2025-06-10 15:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
-                .status(Ticket.Status.PENDING)
-                .build());
 
         ticketRepository.flush();
 
-        Subtask subtask1 = new Subtask(1L, "false", ticket1,true);
-        Subtask subtask2 = new Subtask(2L, "false", ticket1,true);
-        Subtask subtask3 = new Subtask(3L, "false", ticket1,false);
+
+        Subtask subtask1 = Subtask.builder()
+                .description("첫 번째 하위 태스크")
+                .done(false)
+                .parentTicket(ticket1)
+                .build();
+
+        Subtask subtask2 = Subtask.builder()
+                .description("두 번째 하위 태스크")
+                .done(false)
+                .parentTicket(ticket1)
+                .build();
+
+        Subtask subtask3 = Subtask.builder()
+                .description("세 번째 하위 태스크")
+                .done(true)
+                .parentTicket(ticket1)
+                .build();
+
 
         subtaskRepository.saveAll(List.of(subtask1, subtask2, subtask3));
-
-        /*userDetails = new CustomUserDetails(manager1);
-        userDetails = new CustomUserDetails(normalUser1);
-        userDetails = new CustomUserDetails(admin1);*/
-
-
+        subtaskRepository.flush();
     }
+
 
     @Test
     @DisplayName("하위 태스크를 생성하면 200을 반환한다.")
@@ -222,6 +220,8 @@ public class SubtaskIntegrationTest {
         Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
         Long ticketId = ticket.getId();
 
+
+
         // when
         String responseBody = mockMvc.perform(get("/subtasks/" + ticketId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -240,9 +240,11 @@ public class SubtaskIntegrationTest {
     @DisplayName("하위 태스크 삭제하면 204 No Content 반환")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_DeleteSubtask_when_ValidTaskId() throws Exception {
-
+        Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+        Long ticketId = ticket.getId();
+        Subtask subtask  = subtaskRepository.findAll().stream().findFirst().orElseThrow();
         // when
-        mockMvc.perform(delete("/subtasks/" + 1L + "/" + 1L)
+        mockMvc.perform(delete("/subtasks/" + ticketId + "/" + subtask.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

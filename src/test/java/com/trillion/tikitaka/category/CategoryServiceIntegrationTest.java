@@ -48,7 +48,7 @@ public class CategoryServiceIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data").isEmpty());
+                    .andExpect(jsonPath("$.data").isNotEmpty());
 
             String response = mockMvc.perform(get("/categories/list")
                             .contentType(MediaType.APPLICATION_JSON))

@@ -71,16 +71,26 @@ public class ReviewIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        User reviewer = User.builder()
-                .username("testReviewer")
-                .email("admin@dktechin.co.kr")
-                .password("Password1234!")
-                .role(Role.MANAGER)
-                .build();
-        userRepository.save(reviewer);
-        reviewerId = reviewer.getId();
+        reviewRepository.deleteAll();
+        ticketRepository.deleteAll();
+        userRepository.deleteAll();
+        userRepository.flush();
 
-        CustomUserDetails userDetails = new CustomUserDetails(reviewer);
+        // 중복 방지: 존재하는 이메일인지 확인 후 삽입
+        if (!userRepository.existsByEmail("admin@dktechin.co.kr")) {
+            User reviewer = User.builder()
+                    .username("testReviewer")
+                    .email("admin123@dktechin.co.kr")
+                    .password("Password1234!")
+                    .role(Role.MANAGER)
+                    .build();
+            userRepository.save(reviewer);
+            reviewerId = reviewer.getId();
+        } else {
+            reviewerId = userRepository.findByEmail("admin@dktechin.co.kr").get().getId();
+        }
+
+        CustomUserDetails userDetails = new CustomUserDetails(userRepository.findById(reviewerId).orElseThrow());
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities()
         );
@@ -88,9 +98,9 @@ public class ReviewIntegrationTest {
 
         validToken = jwtUtil.createJwtToken(
                 JwtUtil.TOKEN_TYPE_ACCESS,
-                reviewer.getId(),
-                reviewer.getUsername(),
-                reviewer.getRole().toString(),
+                reviewerId,
+                userRepository.findById(reviewerId).orElseThrow().getUsername(),
+                userRepository.findById(reviewerId).orElseThrow().getRole().toString(),
                 JwtUtil.ACCESS_TOKEN_EXPIRATION
         );
 
@@ -105,12 +115,13 @@ public class ReviewIntegrationTest {
                 .status(Ticket.Status.REVIEW)
                 .deadline(LocalDateTime.now().plusDays(1))
                 .ticketType(ticketType)
-                .requester(reviewer)
+                .requester(userRepository.findById(reviewerId).orElseThrow())
                 .urgent(false)
                 .build();
         ticketRepository.save(ticket);
         ticketId = ticket.getId();
     }
+
 
     @Test
     @DisplayName("검토 요청이 정상적으로 수행된다.")

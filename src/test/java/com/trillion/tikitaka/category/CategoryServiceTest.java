@@ -44,10 +44,16 @@ public class CategoryServiceTest {
             // given
             CategoryRequest request = new CategoryRequest("테스트 카테고리");
 
-            when(categoryRepository.findByName(request.getName())).thenReturn(Optional.empty());
 
             // when
+            when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+                Category savedCategory = invocation.getArgument(0);
+                ReflectionTestUtils.setField(savedCategory, "id", 1L);
+                return savedCategory;
+            });
+
             categoryService.createCategory(null, request);
+
 
             // then
             verify(categoryRepository, times(1)).save(any(Category.class));
@@ -61,15 +67,26 @@ public class CategoryServiceTest {
             CategoryRequest request = new CategoryRequest("테스트 카테고리");
 
             Category parentCategory = mock(Category.class);
+
             when(categoryRepository.findByName(request.getName())).thenReturn(Optional.empty());
             when(categoryRepository.findByIdAndParentIsNull(parentId)).thenReturn(Optional.of(parentCategory));
+
+            // ✅ save() 호출 시 Category의 ID 설정
+            when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+                Category savedCategory = invocation.getArgument(0);
+                ReflectionTestUtils.setField(savedCategory, "id", 2L); // ID 값을 설정
+                return savedCategory;
+            });
 
             // when
             categoryService.createCategory(parentId, request);
 
             // then
-            verify(categoryRepository, times(1)).save(any(Category.class));
+            verify(categoryRepository, times(1)).save(any(Category.class)); // ✅ save()가 호출되었는지 검증
         }
+
+
+
 
         @Test
         @DisplayName("동일한 카테고리명이 존재하면 오류가 발생한다.")

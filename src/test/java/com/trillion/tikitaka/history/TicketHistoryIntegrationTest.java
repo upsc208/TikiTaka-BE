@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -93,12 +94,10 @@ public class TicketHistoryIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // ✅ 기존 데이터 삭제
         historyRepository.deleteAll();
         ticketRepository.deleteAll();
         userRepository.deleteAll();
 
-        // ✅ 유저 저장
         manager1 = userRepository.saveAndFlush(User.builder()
                 .username("manager1")
                 .email("manager1@test.com")
@@ -120,27 +119,23 @@ public class TicketHistoryIntegrationTest {
                 .role(Role.ADMIN)
                 .build());
 
-        // ✅ 즉시 반영하여 `requester_id`가 NULL이 되지 않도록 보장
         userRepository.flush();
 
         userDetails = new CustomUserDetails(normalUser1);
 
-        // ✅ 기본 티켓 유형 생성
         ticketType1 = ticketTypeRepository.saveAndFlush(new TicketType("기본 티켓 유형"));
         ticketType2 = ticketTypeRepository.saveAndFlush(new TicketType("두번째 티켓 유형"));
 
-        // ✅ 카테고리 생성
         parentCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A", null));
         childCategory1 = categoryRepository.saveAndFlush(new Category("카테고리A-1", parentCategory1));
 
-        // ✅ `requester`를 반드시 설정 후 `saveAndFlush()`로 티켓 2개 저장
         Ticket ticket1 = ticketRepository.saveAndFlush(Ticket.builder()
                 .title("TicketA")
                 .description("Desc A")
                 .ticketType(ticketType1)
                 .firstCategory(parentCategory1)
                 .secondCategory(childCategory1)
-                .requester(normalUser1)  // ✅ 반드시 `requester` 설정
+                .requester(normalUser1)
                 .manager(manager1)
                 .deadline(LocalDateTime.parse("2025-05-05 12:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                 .status(Ticket.Status.IN_PROGRESS)
@@ -152,18 +147,17 @@ public class TicketHistoryIntegrationTest {
                 .ticketType(ticketType2)
                 .firstCategory(parentCategory1)
                 .secondCategory(childCategory1)
-                .requester(normalUser1)  // ✅ 반드시 `requester` 설정
+                .requester(normalUser1)
                 .manager(manager1)
                 .deadline(LocalDateTime.parse("2025-06-10 15:30", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                 .status(Ticket.Status.PENDING)
                 .build());
 
-        // ✅ `ticketRepository.flush();` 호출하여 데이터 반영 강제
         ticketRepository.flush();
         TicketHistory history = TicketHistory.builder()
                 .ticket(ticket1)
                 .updateType(TicketHistory.UpdateType.STATUS_CHANGE)
-                .updatedBy(admin1) // 관리자(admin1)가 변경했다고 설정
+                .updatedBy(admin1)
                 .updatedAt(LocalDateTime.now())
                 .build();
 
@@ -260,9 +254,8 @@ public class TicketHistoryIntegrationTest {
     @DisplayName("이력이 없는 경우 200 OK와 빈 배열을 반환한다.")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ReturnEmptyList_when_NoHistoryExists() throws Exception {
-        // ✅ 히스토리가 없는 티켓 찾기
         Ticket ticketWithoutHistory = ticketRepository.findAll().stream()
-                .filter(ticket -> historyRepository.findByTicketId(ticket.getId()).isEmpty())  // ✅ 올바른 필터 조건
+                .filter(ticket -> historyRepository.findByTicketId(ticket.getId()).isEmpty())
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("히스토리가 없는 티켓이 없습니다."));
 
@@ -285,18 +278,21 @@ public class TicketHistoryIntegrationTest {
 
 
     @Test
-    @DisplayName("관리자가 티켓 상태를 변경하면 변경 이력이 기록된다.")
-    @WithUserDetails(value = "admin.tk", userDetailsServiceBeanName = "customUserDetailsService")
+    @DisplayName("담당자가 티켓 상태를 변경하면 변경 이력이 기록된다.")
+    @WithMockUser(username = "manager1", authorities = {"MANAGER"})
     void should_RecordHistory_when_AdminUpdatesTicketStatus() throws Exception {
         Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
         Long ticketId = ticket.getId();
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
         // given
         EditSettingRequest request = new EditSettingRequest(null, null, null, null, Ticket.Status.IN_PROGRESS, null);
         String jsonRequest = mapper.writeValueAsString(request);
 
         // when
-        mockMvc.perform(patch("/tickets/" + ticketId + "/status") // ✅ 변경된 ID 사용
+        mockMvc.perform(patch("/tickets/" + ticketId + "/status")
+                        .with(user(customUserDetails))
                         .contentType("application/json")
                         .content(jsonRequest))
                 .andExpect(status().isOk());
@@ -325,7 +321,7 @@ public class TicketHistoryIntegrationTest {
 
     @Test
     @DisplayName("일반 사용자가 티켓 상태를 변경하려 하면 403 Forbidden을 반환하고 이력이 기록되지 않는다.")
-    @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
+    @WithMockUser(username = "normalUser1", authorities = {"USER"})
     void should_Return403AndNotRecordHistory_when_UserWithoutPermissionUpdatesTicket() throws Exception {
 
         Ticket ticketWithoutHistory = ticketRepository.findAll().stream()
@@ -334,25 +330,28 @@ public class TicketHistoryIntegrationTest {
                 .orElseThrow(() -> new IllegalStateException("히스토리가 없는 티켓이 없습니다."));
         Long ticketId = ticketWithoutHistory.getId();
 
+        CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
+
         // given
         EditSettingRequest request = new EditSettingRequest(null, null, null, null, Ticket.Status.IN_PROGRESS, null);
         String jsonRequest = mapper.writeValueAsString(request);
 
         // when (권한 없는 사용자가 상태 변경 요청)
         String responseBody = mockMvc.perform(patch("/tickets/" + ticketId + "/status")
+                        .with(user(customUserDetails))
                         .contentType("application/json")
                         .content(jsonRequest))
-                .andExpect(status().isForbidden()) // ✅ 403 Forbidden 기대
+                .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
-        // then (에러 메시지 검증)
+
         ErrorResponse error = mapper.readValue(responseBody, ErrorResponse.class);
         assertThat(error.getMessage()).isEqualTo("접근 권한이 없습니다.");
 
         String historyResponse = mockMvc.perform(get("/history")
-                        .param("ticketId", String.valueOf(ticketId)) // ✅ 동적으로 ID 사용
+                        .param("ticketId", String.valueOf(ticketId))
                         .contentType("application/json"))
-                .andExpect(status().isOk()) // ✅ 200 OK 기대
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode jsonNode = mapper.readTree(historyResponse);
@@ -364,7 +363,7 @@ public class TicketHistoryIntegrationTest {
             historyList.add(response);
         }
 
-        // ✅ 변경 이력이 없어야 함
+
         assertThat(historyList).isEmpty();
     }
 

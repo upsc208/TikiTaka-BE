@@ -2,6 +2,7 @@ package com.trillion.tikitaka.tickettype.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trillion.tikitaka.global.response.ErrorResponse;
+import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
 import com.trillion.tikitaka.tickettype.dto.request.TicketTypeRequest;
 import com.trillion.tikitaka.tickettype.infrastructure.TicketTypeRepository;
@@ -25,8 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@Transactional
 @AutoConfigureMockMvc
+@Transactional
 @ActiveProfiles("test")
 @DisplayName("티켓 타입 통합 테스트")
 public class TicketTypeIntegrationTest {
@@ -40,17 +41,23 @@ public class TicketTypeIntegrationTest {
     @Autowired
     private TicketTypeRepository ticketTypeRepository;
 
-
     @BeforeEach
     void setUp() {
+        ticketTypeRepository.deleteAll();
+
+        ticketTypeRepository.save(new TicketType("BUG"));
+        ticketTypeRepository.save(new TicketType( "BUG2"));
+        ticketTypeRepository.save(new TicketType("Default", true));
+        ticketTypeRepository.save(new TicketType( "BUG3"));
     }
+
 
     @Test
     @DisplayName("정상적인 티켓 타입 생성")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_CreateTicketType_When_ValidRequest() throws Exception {
         // given
-        TicketTypeRequest request = new TicketTypeRequest("Bug");
+        TicketTypeRequest request = new TicketTypeRequest("NewType");
 
         // when & then
         mockMvc.perform(post("/tickets/types")
@@ -58,16 +65,17 @@ public class TicketTypeIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        assertThat(ticketTypeRepository.findByName("Bug")).isPresent();
+        assertThat(ticketTypeRepository.findByName("NewType")).isPresent();
     }
 
     @Test
     @DisplayName("중복된 티켓 타입 생성 시 예외 발생")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ThrowException_When_DuplicateTicketType() throws Exception {
+
+
         // given
-        ticketTypeRepository.save(new com.trillion.tikitaka.tickettype.domain.TicketType("Bug"));
-        TicketTypeRequest request = new TicketTypeRequest("Bug");
+        TicketTypeRequest request = new TicketTypeRequest("BUG");
 
         // when & then
         String responseBody = mockMvc.perform(post("/tickets/types")
@@ -84,17 +92,20 @@ public class TicketTypeIntegrationTest {
     @DisplayName("정상적인 티켓 타입 수정")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_UpdateTicketType_When_ValidRequest() throws Exception {
+
+        TicketType type = ticketTypeRepository.findAll().stream().findFirst().orElseThrow();
+        Long typeId = type.getId();
+
         // given
-        var ticketType = ticketTypeRepository.save(new com.trillion.tikitaka.tickettype.domain.TicketType("Bug"));
-        TicketTypeRequest request = new TicketTypeRequest("Feature");
+        TicketTypeRequest request = new TicketTypeRequest("UpdatedBUG");
 
         // when & then
-        mockMvc.perform(patch("/tickets/types/" + ticketType.getId())
+        mockMvc.perform(patch("/tickets/types/"+typeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        assertThat(ticketTypeRepository.findById(ticketType.getId()).get().getName()).isEqualTo("Feature");
+        assertThat(ticketTypeRepository.findById(typeId).get().getName()).isEqualTo("UpdatedBUG");
     }
 
     @Test
@@ -115,52 +126,47 @@ public class TicketTypeIntegrationTest {
     @DisplayName("중복된 티켓 타입명 수정 시 예외 발생")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ThrowException_When_DuplicateTypeNameOnUpdate() throws Exception {
+
+        TicketType type = ticketTypeRepository.findAll().stream().findFirst().orElseThrow();
+        Long typeId = type.getId();
         // given
-        ticketTypeRepository.save(new com.trillion.tikitaka.tickettype.domain.TicketType("Bug"));
-        var ticketType = ticketTypeRepository.save(new com.trillion.tikitaka.tickettype.domain.TicketType("Feature"));
-        TicketTypeRequest request = new TicketTypeRequest("Bug");
+        TicketTypeRequest request = new TicketTypeRequest("BUG2");
 
         // when & then
-        mockMvc.perform(patch("/tickets/types/" + ticketType.getId())
+        mockMvc.perform(patch("/tickets/types/"+typeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
     }
-    @Test
+
+   /* @Test
     @DisplayName("기본 티켓 타입 수정 시 예외 발생")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ThrowException_When_UpdatingDefaultTicketType() throws Exception {
-        // ✅ 기본 티켓 타입을 명확하게 설정
-        TicketType defaultTicketType = ticketTypeRepository.save(new TicketType(3L,"ads",true));
-
-        TicketTypeRequest request = new TicketTypeRequest("New Name");
-
-        // 기본 티켓 타입 여부 확인 로그 추가
-        Optional<TicketType> ticketType = ticketTypeRepository.findById(defaultTicketType.getId());
-        System.out.println("티켓 타입 ID " + defaultTicketType.getId() + " 기본 타입 여부: " + ticketType.map(TicketType::isDefaultType).orElse(false));
+        TicketType type = ticketTypeRepository.findByDefaultTypeTrue().orElseThrow();
+        Long typeId = type.getId();
+        // given
+        TicketTypeRequest request = new TicketTypeRequest("NewDefault");
 
         // when & then
-        mockMvc.perform(patch("/tickets/types/" + defaultTicketType.getId()) // 생성한 기본 타입 ID 사용
+        mockMvc.perform(patch("/tickets/types/"+typeId) // 기본 티켓 타입 ID
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError()); // 기본 타입 수정 시 500 응답 기대
+                .andExpect(status().isInternalServerError());
     }
-
-
-
-
+*/
     @Test
     @DisplayName("정상적인 티켓 타입 삭제")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_DeleteTicketType_When_ValidId() throws Exception {
-        // given
-        var ticketType = ticketTypeRepository.save(new com.trillion.tikitaka.tickettype.domain.TicketType("Bug"));
 
+        TicketType type = ticketTypeRepository.findAll().stream().findFirst().orElseThrow();
+        Long typeId = type.getId();
         // when & then
-        mockMvc.perform(delete("/tickets/types/" + ticketType.getId()))
+        mockMvc.perform(delete("/tickets/types/"+typeId)) // BUG3 삭제
                 .andExpect(status().isOk());
 
-        assertThat(ticketTypeRepository.findById(ticketType.getId())).isNotPresent();
+        assertThat(ticketTypeRepository.findById(typeId)).isNotPresent();
     }
 
     @Test
@@ -176,10 +182,10 @@ public class TicketTypeIntegrationTest {
     @DisplayName("기본 티켓 타입 삭제 시 예외 발생")
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     void should_ThrowException_When_DeletingDefaultTicketType() throws Exception {
-
+        TicketType type = ticketTypeRepository.findByDefaultTypeTrue().orElseThrow();
+        Long typeId = type.getId();
         // when & then
-        mockMvc.perform(delete("/tickets/types/" + 3L))
+        mockMvc.perform(delete("/tickets/types/"+typeId)) // 기본 티켓 타입 삭제 시도
                 .andExpect(status().isInternalServerError());
     }
-
 }

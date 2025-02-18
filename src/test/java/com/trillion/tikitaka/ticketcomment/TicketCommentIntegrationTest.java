@@ -6,6 +6,7 @@ import com.trillion.tikitaka.category.domain.Category;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import com.trillion.tikitaka.ticket.domain.Ticket;
 import com.trillion.tikitaka.ticket.infrastructure.TicketRepository;
+import com.trillion.tikitaka.ticketcomment.domain.TicketComment;
 import com.trillion.tikitaka.ticketcomment.dto.request.TicketCommentRequest;
 import com.trillion.tikitaka.ticketcomment.infrastructure.TicketCommentRepository;
 import com.trillion.tikitaka.tickettype.domain.TicketType;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -82,6 +84,7 @@ public class TicketCommentIntegrationTest {
     void setUp() {
         ticketRepository.deleteAll();
         userRepository.deleteAll();
+        ticketCommentRepository.deleteAll();
 
 
         manager1 = userRepository.saveAndFlush(User.builder()
@@ -120,7 +123,11 @@ public class TicketCommentIntegrationTest {
                 .build());
 
 
-        userRepository.flush();
+        userRepository.saveAndFlush(manager1);
+        userRepository.saveAndFlush(manager2);
+        userRepository.saveAndFlush(normalUser1);
+        userRepository.saveAndFlush(normalUser2);
+        userRepository.saveAndFlush(admin1);
 
         userDetails = new CustomUserDetails(normalUser1);
 
@@ -157,15 +164,35 @@ public class TicketCommentIntegrationTest {
                 .status(Ticket.Status.PENDING)
                 .build());
 
-        ticketRepository.flush();
+        ticketRepository.saveAndFlush(ticket1);
+        ticketRepository.saveAndFlush(ticket2);
+        TicketComment comment1 = ticketCommentRepository.saveAndFlush(TicketComment.builder()
+                .content("첫 번째 댓글입니다.")
+                .ticket(ticket1)
+                .author(manager1)
+                .build());
+
+        TicketComment comment2 = ticketCommentRepository.saveAndFlush(TicketComment.builder()
+                .content("두 번째 댓글입니다.")
+                .ticket(ticket1)
+                .author(normalUser1)
+                .build());
+
+        TicketComment comment3 = ticketCommentRepository.saveAndFlush(TicketComment.builder()
+                .content("세 번째 댓글입니다.")
+                .ticket(ticket2)
+                .author(manager1)
+                .build());
+        ticketCommentRepository.flush();
     }
 
     @Test
     @DisplayName("정상적인 티켓 댓글 생성")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_CreateTicketComment_When_ValidRequest() throws Exception {
         Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
         Long ticketId = ticket.getId();
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
         TicketCommentRequest request = new TicketCommentRequest("This is a test comment.");
 
@@ -186,16 +213,18 @@ public class TicketCommentIntegrationTest {
         // when & then
         mockMvc.perform(multipart("/tickets/" + ticketId + "/comments")
                         .file(requestPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .with(user(customUserDetails)))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("존재하지 않는 티켓에 댓글 생성 시 예외 발생")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ThrowException_When_TicketNotFound() throws Exception {
         // given
         TicketCommentRequest request = new TicketCommentRequest("Invalid Ticket ID");
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
         // when & then
         MockMultipartFile requestPart = new MockMultipartFile(
@@ -215,16 +244,18 @@ public class TicketCommentIntegrationTest {
         // when & then
         mockMvc.perform(multipart("/tickets/" + 999L + "/comments")
                         .file(requestPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .with(user(customUserDetails)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("유효하지 않은 유저가 댓글을 생성할 경우 예외 발생")
-    @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ThrowException_When_InvalidUserCreatesComment() throws Exception {
         Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
         Long ticketId = ticket.getId();
+
+        CustomUserDetails customUserDetails = new CustomUserDetails(normalUser2);
 
         TicketCommentRequest request = new TicketCommentRequest("Unauthorized Comment Attempt");
 
@@ -245,64 +276,76 @@ public class TicketCommentIntegrationTest {
         // when & then
         mockMvc.perform(multipart("/tickets/" + ticketId + "/comments")
                         .file(requestPart)
-                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .with(user(customUserDetails)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("정상적인 티켓 댓글 조회")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_GetTicketComments_When_ValidRequest() throws Exception {
         Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
         Long ticketId = ticket.getId();
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
-        mockMvc.perform(get("/tickets/" + ticketId + "/comments"))
+        mockMvc.perform(get("/tickets/" + ticketId + "/comments")
+                        .with(user(customUserDetails)))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("티켓 댓글 수정 - 정상 수정")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_UpdateTicketComment_When_ValidRequest() throws Exception {
         // given
+        Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+        Long ticketId = ticket.getId();
         TicketCommentRequest request = new TicketCommentRequest("Updated Comment");
+        TicketComment comment = ticketCommentRepository.findAll().stream().findFirst().orElseThrow();
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
 
         // when & then
-        mockMvc.perform(patch("/tickets/" + 1L + "/comments/" + 1L)
+        mockMvc.perform(patch("/tickets/" + ticketId + "/comments/" + comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customUserDetails)))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("존재하지 않는 티켓 댓글 수정 시 예외 발생")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ThrowException_When_CommentNotFound() throws Exception {
         // given
         TicketCommentRequest request = new TicketCommentRequest("Updated Comment");
 
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
+
         // when & then
         mockMvc.perform(patch("/tickets/1/comments/9999")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(customUserDetails)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("정상적인 티켓 댓글 삭제")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_DeleteTicketComment_When_ValidId() throws Exception {
-
-        mockMvc.perform(delete("/tickets/" + 1L + "/comments/" + 3L))
+        Ticket ticket = ticketRepository.findAll().stream().findFirst().orElseThrow();
+        Long ticketId = ticket.getId();
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
+        TicketComment comment = ticketCommentRepository.findAll().stream().findFirst().orElseThrow();
+        mockMvc.perform(delete("/tickets/" + ticketId + "/comments/" + comment.getId())
+                        .with(user(customUserDetails)))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("존재하지 않는 티켓 댓글 삭제 시 예외 발생")
-    @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
     void should_ThrowException_When_DeleteNonExistentComment() throws Exception {
+        CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
         // when & then
-        mockMvc.perform(delete("/tickets/1/comments/9999"))
+        mockMvc.perform(delete("/tickets/1/comments/9999")
+                        .with(user(customUserDetails)))
                 .andExpect(status().isNotFound());
     }
 }
