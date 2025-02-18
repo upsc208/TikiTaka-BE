@@ -517,7 +517,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("담당자가 티켓 유형을 수정할 수 있다.")
-        @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_EditTicketType_when_Manager() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -537,6 +536,7 @@ public class TicketServiceIntegrationTest {
             CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
             mockMvc.perform(
                             patch("/tickets/{ticketId}/type", ticket.getId())
+                                    .with(user(customUserDetails))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request))
                     )
@@ -545,7 +545,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("사용자가 티켓 유형을 수정하려 하면 실패한다.")
-        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_FailToEditTicketType_when_User() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -564,6 +563,7 @@ public class TicketServiceIntegrationTest {
             // when
             CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
             mockMvc.perform(patch("/tickets/{ticketId}/type", ticket.getId())
+                            .with(user(customUserDetails))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request))
                     )
@@ -714,7 +714,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("정상적으로 PENDING 상태의 티켓을 삭제할 수 있다.")
-        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_DeleteTicket_when_ValidRequest() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -727,10 +726,11 @@ public class TicketServiceIntegrationTest {
                     .requester(normalUser1)
                     .status(Ticket.Status.PENDING)
                     .build());
+            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
 
             // when
             mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
-                            .with(user(new CustomUserDetails(normalUser1))))
+                            .with(user(customUserDetails)))
                     .andExpect(status().isOk());
 
             // then
@@ -739,7 +739,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("PENDING 상태가 아닌 티켓을 삭제하려 하면 실패한다.")
-        @WithUserDetails(value = "user.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_FailToDeleteTicket_when_StatusIsNotPending() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -753,9 +752,11 @@ public class TicketServiceIntegrationTest {
                     .status(Ticket.Status.IN_PROGRESS)
                     .build());
 
+            CustomUserDetails customUserDetails = new CustomUserDetails(normalUser1);
+
             // when
             mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
-                            .with(user(new CustomUserDetails(normalUser1))))
+                            .with(user(customUserDetails)))
                     .andExpect(status().isForbidden());
 
             // then
@@ -764,7 +765,6 @@ public class TicketServiceIntegrationTest {
 
         @Test
         @DisplayName("담당자가 티켓을 삭제하려 하면 실패한다.")
-        @WithUserDetails(value = "manager.tk", userDetailsServiceBeanName = "customUserDetailsService")
         void should_FailToDeleteTicket_when_ManagerTriesToDelete() throws Exception {
             // given
             Ticket ticket = ticketRepository.save(Ticket.builder()
@@ -779,9 +779,11 @@ public class TicketServiceIntegrationTest {
                     .status(Ticket.Status.PENDING)
                     .build());
 
+            CustomUserDetails customUserDetails = new CustomUserDetails(manager1);
+
             // when
             mockMvc.perform(delete("/tickets/{ticketId}", ticket.getId())
-                            .with(user(new CustomUserDetails(manager1))))
+                            .with(user(customUserDetails)))
                     .andExpect(status().isForbidden());
 
             // then
