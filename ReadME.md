@@ -16,8 +16,8 @@
 ## 1. 개발기간 및 작업 관리
 
 ### 개발 기간
-- 전체 개발 기간 : 2025-01-20 ~ 
-- 기능 구현 : 2025-01-20 ~ 2025-02-21
+- 프로젝트 기간 : 2025-01-21 ~ 2025-02-12
+- 기능 구현 기간: 2025-01-06 ~ 2025-02-21
 
 ### 작업 관리
 - GitHub Issues와 Jira를 사용하여 지정 상황을 공유했습니다.
@@ -27,7 +27,8 @@
 
 ## 2. 개발 환경
 
-- **Back-end** : JAVA, SpringBoot, Spring Data JPA, Mysql, QueryDSL
+- **Back-end** : JAVA 17, SpringBoot 3.4.1, Spring Data JPA 3.4.1, JWT 0.12.6, Lombok 1.18.36, Mysql 8.0.34, QueryDSL 5.0
+- **Infra** : Jenkins(version: 2.479.3), Docker(version: 27.5.1), VM, Object Storage, DNS, ALB, Container Registry, JMeter
 - **버전 및 이슈관리** : Jira, GitHub Issues
 - **협업 툴** : Discord, Notion, Jira
 - **서비스 배포 환경** : https://www.tikitaka.kr/
