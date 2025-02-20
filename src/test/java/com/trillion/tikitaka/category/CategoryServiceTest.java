@@ -8,12 +8,13 @@ import com.trillion.tikitaka.category.exception.CategoryNotFoundException;
 import com.trillion.tikitaka.category.exception.DuplicatedCategoryException;
 import com.trillion.tikitaka.category.exception.PrimaryCategoryNotFoundException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -24,18 +25,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @DisplayName("카테고리 서비스 유닛 테스트")
+@ExtendWith(MockitoExtension.class)
 public class CategoryServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
 
+    @InjectMocks
     private CategoryService categoryService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        categoryService = new CategoryService(categoryRepository);
-    }
 
     @Nested
     @DisplayName("카테고리 생성 테스트")
@@ -45,14 +42,18 @@ public class CategoryServiceTest {
         @DisplayName("상위 카테고리를 지정하지 않고 중복되는 카테고리명이 없으면 1차 카테고리를 생성한다.")
         void should_CreatePrimaryCategory_when_NoDuplicateNameAndNoParentId() {
             // given
-            Long parentId = null;
             CategoryRequest request = new CategoryRequest("테스트 카테고리");
 
-            when(categoryRepository.findByName(request.getName()))
-                    .thenReturn(Optional.empty());
 
             // when
-            categoryService.createCategory(parentId, request);
+            when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+                Category savedCategory = invocation.getArgument(0);
+                ReflectionTestUtils.setField(savedCategory, "id", 1L);
+                return savedCategory;
+            });
+
+            categoryService.createCategory(null, request);
+
 
             // then
             verify(categoryRepository, times(1)).save(any(Category.class));
@@ -67,30 +68,37 @@ public class CategoryServiceTest {
 
             Category parentCategory = mock(Category.class);
 
-            when(categoryRepository.findByName(request.getName()))
-                    .thenReturn(Optional.empty());
-            when(categoryRepository.findByIdAndParentIsNull(parentId))
-                    .thenReturn(Optional.of(parentCategory));
+            when(categoryRepository.findByName(request.getName())).thenReturn(Optional.empty());
+            when(categoryRepository.findByIdAndParentIsNull(parentId)).thenReturn(Optional.of(parentCategory));
+
+            // ✅ save() 호출 시 Category의 ID 설정
+            when(categoryRepository.save(any(Category.class))).thenAnswer(invocation -> {
+                Category savedCategory = invocation.getArgument(0);
+                ReflectionTestUtils.setField(savedCategory, "id", 2L); // ID 값을 설정
+                return savedCategory;
+            });
 
             // when
             categoryService.createCategory(parentId, request);
 
             // then
-            verify(categoryRepository, times(1)).save(any(Category.class));
+            verify(categoryRepository, times(1)).save(any(Category.class)); // ✅ save()가 호출되었는지 검증
         }
+
+
+
 
         @Test
         @DisplayName("동일한 카테고리명이 존재하면 오류가 발생한다.")
         void should_ThrowException_when_DuplicateName() {
             // given
-            Long parentId = null;
             CategoryRequest request = new CategoryRequest("테스트 카테고리");
 
-            when(categoryRepository.findByName(request.getName()))
-                    .thenReturn(Optional.of(mock(Category.class)));
+            Category existingCategory = mock(Category.class);
+            when(categoryRepository.findByName(request.getName())).thenReturn(Optional.of(existingCategory));
 
             // when & then
-            assertThatThrownBy(() -> categoryService.createCategory(parentId, request)).
+            assertThatThrownBy(() -> categoryService.createCategory(null, request)).
                     isInstanceOf(DuplicatedCategoryException.class);
         }
 
@@ -101,10 +109,8 @@ public class CategoryServiceTest {
             Long parentId = 1L;
             CategoryRequest request = new CategoryRequest("테스트 카테고리");
 
-            when(categoryRepository.findByName(request.getName()))
-                    .thenReturn(Optional.empty());
-            when(categoryRepository.findByIdAndParentIsNull(parentId))
-                    .thenReturn(Optional.empty());
+            when(categoryRepository.findByName(request.getName())).thenReturn(Optional.empty());
+            when(categoryRepository.findByIdAndParentIsNull(parentId)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> categoryService.createCategory(parentId, request)).
@@ -120,17 +126,15 @@ public class CategoryServiceTest {
         @DisplayName("부모 카테고리가 주어지지 않으면 모든 1차 카테고리를 조회한다.")
         void should_ReturnAllFirstCategories_when_NoParentId() {
             // given
-            Long parentId = null;
             List<CategoryResponse> mockList = List.of(
                     new CategoryResponse(1L, "Primary1", null),
                     new CategoryResponse(2L, "Primary2", null)
             );
 
-            when(categoryRepository.getCategories(null))
-                    .thenReturn(mockList);
+            when(categoryRepository.getCategories(null)).thenReturn(mockList);
 
             // when
-            List<CategoryResponse> categories = categoryService.getCategories(parentId);
+            List<CategoryResponse> categories = categoryService.getCategories(null);
 
             // then
             assertThat(categories).hasSize(2);
@@ -148,10 +152,9 @@ public class CategoryServiceTest {
                     new CategoryResponse(4L, "Secondary2", 1L)
             );
 
-            when(categoryRepository.findById(parentId))
-                    .thenReturn(Optional.of(mock(Category.class)));
-            when(categoryRepository.getCategories(parentId))
-                    .thenReturn(mockList);
+            Category parentCategory = mock(Category.class);
+            when(categoryRepository.findById(parentId)).thenReturn(Optional.of(parentCategory));
+            when(categoryRepository.getCategories(parentId)).thenReturn(mockList);
 
             // when
             List<CategoryResponse> categories = categoryService.getCategories(parentId);
@@ -166,8 +169,7 @@ public class CategoryServiceTest {
         @DisplayName("카테고리가 없으면 빈 목록을 반환한다.")
         void should_ReturnEmptyList_when_NoCategoryExist() {
             // given
-            when(categoryRepository.getCategories(any()))
-                    .thenReturn(List.of());
+            when(categoryRepository.getCategories(any())).thenReturn(List.of());
 
             // when
             List<CategoryResponse> categories = categoryService.getCategories(null);
@@ -202,13 +204,10 @@ public class CategoryServiceTest {
             Long categoryId = 1L;
             CategoryRequest request = new CategoryRequest("수정된 카테고리");
 
-            Category existingCategory = Category.builder()
-                    .name("기존 카테고리")
-                    .build();
+            Category existingCategory = new Category("기존 카테고리", null);
             ReflectionTestUtils.setField(existingCategory, "id", categoryId);
 
-            when(categoryRepository.findByIdOrName(categoryId, request.getName()))
-                    .thenReturn(List.of(existingCategory));
+            when(categoryRepository.findByIdOrName(categoryId, request.getName())).thenReturn(List.of(existingCategory));
 
             // when
             categoryService.updateCategory(categoryId, request);
@@ -224,8 +223,7 @@ public class CategoryServiceTest {
             Long categoryId = 999L;
             CategoryRequest request = new CategoryRequest("카테고리명");
 
-            when(categoryRepository.findByIdOrName(categoryId, request.getName()))
-                    .thenReturn(List.of());
+            when(categoryRepository.findByIdOrName(categoryId, request.getName())).thenReturn(List.of());
 
             // when & then
             assertThatThrownBy(() -> categoryService.updateCategory(categoryId, request))
@@ -239,10 +237,10 @@ public class CategoryServiceTest {
             Long categoryId = 1L;
             CategoryRequest request = new CategoryRequest("기존 카테고리");
 
-            Category catWithSameName = Category.builder().name("기존 카테고리").build();
+            Category catWithSameName = new Category("기존 카테고리", null);
             ReflectionTestUtils.setField(catWithSameName, "id", 2L);
 
-            Category catWithTargetId = Category.builder().name("수정된 카테고리").build();
+            Category catWithTargetId = new Category("수정된 카테고리", null);
             ReflectionTestUtils.setField(catWithTargetId, "id", categoryId);
 
             when(categoryRepository.findByIdOrName(categoryId, request.getName()))
@@ -263,12 +261,10 @@ public class CategoryServiceTest {
         void should_SoftDeleteCategoryAndChildren_when_CategoryExists() {
             // given
             Long categoryId = 1L;
-            Category parentCategory = Category.builder()
-                    .name("Parent")
-                    .build();
+            Category parentCategory = new Category("Parent", null);
 
-            Category child1 = Category.builder().name("Child1").parent(parentCategory).build();
-            Category child2 = Category.builder().name("Child2").parent(parentCategory).build();
+            Category child1 = new Category("Child1", parentCategory);
+            Category child2 = new Category("Child2", parentCategory);
             parentCategory.getChildren().add(child1);
             parentCategory.getChildren().add(child2);
 

@@ -39,13 +39,28 @@ public class Category extends DeletedBaseEntity {
     @OneToMany(mappedBy = "parent")
     private List<Category> children = new ArrayList<>();
 
+    public Category(Long id, String name, Category parent) {
+        this.id = id;
+        this.name = name;
+        this.parent = parent;
+    }
+
     @Builder
     public Category(String name, Category parent) {
         this.name = name;
         this.parent = parent;
     }
 
+    public boolean isChildOf(Category parent) {
+        return this.parent.equals(parent);
+    }
+
     public void updateName(String newName) {
         this.name = newName;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

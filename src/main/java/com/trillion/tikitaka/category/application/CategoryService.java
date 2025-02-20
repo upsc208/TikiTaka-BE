@@ -8,11 +8,13 @@ import com.trillion.tikitaka.category.exception.DuplicatedCategoryException;
 import com.trillion.tikitaka.category.exception.PrimaryCategoryNotFoundException;
 import com.trillion.tikitaka.category.infrastructure.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -21,9 +23,12 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public void createCategory(Long parentId, CategoryRequest categoryRequest) {
+    public Long createCategory(Long parentId, CategoryRequest categoryRequest) {
+        log.info("[카테고리 생성 요청] 카테고리명: {}", categoryRequest.getName());
+
         categoryRepository.findByName(categoryRequest.getName())
                 .ifPresent(c -> {
+                    log.error("[카테고리 생성 실패] 중복된 카테고리명: {}", categoryRequest.getName());
                     throw new DuplicatedCategoryException();
                 });
 
@@ -34,10 +39,12 @@ public class CategoryService {
         }
 
         Category category = new Category(categoryRequest.getName(), parentCategory);
-        categoryRepository.save(category);
+        category = categoryRepository.save(category);
+        return category.getId();
     }
 
     public List<CategoryResponse> getCategories(Long parentId) {
+        log.info("[카테고리 조회 요청]");
         if (parentId != null) {
             categoryRepository.findById(parentId)
                     .orElseThrow(CategoryNotFoundException::new);
@@ -48,13 +55,20 @@ public class CategoryService {
 
     @Transactional
     public void updateCategory(Long categoryId, CategoryRequest request) {
+        log.info("[카테고리 수정 요청] 카테고리 ID: {}", categoryId);
         List<Category> categories = categoryRepository.findByIdOrName(categoryId, request.getName());
 
         boolean idExists = categories.stream().anyMatch(category -> category.getId().equals(categoryId));
         boolean nameExists = categories.stream().anyMatch(category -> category.getName().equals(request.getName()));
 
-        if (!idExists) throw new CategoryNotFoundException();
-        if (nameExists) throw new DuplicatedCategoryException();
+        if (!idExists) {
+            log.error("[카테고리 수정 실패] 존재하지 않는 카테고리: {}", categoryId);
+            throw new CategoryNotFoundException();
+        }
+        if (nameExists) {
+            log.error("[카테고리 수정 실패] 중복된 카테고리명: {}", request.getName());
+            throw new DuplicatedCategoryException();
+        }
 
         Category category = categories.stream()
                 .filter(cat -> cat.getId().equals(categoryId))
@@ -66,9 +80,11 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(Long categoryId) {
+        log.info("[카테고리 삭제 요청] 카테고리 ID: {}", categoryId);
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(CategoryNotFoundException::new);
 
         categoryRepository.deleteAll(category.getChildren());
+        categoryRepository.delete(category);
     }
 }

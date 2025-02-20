@@ -5,8 +5,6 @@ import com.trillion.tikitaka.category.dto.request.CategoryRequest;
 import com.trillion.tikitaka.category.dto.response.CategoryResponse;
 import com.trillion.tikitaka.global.response.ApiResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +20,11 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ApiResponse<Void> createCategory(@RequestParam(value = "parentId", required = false) Long parentId,
-                                            @RequestBody @Valid CategoryRequest categoryRequest) {
-        categoryService.createCategory(parentId, categoryRequest);
-        return new ApiResponse<>(null);
+    public ApiResponse<Long> createCategory(
+            @RequestParam(value = "parentId", required = false) Long parentId,
+            @RequestBody @Valid CategoryRequest categoryRequest) {
+        Long createdId = categoryService.createCategory(parentId, categoryRequest);
+        return new  ApiResponse<>(createdId);
     }
 
     @GetMapping("/list")

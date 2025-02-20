@@ -3,15 +3,19 @@ package com.trillion.tikitaka.authentication.application;
 import com.trillion.tikitaka.authentication.application.util.JwtUtil;
 import com.trillion.tikitaka.authentication.dto.response.TokenResponse;
 import com.trillion.tikitaka.authentication.infrastructure.JwtTokenRepository;
+import com.trillion.tikitaka.global.exception.CustomException;
+import com.trillion.tikitaka.global.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.trillion.tikitaka.authentication.application.util.JwtUtil.*;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -20,17 +24,21 @@ public class JwtService {
     private final JwtUtil jwtUtil;
     private final JwtTokenRepository jwtTokenRepository;
 
+    @Transactional
     public TokenResponse reissueTokens(HttpServletRequest request) {
+        log.info("[토큰 재발급 요청]");
         String refreshToken = extractRefreshToken(request);
         if (refreshToken == null) {
-            return null;
+            log.error("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         validateRefreshToken(refreshToken);
 
         Boolean isRefreshTokenExist = jwtTokenRepository.existsByRefreshToken(refreshToken);
         if (!isRefreshTokenExist) {
-            return null;
+            log.error("[토큰 재발급 요청] 리프레시 토큰이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         Long userId = jwtUtil.getUserId(refreshToken);
@@ -43,6 +51,7 @@ public class JwtService {
         jwtTokenRepository.deleteByRefreshToken(refreshToken);
         jwtUtil.addRefreshToken(username, newRefreshToken, REFRESH_TOKEN_EXPIRATION);
 
+        log.info("[토큰 재발급 요청] 토큰 재발급 완료");
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
@@ -65,12 +74,14 @@ public class JwtService {
         try {
             jwtUtil.isExpired(refreshToken);
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException();
+            log.error("[토큰 재발급 요청] 리프레시 토큰이 만료되었습니다.");
+            throw new CustomException(ErrorCode.EXPIRED_TOKEN);
         }
 
         String type = jwtUtil.getType(refreshToken);
         if (!type.equals(TOKEN_TYPE_REFRESH)) {
-            throw new RuntimeException();
+            log.error("[토큰 재발급 요청] 잘못된 리프레시 토큰압니다.");
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
     }
 }

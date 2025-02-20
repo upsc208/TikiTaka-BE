@@ -3,6 +3,7 @@ package com.trillion.tikitaka.authentication.application.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+@Slf4j
 public class CustomAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_PROCESSES_URL = "/login";
@@ -36,7 +38,7 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException, IOException {
-        if(request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)  ) {
+        if(request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)) {
             throw new AuthenticationServiceException("로그인 요청을 불러오는 중 오류가 발생했습니다.");
         }
 
@@ -45,6 +47,7 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
         Map<String, String> loginAttempt = objectMapper.readValue(messageBody, Map.class);
         String username = loginAttempt.get(SPRING_SECURITY_USERNAME_KEY);
         String password = loginAttempt.get(SPRING_SECURITY_PASSWORD_KEY);
+        log.info("[로그인 요청] : {}", username);
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
         return this.getAuthenticationManager().authenticate(authToken);

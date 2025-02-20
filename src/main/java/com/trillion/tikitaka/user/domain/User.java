@@ -38,6 +38,8 @@ public class User extends DeletedBaseEntity {
     @Column(nullable = false)
     private String password;
 
+    private String profileImageUrl;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -88,5 +90,16 @@ public class User extends DeletedBaseEntity {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
         this.lastPasswordChangedAt = LocalDateTime.now();
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+    public void updateRole(Role newRole) {
+        this.role = newRole;
+    }
+
+    public boolean isDeleted() {
+        return this.getDeletedAt() != null;
     }
 }

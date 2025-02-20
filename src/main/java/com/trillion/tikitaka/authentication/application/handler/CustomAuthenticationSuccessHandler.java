@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +26,7 @@ import static com.trillion.tikitaka.authentication.application.filter.CustomAuth
 import static com.trillion.tikitaka.authentication.application.filter.CustomAuthenticationFilter.ENCODING;
 import static com.trillion.tikitaka.authentication.application.util.JwtUtil.*;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
@@ -44,6 +46,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         String role = iterator.next().getAuthority();
 
         // 토큰 생성
+        log.info("[JWT] 토큰 발급");
         String accessToken = jwtUtil.createJwtToken(TOKEN_TYPE_ACCESS, userId, username, role, ACCESS_TOKEN_EXPIRATION);
         String refreshToken = jwtUtil.createJwtToken(TOKEN_TYPE_REFRESH, userId, username, role, REFRESH_TOKEN_EXPIRATION);
 
@@ -51,7 +54,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         jwtUtil.addRefreshToken(username, refreshToken, REFRESH_TOKEN_EXPIRATION);
 
         response.addHeader(TOKEN_HEADER, TOKEN_PREFIX + accessToken);
-        response.addCookie(jwtUtil.createCookie(TOKEN_TYPE_REFRESH, refreshToken));
+        response.addHeader("Set-Cookie", jwtUtil.createCookie(TOKEN_TYPE_REFRESH, refreshToken).toString());
 
         // 비밀번호 변경 필요 여부 확인
         boolean passwordChangeNeeded = false;
@@ -64,6 +67,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         }
 
         Map<String, Object> responseData = new HashMap<>();
+        responseData.put("id", userId);
+        responseData.put("role", role);
         responseData.put("passwordChangeNeeded", passwordChangeNeeded);
 
         ApiResponse<Map<String, Object>> apiResponse = new ApiResponse<>("로그인에 성공했습니다.", responseData);
@@ -73,5 +78,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         response.setCharacterEncoding(ENCODING);
         String responseJson = objectMapper.writeValueAsString(apiResponse);
         response.getWriter().write(responseJson);
+        log.info("[로그인 성공] : {}", username);
     }
 }
